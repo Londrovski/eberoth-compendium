@@ -17,10 +17,15 @@ const FACTIONS = [
     ],
     members: [
       { name: 'King Gaelan Arveth', role: 'The King.' },
-      { name: 'Prince Davan Arveth', role: 'Heir.' },
-      { name: 'Princess Elowen Arveth', role: 'The younger.' },
-      { name: 'Captain Aldric Fenn', role: 'Kingsguard. Loyal.' },
-      { name: 'Byren Holt', role: 'Lord Chancellor.' }
+      { name: 'Queen Isara Arveth', role: 'The Queen.' },
+      { name: 'Prince Davan Arveth', role: 'Heir to the throne.' },
+      { name: 'Princess Elowen Arveth', role: 'The younger royal.' },
+      { name: 'Lord Chancellor Byren Holt', role: "The king's chief advisor. Manages Crown affairs." },
+      { name: 'Captain Aldric Fenn', role: 'Commander of the Kingsguard. Loyal.' },
+      { name: 'Commander Varek Stohl', role: 'Senior military officer. Enforcer.' },
+      { name: 'Inquisitor Mael Dross', role: 'Crown investigator. Answers to Holt.' },
+      { name: 'Sera Dunmore', role: 'Kingsguard. Fenn\'s shadow.' },
+      { name: 'Seward', role: 'Court official. Keeper of records.' }
     ]
   },
   {
@@ -147,7 +152,7 @@ const PARTY_NOTES = [
 const PERSONAL_NOTES = [
   {
     playerId: 'kalvorn',
-    passphrase: 'KALVORN',
+    passphrase: 'MAREN',
     notes: [
       // Example:
       // { title: 'Your Mother', body: 'Maren did not simply disappear. She attempted something she could not finish.' },
@@ -155,7 +160,7 @@ const PERSONAL_NOTES = [
   },
   {
     playerId: 'azrael',
-    passphrase: 'AZRAEL',
+    passphrase: 'SAMAEL',
     notes: [
       // Example:
       // { title: 'The Vision', body: 'Three shapes. Joined hands. You have seen this before.' },
@@ -163,7 +168,7 @@ const PERSONAL_NOTES = [
   },
   {
     playerId: 'dirk',
-    passphrase: 'DIRKTA',
+    passphrase: 'CORVATH',
     notes: [
       // Example:
       // { title: 'Your Patron', body: 'Something guides your hand. You have not asked who.' },

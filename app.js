@@ -204,9 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     passphraseInput.value = '';
 
     const player = PLAYERS.find(p => p.id === match.playerId);
-    const playerName = player ? player.name : 'Unknown';
+    const characterName = player ? player.name : 'Traveller';
 
-    personalHeader.innerHTML = `<p class="personal-notes-name">${playerName}</p>`;
+    personalHeader.innerHTML = `<p class="personal-notes-welcome">Welcome, ${characterName}.</p>`;
 
     if (!match.notes || match.notes.length === 0) {
       personalNotesList.innerHTML = '<p class="notes-empty">No personal notes yet.</p>';
