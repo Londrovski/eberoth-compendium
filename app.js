@@ -19,11 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── FACTIONS ──
-  // Separate Crown from houses
   const crown = FACTIONS.find(f => f.id === 'crown');
   const houses = FACTIONS.filter(f => f.id !== 'crown');
 
-  // Crown feature block
   if (crown) {
     const slot = document.getElementById('crown-slot');
     const sigilHTML = crown.sigil
@@ -40,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     slot.appendChild(el);
   }
 
-  // House cards
   const grid = document.getElementById('factions-grid');
   houses.forEach(f => {
     const card = document.createElement('div');
@@ -168,50 +165,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── NOTES ──
-  const notesList = document.getElementById('notes-list');
-  const noteAuthor = document.getElementById('note-author');
-  const noteText = document.getElementById('note-text');
-  const noteSubmit = document.getElementById('note-submit');
+  // ── PARTY NOTES ──
+  const partyNotesList = document.getElementById('party-notes-list');
 
-  let notes = [];
-
-  try {
-    const saved = sessionStorage.getItem('eberoth-notes');
-    if (saved) notes = JSON.parse(saved);
-  } catch(e) {}
-
-  function renderNotes() {
-    if (notes.length === 0) {
-      notesList.innerHTML = '<p class="notes-empty">No notes yet. Add something the party should remember.</p>';
-      return;
-    }
-    notesList.innerHTML = notes.slice().reverse().map(n => `
-      <div class="note-card">
-        <div class="note-meta">
-          <span class="note-author">${n.author || 'Unknown'}</span>
-          <span class="note-time">${n.time}</span>
-        </div>
-        <div class="note-body">${n.text}</div>
+  if (!PARTY_NOTES || PARTY_NOTES.length === 0) {
+    partyNotesList.innerHTML = '<p class="notes-empty">No party notes yet.</p>';
+  } else {
+    partyNotesList.innerHTML = PARTY_NOTES.map(n => `
+      <div class="note-card gm-note">
+        ${n.title ? `<div class="note-author">${n.title}</div>` : ''}
+        <div class="note-body">${n.body}</div>
       </div>
     `).join('');
   }
 
-  renderNotes();
+  // ── PERSONAL NOTES ──
+  const passphraseInput = document.getElementById('passphrase-input');
+  const passphraseSubmit = document.getElementById('passphrase-submit');
+  const passphraseError = document.getElementById('passphrase-error');
+  const personalReveal = document.getElementById('personal-notes-reveal');
+  const personalHeader = document.getElementById('personal-notes-header');
+  const personalNotesList = document.getElementById('personal-notes-list');
+  const lockBtn = document.getElementById('passphrase-lock');
 
-  noteSubmit.addEventListener('click', () => {
-    const text = noteText.value.trim();
-    if (!text) return;
-    const now = new Date();
-    const time = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    notes.push({
-      author: noteAuthor.value.trim() || 'Unknown',
-      text,
-      time
-    });
-    try { sessionStorage.setItem('eberoth-notes', JSON.stringify(notes)); } catch(e) {}
-    noteText.value = '';
-    renderNotes();
+  function attemptUnlock() {
+    const attempt = passphraseInput.value.trim().toUpperCase();
+    const match = PERSONAL_NOTES.find(p => p.passphrase.toUpperCase() === attempt);
+
+    if (!match) {
+      passphraseError.classList.remove('hidden');
+      passphraseInput.classList.add('shake');
+      passphraseInput.value = '';
+      setTimeout(() => passphraseInput.classList.remove('shake'), 500);
+      return;
+    }
+
+    passphraseError.classList.add('hidden');
+    passphraseInput.value = '';
+
+    const player = PLAYERS.find(p => p.id === match.playerId);
+    const playerName = player ? player.name : 'Unknown';
+
+    personalHeader.innerHTML = `<p class="personal-notes-name">${playerName}</p>`;
+
+    if (!match.notes || match.notes.length === 0) {
+      personalNotesList.innerHTML = '<p class="notes-empty">No personal notes yet.</p>';
+    } else {
+      personalNotesList.innerHTML = match.notes.map(n => `
+        <div class="note-card">
+          ${n.title ? `<div class="note-author">${n.title}</div>` : ''}
+          <div class="note-body">${n.body}</div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('passphrase-form').classList.add('hidden');
+    personalReveal.classList.remove('hidden');
+  }
+
+  passphraseSubmit.addEventListener('click', attemptUnlock);
+  passphraseInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptUnlock(); });
+
+  lockBtn.addEventListener('click', () => {
+    personalReveal.classList.add('hidden');
+    document.getElementById('passphrase-form').classList.remove('hidden');
+    personalNotesList.innerHTML = '';
+    personalHeader.innerHTML = '';
   });
 
 });

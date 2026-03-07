@@ -129,3 +129,44 @@ const SESSIONS = [
   //   ]
   // }
 ];
+
+// ===========================
+// PARTY NOTES (GM-authored, visible to all)
+// Add notes here that all players should see.
+// ===========================
+const PARTY_NOTES = [
+  // Example:
+  // { title: 'The Job', body: 'You are employed by House Gorrund. Tessaly is your contact. Payment on delivery.' },
+];
+
+// ===========================
+// PERSONAL NOTES (per player, passphrase-locked)
+// Each player has a passphrase and an array of notes.
+// Change the passphrases to whatever you tell each player.
+// ===========================
+const PERSONAL_NOTES = [
+  {
+    playerId: 'kalvorn',
+    passphrase: 'KALVORN',
+    notes: [
+      // Example:
+      // { title: 'Your Mother', body: 'Maren did not simply disappear. She attempted something she could not finish.' },
+    ]
+  },
+  {
+    playerId: 'azrael',
+    passphrase: 'AZRAEL',
+    notes: [
+      // Example:
+      // { title: 'The Vision', body: 'Three shapes. Joined hands. You have seen this before.' },
+    ]
+  },
+  {
+    playerId: 'dirk',
+    passphrase: 'DIRKTA',
+    notes: [
+      // Example:
+      // { title: 'Your Patron', body: 'Something guides your hand. You have not asked who.' },
+    ]
+  }
+];

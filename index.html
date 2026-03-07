@@ -30,7 +30,7 @@
       <div class="nav-sep">✦</div>
       <button class="nav-btn" data-section="sessions">Session Log</button>
       <div class="nav-sep">✦</div>
-      <button class="nav-btn" data-section="notes">Party Notes</button>
+      <button class="nav-btn" data-section="notes">Notes</button>
     </div>
   </nav>
 
@@ -61,18 +61,38 @@
 
     <!-- NOTES -->
     <section id="section-notes" class="section">
+
+      <!-- PARTY NOTES -->
       <div class="section-header">
         <h2>Party Notes</h2>
-        <p>Shared knowledge. Add anything the group should remember.</p>
+        <p>What the group knows. Shared by the GM.</p>
       </div>
-      <div class="notes-wrap">
-        <div class="note-form">
-          <input id="note-author" type="text" placeholder="Your name" maxlength="30" />
-          <textarea id="note-text" placeholder="Write a note for the party..." rows="3" maxlength="600"></textarea>
-          <button id="note-submit">Add Note</button>
+      <div id="party-notes-list" class="notes-wrap"></div>
+
+      <!-- PERSONAL NOTES -->
+      <div class="personal-notes-block">
+        <div class="hierarchy-divider" style="margin: 3rem 0 2rem;">
+          <span>Personal</span>
         </div>
-        <div id="notes-list"></div>
+        <div class="section-header" style="border:none; margin-bottom:1.5rem; padding-bottom:0;">
+          <p>Enter your passphrase to read your private notes.</p>
+        </div>
+
+        <!-- Passphrase form -->
+        <div id="passphrase-form" class="passphrase-form">
+          <input id="passphrase-input" type="password" placeholder="Passphrase" maxlength="30" autocomplete="off" />
+          <button id="passphrase-submit">Unlock</button>
+        </div>
+        <p id="passphrase-error" class="passphrase-error hidden">Unrecognised passphrase.</p>
+
+        <!-- Personal notes reveal -->
+        <div id="personal-notes-reveal" class="hidden">
+          <div id="personal-notes-header" class="personal-notes-header"></div>
+          <div id="personal-notes-list" class="notes-wrap"></div>
+          <button id="passphrase-lock" class="lock-btn">Lock</button>
+        </div>
       </div>
+
     </section>
 
   </main>
