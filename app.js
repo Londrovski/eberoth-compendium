@@ -39,10 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     if (f.status === 'known') {
-      card.addEventListener('click', () => openDetail(f));
+      card.addEventListener('click', () => openFactionDetail(f));
     }
 
     grid.appendChild(card);
+  });
+
+  // ── PARTY ──
+  const partyGrid = document.getElementById('party-grid');
+
+  PLAYERS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'party-card';
+
+    card.innerHTML = `
+      <div class="party-portrait">
+        <img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-portrait-placeholder>${p.name[0]}</span>'">
+      </div>
+      <div class="party-name">${p.name}</div>
+      <div class="party-player">Played by ${p.player}</div>
+      <div class="party-tagline">${p.tagline}</div>
+    `;
+
+    card.addEventListener('click', () => openPlayerDetail(p));
+    partyGrid.appendChild(card);
   });
 
   // ── DETAIL PANEL ──
@@ -50,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailContent = document.getElementById('detail-content');
   const closeBtn = document.getElementById('close-overlay');
 
-  function openDetail(f) {
+  function openFactionDetail(f) {
     const sigilHTML = f.sigil
       ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML=''">`
       : '';
@@ -80,6 +100,22 @@ document.addEventListener('DOMContentLoaded', () => {
       ${membersHTML}
     `;
 
+    openOverlay();
+  }
+
+  function openPlayerDetail(p) {
+    detailContent.innerHTML = `
+      <div class="detail-portrait">
+        <img src="${p.image}" alt="${p.name}" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="detail-title">${p.name}</div>
+      <div class="detail-subtitle">Played by ${p.player}</div>
+      <p class="detail-desc">${p.description}</p>
+    `;
+    openOverlay();
+  }
+
+  function openOverlay() {
     overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
