@@ -7,7 +7,7 @@ const FACTIONS = [
   {
     id: 'crown',
     name: 'The Crown',
-    sigil: 'The Crown.png',
+    sigil: 'images/The Crown.png',
     tagline: 'The throne that holds Eberoth together. For now.',
     status: 'known',
     description: 'The Crown is the seat of power in Eberoth — ancient, contested, and increasingly fragile. The king rules, but the houses circle.',
@@ -27,7 +27,7 @@ const FACTIONS = [
   {
     id: 'corvath',
     name: 'House Corvath',
-    sigil: 'House Corvath.png',
+    sigil: 'images/House Corvath.png',
     tagline: 'Dominant. Military. Loyal to the Crown — or so it claims.',
     status: 'known',
     description: 'The most powerful military house in Eberoth. House Corvath has long served as the Crown\'s strong arm — its soldiers disciplined, its general feared. They ended the Voss campaign swiftly, and have not stopped moving since.',
@@ -45,7 +45,7 @@ const FACTIONS = [
   {
     id: 'voss',
     name: 'House Voss',
-    sigil: 'House Voss.png',
+    sigil: 'images/House Voss.png',
     tagline: 'Destroyed. Corvath\'s puppet state.',
     status: 'known',
     description: 'Once a well-governed house of farmers and merchants. House Voss fell quickly — too quickly, many say. They never had the soldiers for the fight that came to them.',
@@ -63,7 +63,7 @@ const FACTIONS = [
   {
     id: 'gorrund',
     name: 'House Gorrund',
-    sigil: 'House Gorrund.png',
+    sigil: 'images/House Gorrund.png',
     tagline: 'Self-made. Transactional. Respects competence above lineage.',
     status: 'known',
     description: 'A house built on commerce and capability rather than birthright. House Gorrund operates in the grey — pragmatic, professional, always weighing the ledger. They did not inherit their position. They built it.',
@@ -81,7 +81,7 @@ const FACTIONS = [
   {
     id: 'halvorn',
     name: 'House Halvorn',
-    sigil: 'House Halvorn.png',
+    sigil: 'images/House Halvorn.png',
     tagline: 'Calculating. Never in the room when things go wrong.',
     status: 'known',
     description: 'A house that operates through layers of deniability. Halvorn is rarely directly connected to anything — which makes them difficult to pin down and very dangerous. Orthon leads from distance. His son Daven does not.',
@@ -102,7 +102,7 @@ const PLAYERS = [
   {
     id: 'kalvorn',
     name: 'Kalvorn Valaro',
-    image: 'Kalvorn Valaro.jpeg',
+    image: 'images/Kalvorn Valaro.jpeg',
     player: 'Sam Baker',
     tagline: 'Tiefling Paladin. Stoic. More going on beneath the surface than he lets on.',
     description: 'A paladin who has spent years enforcing the will of those above him. Kalvorn is not a man of many words — but the ones he chooses land with weight. He is working out what loyalty means when the people you were loyal to turn out to be worth less than you thought.'
@@ -110,7 +110,7 @@ const PLAYERS = [
   {
     id: 'azrael',
     name: 'Azrael',
-    image: 'Azrael.jpeg',
+    image: 'images/Azrael.jpeg',
     player: 'Butch',
     tagline: 'Bloodhunter. Formerly Samael. The name change means something.',
     description: 'A bloodhunter operating at the edge of what his order sanctions. Azrael has powers he doesn\'t fully understand yet, and a past that has not finished catching up with him.'
@@ -118,7 +118,7 @@ const PLAYERS = [
   {
     id: 'dirk',
     name: 'Dr. Dirk Kaluuya',
-    image: 'Dr Dirk Kaluuya.jpeg',
+    image: 'images/Dr Dirk Kaluuya.jpeg',
     player: 'Charlie',
     tagline: 'Cleric. The Dirkta. Warmer than the other two, which isn\'t saying much.',
     description: 'A cleric whose gifts come from somewhere he hasn\'t looked at too closely. Dirk moves through the world with more ease than his companions — which sometimes makes him useful, and sometimes makes him dangerous.'
