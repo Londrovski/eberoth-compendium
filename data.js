@@ -16,16 +16,7 @@ const FACTIONS = [
       'House loyalties to the Crown vary — some performative, some genuine.'
     ],
     members: [
-      { name: 'King Gaelan Arveth', role: 'The King.' },
-      { name: 'Queen Isara Arveth', role: 'The Queen.' },
-      { name: 'Prince Davan Arveth', role: 'Heir to the throne.' },
-      { name: 'Princess Elowen Arveth', role: 'The younger royal.' },
-      { name: 'Lord Chancellor Byren Holt', role: "The king's chief advisor. Manages Crown affairs." },
-      { name: 'Captain Aldric Fenn', role: 'Commander of the Kingsguard. Loyal.' },
-      { name: 'Commander Varek Stohl', role: 'Senior military officer. Enforcer.' },
-      { name: 'Inquisitor Mael Dross', role: 'Crown investigator. Answers to Holt.' },
-      { name: 'Sera Dunmore', role: 'Kingsguard. Fenn\'s shadow.' },
-      { name: 'Seward', role: 'Court official. Keeper of records.' }
+      { name: 'King Gaelan Arveth', role: 'The King.' }
     ]
   },
   {
@@ -40,9 +31,7 @@ const FACTIONS = [
       'House Voss now exists in their shadow.'
     ],
     members: [
-      { name: 'Aldus Corvath', role: 'General. Head of House.' },
-      { name: 'Petra Corvath', role: 'His wife.' },
-      { name: 'Renn', role: 'Lieutenant. Inner circle.' }
+      { name: 'Aldus Corvath', role: 'General. Head of House.' }
     ]
   },
   {
@@ -57,9 +46,7 @@ const FACTIONS = [
       'Whether any heirs survived is a matter of quiet speculation.'
     ],
     members: [
-      { name: 'Theron Voss', role: 'Current head. A Corvath-friendly appointment.' },
-      { name: 'Mira Voss', role: 'Elder advisor.' },
-      { name: 'Cob', role: 'Household retainer.' }
+      { name: 'Theron Voss', role: 'Current head.' }
     ]
   },
   {
@@ -74,9 +61,8 @@ const FACTIONS = [
       'Currently employing the party.'
     ],
     members: [
-      { name: 'Cael Gorrund', role: 'Head of House. Self-made.' },
-      { name: 'Tessaly', role: 'Intermediary. Handles sensitive work.' },
-      { name: 'Jorik', role: 'Right hand. Recently extracted from captivity.' }
+      { name: 'Cael Gorrund', role: 'Head of House.' },
+      { name: 'Tessaly', role: 'Intermediary. Handles sensitive work.' }
     ]
   },
   {
@@ -91,9 +77,7 @@ const FACTIONS = [
       'Recently lost a significant prisoner from their custody.'
     ],
     members: [
-      { name: 'Orthon Halvorn', role: 'Head of House. Calculating. Untraceable.' },
-      { name: 'Daven Halvorn', role: 'Son. Wants to prove himself.' },
-      { name: 'Syla', role: 'The fixer. Does the work nobody discusses.' }
+      { name: 'Orthon Halvorn', role: 'Head of House.' }
     ]
   }
 ];
