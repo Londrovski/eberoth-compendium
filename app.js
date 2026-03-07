@@ -19,29 +19,47 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── FACTIONS ──
-  const grid = document.getElementById('factions-grid');
+  // Separate Crown from houses
+  const crown = FACTIONS.find(f => f.id === 'crown');
+  const houses = FACTIONS.filter(f => f.id !== 'crown');
 
-  FACTIONS.forEach(f => {
+  // Crown feature block
+  if (crown) {
+    const slot = document.getElementById('crown-slot');
+    const sigilHTML = crown.sigil
+      ? `<img src="${crown.sigil}" alt="${crown.name}" onerror="this.parentElement.innerHTML=''">`
+      : '';
+    const el = document.createElement('div');
+    el.className = 'crown-feature';
+    el.innerHTML = `
+      <div class="crown-sigil">${sigilHTML}</div>
+      <div class="crown-name">${crown.name}</div>
+      <div class="crown-desc">${crown.description}</div>
+    `;
+    el.addEventListener('click', () => openFactionDetail(crown));
+    slot.appendChild(el);
+  }
+
+  // House cards
+  const grid = document.getElementById('factions-grid');
+  houses.forEach(f => {
     const card = document.createElement('div');
     card.className = 'faction-card' + (f.status === 'locked' ? ' locked' : '');
 
-    const sigilHTML = f.sigil
-      ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML='<span class=card-sigil-placeholder>${f.name[0]}</span>'">`
-      : `<span class="card-sigil-placeholder">${f.name[0]}</span>`;
+    const imgHTML = f.sigil
+      ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML='<span class=card-image-placeholder>${f.name[0]}</span>'">`
+      : `<span class="card-image-placeholder">${f.name[0]}</span>`;
 
     card.innerHTML = `
-      <div class="card-sigil">${sigilHTML}</div>
-      <div class="card-name">${f.name}</div>
-      <div class="card-tagline">${f.tagline}</div>
-      <span class="card-badge ${f.status === 'known' ? 'badge-known' : 'badge-locked'}">
-        ${f.status === 'known' ? 'Known' : 'Unknown'}
-      </span>
+      <div class="card-image-wrap">${imgHTML}</div>
+      <div class="card-footer">
+        <div class="card-name">${f.name}</div>
+      </div>
     `;
 
     if (f.status === 'known') {
       card.addEventListener('click', () => openFactionDetail(f));
     }
-
     grid.appendChild(card);
   });
 
@@ -52,13 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'party-card';
 
+    const imgHTML = p.image
+      ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-image-placeholder>${p.name[0]}</span>'">`
+      : `<span class="party-image-placeholder">${p.name[0]}</span>`;
+
     card.innerHTML = `
-      <div class="party-portrait">
-        <img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-portrait-placeholder>${p.name[0]}</span>'">
+      <div class="party-image-wrap">${imgHTML}</div>
+      <div class="party-footer">
+        <div class="party-name">${p.name}</div>
+        <div class="party-player">Played by ${p.player}</div>
       </div>
-      <div class="party-name">${p.name}</div>
-      <div class="party-player">Played by ${p.player}</div>
-      <div class="party-tagline">${p.tagline}</div>
     `;
 
     card.addEventListener('click', () => openPlayerDetail(p));
@@ -94,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     detailContent.innerHTML = `
       <div class="detail-sigil">${sigilHTML}</div>
       <div class="detail-title">${f.name}</div>
-      <div class="detail-subtitle">${f.tagline}</div>
       <p class="detail-desc">${f.description}</p>
       ${factsHTML}
       ${membersHTML}

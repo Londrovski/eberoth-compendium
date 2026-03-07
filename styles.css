@@ -25,7 +25,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Crimson Text', Georgia, serif;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.65;
   min-height: 100vh;
   overflow-x: hidden;
@@ -68,22 +68,12 @@ header {
 
 header h1 {
   font-family: 'Cinzel Decorative', serif;
-  font-size: clamp(2.4rem, 7vw, 4.5rem);
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
   font-weight: 700;
   color: var(--gold);
   letter-spacing: 0.08em;
   text-shadow: 0 0 60px rgba(200,168,75,0.25), 0 0 120px rgba(200,168,75,0.1);
   line-height: 1.15;
-}
-
-.subtitle {
-  font-family: 'Crimson Text', serif;
-  font-style: italic;
-  color: var(--text-mid);
-  font-size: 1rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-top: 0.5rem;
 }
 
 /* ── NAV ── */
@@ -109,7 +99,7 @@ nav {
   border: none;
   color: var(--text-mid);
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 1rem 1.6rem;
@@ -125,7 +115,7 @@ nav {
 
 /* ── MAIN ── */
 main {
-  max-width: 1160px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 1.5rem 5rem;
 }
@@ -147,7 +137,7 @@ main {
 
 .section-header h2 {
   font-family: 'Cinzel', serif;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   color: var(--gold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -157,13 +147,94 @@ main {
 .section-header p {
   font-style: italic;
   color: var(--text-mid);
-  font-size: 1rem;
+  font-size: 1.05rem;
+}
+
+/* ── CROWN FEATURE ── */
+.crown-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1rem 3rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.crown-sigil {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hi);
+  overflow: hidden;
+  background: var(--bg);
+  margin-bottom: 1.8rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 60px rgba(200,168,75,0.08);
+}
+
+.crown-feature:hover .crown-sigil {
+  transform: scale(1.03);
+  box-shadow: 0 0 80px rgba(200,168,75,0.16);
+}
+
+.crown-sigil img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.crown-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+}
+
+.crown-desc {
+  font-style: italic;
+  color: var(--text-mid);
+  font-size: 1.05rem;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+/* ── HIERARCHY DIVIDER ── */
+.hierarchy-divider {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 1rem 0 2.5rem;
+}
+
+.hierarchy-divider::before,
+.hierarchy-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-hi));
+}
+
+.hierarchy-divider::after {
+  background: linear-gradient(90deg, var(--border-hi), transparent);
+}
+
+.hierarchy-divider span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  white-space: nowrap;
 }
 
 /* ── FACTION CARDS ── */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.5rem;
 }
 
@@ -171,41 +242,25 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 2rem 1.5rem 1.5rem;
+  padding: 0;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.18s, box-shadow 0.2s;
-  text-align: center;
+  transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+  overflow: hidden;
   position: relative;
 }
 
-.faction-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 3px;
-  box-shadow: inset 0 0 0 1px transparent;
-  transition: box-shadow 0.2s;
-  pointer-events: none;
-}
-
 .faction-card:hover {
-  background: var(--bg-hover);
   border-color: var(--border-hi);
   transform: translateY(-3px);
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 
-.faction-card:hover::after { box-shadow: inset 0 0 0 1px rgba(200,168,75,0.15); }
+.faction-card.locked { opacity: 0.4; cursor: default; filter: grayscale(50%); }
+.faction-card.locked:hover { transform: none; border-color: var(--border); box-shadow: none; }
 
-.faction-card.locked { opacity: 0.45; cursor: default; filter: grayscale(40%); }
-.faction-card.locked:hover { transform: none; background: var(--bg-card); border-color: var(--border); box-shadow: none; }
-
-.card-sigil {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  border: 1px solid var(--border-hi);
-  margin: 0 auto 1.2rem;
+.card-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--bg);
   display: flex;
@@ -213,33 +268,44 @@ main {
   justify-content: center;
 }
 
-.card-sigil img { width: 100%; height: 100%; object-fit: cover; opacity: 0.88; }
-.card-sigil-placeholder { font-family: 'Cinzel', serif; font-size: 2rem; color: var(--gold-dim); }
-
-.card-name { font-family: 'Cinzel', serif; font-size: 0.95rem; color: var(--gold); letter-spacing: 0.07em; margin-bottom: 0.5rem; }
-.card-tagline { font-style: italic; color: var(--text-mid); font-size: 0.88rem; line-height: 1.4; }
-
-.card-badge {
-  display: inline-block;
-  margin-top: 0.9rem;
-  font-family: 'Cinzel', serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.18rem 0.65rem;
-  border-radius: 2px;
-  border: 1px solid;
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.88;
+  transition: opacity 0.2s, transform 0.3s;
 }
 
-.badge-known  { color: var(--gold-dim); border-color: var(--gold-dim); }
-.badge-locked { color: var(--text-dim); border-color: var(--text-dim); }
+.faction-card:hover .card-image-wrap img {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+.card-image-placeholder {
+  font-family: 'Cinzel', serif;
+  font-size: 4rem;
+  color: var(--gold-dim);
+}
+
+.card-footer {
+  padding: 1rem 1.2rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.card-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--gold);
+  letter-spacing: 0.07em;
+}
 
 /* ── PARTY CARDS ── */
 .party-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -247,25 +313,20 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 2rem 1.5rem 1.5rem;
+  overflow: hidden;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.18s, box-shadow 0.2s;
-  text-align: center;
+  transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
 }
 
 .party-card:hover {
-  background: var(--bg-hover);
   border-color: var(--border-hi);
   transform: translateY(-3px);
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 
-.party-portrait {
-  width: 110px;
-  height: 140px;
-  border-radius: 3px;
-  border: 1px solid var(--border-hi);
-  margin: 0 auto 1.2rem;
+.party-image-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--bg);
   display: flex;
@@ -273,12 +334,47 @@ main {
   justify-content: center;
 }
 
-.party-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0.92; }
-.party-portrait-placeholder { font-family: 'Cinzel', serif; font-size: 2.5rem; color: var(--gold-dim); }
+.party-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.3s;
+}
 
-.party-name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold); letter-spacing: 0.07em; margin-bottom: 0.25rem; }
-.party-player { font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 0.6rem; }
-.party-tagline { font-style: italic; color: var(--text-mid); font-size: 0.88rem; line-height: 1.4; }
+.party-card:hover .party-image-wrap img {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+.party-image-placeholder {
+  font-family: 'Cinzel', serif;
+  font-size: 4rem;
+  color: var(--gold-dim);
+}
+
+.party-footer {
+  padding: 1.1rem 1.3rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.party-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  color: var(--gold);
+  letter-spacing: 0.07em;
+  margin-bottom: 0.2rem;
+}
+
+.party-player {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
 
 /* ── DETAIL OVERLAY ── */
 .overlay {
@@ -300,7 +396,7 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border-hi);
   border-radius: 3px;
-  max-width: 660px;
+  max-width: 680px;
   width: 100%;
   padding: 2.5rem 2.5rem 2rem;
   position: relative;
@@ -332,7 +428,7 @@ main {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
   padding: 0.3rem 0.5rem;
   transition: color 0.2s;
@@ -341,8 +437,8 @@ main {
 .close-btn:hover { color: var(--gold); }
 
 .detail-sigil {
-  width: 96px;
-  height: 96px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   border: 1px solid var(--border-hi);
   margin: 0 auto 1.5rem;
@@ -356,8 +452,8 @@ main {
 .detail-sigil img { width: 100%; height: 100%; object-fit: cover; opacity: 0.88; }
 
 .detail-portrait {
-  width: 130px;
-  height: 170px;
+  width: 140px;
+  height: 185px;
   border-radius: 3px;
   border: 1px solid var(--border-hi);
   margin: 0 auto 1.5rem;
@@ -369,7 +465,7 @@ main {
 
 .detail-title {
   font-family: 'Cinzel', serif;
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   color: var(--gold);
   text-align: center;
   letter-spacing: 0.07em;
@@ -380,20 +476,26 @@ main {
   font-style: italic;
   color: var(--text-mid);
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.detail-desc { color: var(--text); font-size: 1rem; line-height: 1.7; margin-bottom: 1rem; }
+.detail-desc { color: var(--text); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1rem; }
 
 .detail-facts { list-style: none; margin-bottom: 1rem; }
-.detail-facts li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); color: var(--text-mid); font-size: 0.93rem; font-style: italic; }
+.detail-facts li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: 1rem;
+  font-style: italic;
+}
 .detail-facts li:last-child { border-bottom: none; }
 .detail-facts li::before { content: '— '; color: var(--gold-dim); }
 
 .detail-section-label {
   font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold-dim);
@@ -406,13 +508,13 @@ main {
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
-  padding: 0.45rem 0;
+  padding: 0.5rem 0;
   border-bottom: 1px solid var(--border);
-  font-size: 0.93rem;
+  font-size: 1rem;
 }
 .members-list li:last-child { border-bottom: none; }
-.member-name { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--text); }
-.member-role { font-style: italic; color: var(--text-mid); font-size: 0.83rem; text-align: right; }
+.member-name { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--text); }
+.member-role { font-style: italic; color: var(--text-mid); font-size: 0.88rem; text-align: right; }
 
 /* ── SESSIONS ── */
 .sessions-list {
@@ -439,14 +541,13 @@ main {
   background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
 }
 
-.session-label { font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 0.2rem; }
-.session-title { font-family: 'Cinzel', serif; font-size: 1.2rem; color: var(--gold); margin-bottom: 0.2rem; }
-.session-date { font-style: italic; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem; }
-.session-body { color: var(--text); font-size: 0.97rem; line-height: 1.72; }
+.session-label { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 0.2rem; }
+.session-title { font-family: 'Cinzel', serif; font-size: 1.3rem; color: var(--gold); margin-bottom: 0.2rem; }
+.session-date { font-style: italic; color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem; }
+.session-body { color: var(--text); font-size: 1rem; line-height: 1.75; }
 .session-body p { margin-bottom: 0.6rem; }
 .session-body p:last-child { margin-bottom: 0; }
-
-.sessions-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 4rem 1rem; font-size: 1rem; }
+.sessions-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 4rem 1rem; font-size: 1.05rem; }
 
 /* ── NOTES ── */
 .notes-wrap { max-width: 680px; margin: 0 auto; }
@@ -469,7 +570,7 @@ main {
   border-radius: 2px;
   color: var(--text);
   font-family: 'Crimson Text', serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   padding: 0.6rem 0.85rem;
   width: 100%;
   transition: border-color 0.2s;
@@ -487,10 +588,10 @@ main {
   border: 1px solid var(--gold-dim);
   color: var(--gold);
   font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 0.5rem 1.4rem;
+  padding: 0.55rem 1.5rem;
   cursor: pointer;
   border-radius: 2px;
   transition: background 0.2s, color 0.2s;
@@ -504,21 +605,22 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 1rem 1.2rem;
+  padding: 1.1rem 1.3rem;
 }
 
 .note-meta { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
-.note-author { font-family: 'Cinzel', serif; font-size: 0.75rem; color: var(--gold-dim); letter-spacing: 0.06em; }
-.note-time { font-size: 0.78rem; color: var(--text-dim); font-style: italic; }
-.note-body { color: var(--text); font-size: 0.95rem; line-height: 1.55; }
-.notes-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 2.5rem; }
+.note-author { font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--gold-dim); letter-spacing: 0.06em; }
+.note-time { font-size: 0.82rem; color: var(--text-dim); font-style: italic; }
+.note-body { color: var(--text); font-size: 1rem; line-height: 1.55; }
+.notes-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 2.5rem; font-size: 1.05rem; }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 580px) {
+@media (max-width: 600px) {
   header { padding: 2.5rem 1rem 2rem; }
-  .nav-btn { padding: 0.85rem 0.9rem; font-size: 0.62rem; letter-spacing: 0.1em; }
+  .nav-btn { padding: 0.85rem 0.8rem; font-size: 0.65rem; letter-spacing: 0.1em; }
   .nav-sep { display: none; }
   main { padding: 2rem 1rem 4rem; }
+  .crown-sigil { width: 160px; height: 160px; }
   .cards-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
   .party-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
   .detail-panel { padding: 2rem 1.2rem 1.5rem; }
