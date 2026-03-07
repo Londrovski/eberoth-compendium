@@ -187,9 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const personalNotesList = document.getElementById('personal-notes-list');
   const lockBtn = document.getElementById('passphrase-lock');
 
+  // Normalise: strip everything except letters, uppercase
+  function normalise(str) {
+    return str.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  }
+
   function attemptUnlock() {
-    const attempt = passphraseInput.value.trim().toUpperCase();
-    const match = PERSONAL_NOTES.find(p => p.passphrase.toUpperCase() === attempt);
+    const attempt = normalise(passphraseInput.value);
+    const match = PERSONAL_NOTES.find(p => normalise(p.passphrase) === attempt);
 
     if (!match) {
       passphraseInput.classList.add('shake');
