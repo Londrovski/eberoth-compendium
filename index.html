@@ -78,12 +78,21 @@
           <p>Enter your passphrase to read your private notes.</p>
         </div>
 
-        <!-- Passphrase form -->
+        <!-- Passphrase form — autocomplete attributes defeat browser autofill -->
         <div id="passphrase-form" class="passphrase-form">
-          <input id="passphrase-input" type="password" placeholder="Passphrase" maxlength="30" autocomplete="off" />
+          <input id="passphrase-input"
+                 type="text"
+                 placeholder="Passphrase"
+                 maxlength="30"
+                 autocomplete="off"
+                 autocorrect="off"
+                 autocapitalize="off"
+                 spellcheck="false"
+                 data-form-type="other"
+                 data-lpignore="true"
+                 data-1p-ignore="true" />
           <button id="passphrase-submit">Unlock</button>
         </div>
-        <p id="passphrase-error" class="passphrase-error hidden">Unrecognised passphrase.</p>
 
         <!-- Personal notes reveal -->
         <div id="personal-notes-reveal" class="hidden">
