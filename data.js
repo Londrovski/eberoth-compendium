@@ -168,7 +168,7 @@ const PERSONAL_NOTES = [
   },
   {
     playerId: 'dirk',
-    passphrase: 'CORVATH',
+    passphrase: 'TEACHER',
     notes: [
       // Example:
       // { title: 'Your Patron', body: 'Something guides your hand. You have not asked who.' },
