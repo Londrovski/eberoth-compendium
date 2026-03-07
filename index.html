@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eberoth Compendium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header>
+    <div class="header-bg"></div>
+    <div class="header-inner">
+      <div class="header-rule"></div>
+      <h1>Eberoth</h1>
+      <p class="subtitle">Compendium of the Known World</p>
+      <div class="header-rule"></div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <button class="nav-btn active" data-section="factions">Houses &amp; Factions</button>
+      <div class="nav-sep">✦</div>
+      <button class="nav-btn" data-section="sessions">Session Log</button>
+      <div class="nav-sep">✦</div>
+      <button class="nav-btn" data-section="notes">Party Notes</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- FACTIONS -->
+    <section id="section-factions" class="section active">
+      <div class="section-header">
+        <h2>Houses &amp; Factions</h2>
+        <p>What is known of the powers that shape this world.</p>
+      </div>
+      <div class="cards-grid" id="factions-grid"></div>
+    </section>
+
+    <!-- SESSIONS -->
+    <section id="section-sessions" class="section">
+      <div class="section-header">
+        <h2>Session Log</h2>
+        <p>A record of what has passed.</p>
+      </div>
+      <div id="sessions-list"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section id="section-notes" class="section">
+      <div class="section-header">
+        <h2>Party Notes</h2>
+        <p>Shared knowledge. Add anything the group should remember.</p>
+      </div>
+      <div class="notes-wrap">
+        <div class="note-form">
+          <input id="note-author" type="text" placeholder="Your name" maxlength="30" />
+          <textarea id="note-text" placeholder="Write a note for the party..." rows="3" maxlength="600"></textarea>
+          <button id="note-submit">Add Note</button>
+        </div>
+        <div id="notes-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- DETAIL OVERLAY -->
+  <div id="overlay" class="overlay hidden">
+    <div class="detail-panel">
+      <button id="close-overlay" class="close-btn">✕</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
