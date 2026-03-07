@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── PERSONAL NOTES ──
   const passphraseInput = document.getElementById('passphrase-input');
   const passphraseSubmit = document.getElementById('passphrase-submit');
-  const passphraseError = document.getElementById('passphrase-error');
   const personalReveal = document.getElementById('personal-notes-reveal');
   const personalHeader = document.getElementById('personal-notes-header');
   const personalNotesList = document.getElementById('personal-notes-list');
@@ -193,14 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const match = PERSONAL_NOTES.find(p => p.passphrase.toUpperCase() === attempt);
 
     if (!match) {
-      passphraseError.classList.remove('hidden');
       passphraseInput.classList.add('shake');
       passphraseInput.value = '';
       setTimeout(() => passphraseInput.classList.remove('shake'), 500);
       return;
     }
 
-    passphraseError.classList.add('hidden');
     passphraseInput.value = '';
 
     const player = PLAYERS.find(p => p.id === match.playerId);
