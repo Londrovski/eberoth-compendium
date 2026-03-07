@@ -60,7 +60,6 @@ header {
   background-size: cover;
   background-position: center 30%;
   background-repeat: no-repeat;
-  filter: brightness(0.32) saturate(0.8);
   z-index: 0;
 }
 
@@ -69,7 +68,7 @@ header {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(11,9,5,0.45) 0%, rgba(11,9,5,0.15) 40%, rgba(11,9,5,0.15) 60%, rgba(11,9,5,0.75) 100%);
+    linear-gradient(180deg, rgba(11,9,5,0.35) 0%, rgba(11,9,5,0.1) 35%, rgba(11,9,5,0.1) 65%, rgba(11,9,5,0.6) 100%);
 }
 
 .header-inner {
@@ -92,9 +91,10 @@ header h1 {
   color: var(--gold);
   letter-spacing: 0.08em;
   text-shadow:
-    0 0 40px rgba(200,168,75,0.6),
-    0 0 80px rgba(200,168,75,0.3),
-    0 2px 12px rgba(0,0,0,0.9);
+    0 0 40px rgba(200,168,75,0.8),
+    0 0 80px rgba(200,168,75,0.4),
+    0 2px 16px rgba(0,0,0,1),
+    0 4px 32px rgba(0,0,0,0.9);
   line-height: 1.15;
 }
 
@@ -416,11 +416,6 @@ main {
   justify-content: center;
 }
 
-/* Lore entries (landscape images) use a wider ratio */
-.comp-card-img-wrap.lore-img {
-  aspect-ratio: 16 / 10;
-}
-
 .comp-card-img-wrap img {
   width: 100%;
   height: 100%;
@@ -466,13 +461,6 @@ main {
 
 .comp-detail-img img {
   object-position: top !important;
-}
-
-/* Lore entries: wide image in detail */
-.comp-detail-img.lore-detail-img {
-  width: 100% !important;
-  height: 220px !important;
-  border-radius: 3px;
 }
 
 .comp-detail-body p { margin-bottom: 0.85rem; }
