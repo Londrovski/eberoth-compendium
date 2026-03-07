@@ -42,35 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
   houses.forEach(f => {
     const card = document.createElement('div');
     card.className = 'faction-card' + (f.status === 'locked' ? ' locked' : '');
-
     const imgHTML = f.sigil
       ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML='<span class=card-image-placeholder>${f.name[0]}</span>'">`
       : `<span class="card-image-placeholder">${f.name[0]}</span>`;
-
     card.innerHTML = `
       <div class="card-image-wrap">${imgHTML}</div>
-      <div class="card-footer">
-        <div class="card-name">${f.name}</div>
-      </div>
+      <div class="card-footer"><div class="card-name">${f.name}</div></div>
     `;
-
-    if (f.status === 'known') {
-      card.addEventListener('click', () => openFactionDetail(f));
-    }
+    if (f.status === 'known') card.addEventListener('click', () => openFactionDetail(f));
     grid.appendChild(card);
   });
 
   // ── PARTY ──
   const partyGrid = document.getElementById('party-grid');
-
   PLAYERS.forEach(p => {
     const card = document.createElement('div');
     card.className = 'party-card';
-
     const imgHTML = p.image
       ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-image-placeholder>${p.name[0]}</span>'">`
       : `<span class="party-image-placeholder">${p.name[0]}</span>`;
-
     card.innerHTML = `
       <div class="party-image-wrap">${imgHTML}</div>
       <div class="party-footer">
@@ -78,31 +68,69 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="party-player">Played by ${p.player}</div>
       </div>
     `;
-
     card.addEventListener('click', () => openPlayerDetail(p));
     partyGrid.appendChild(card);
   });
 
-  // ── LORE ──
-  const loreList = document.getElementById('lore-list');
-
-  if (!LORE || LORE.length === 0) {
-    loreList.innerHTML = '<p class="lore-empty">No lore entries yet.</p>';
-  } else {
+  // ── SHARED LORE CARDS ──
+  const sharedLoreGrid = document.getElementById('shared-lore-cards');
+  if (LORE && LORE.length > 0) {
     LORE.forEach(entry => {
-      const el = document.createElement('div');
-      el.className = 'lore-entry';
-      const imgHTML = entry.image
-        ? `<div class="lore-image-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
-        : '';
-      const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
-      el.innerHTML = `
-        ${imgHTML}
-        <div class="lore-title">${entry.name}</div>
-        <div class="lore-body">${paragraphs}</div>
-      `;
-      loreList.appendChild(el);
+      sharedLoreGrid.appendChild(buildCompCard(entry));
     });
+  }
+
+  // ── PARTY NOTES ──
+  const partyNotesList = document.getElementById('party-notes-list');
+  if (!PARTY_NOTES || PARTY_NOTES.length === 0) {
+    partyNotesList.innerHTML = '';
+  } else {
+    partyNotesList.innerHTML = PARTY_NOTES.map(n => `
+      <div class="note-card gm-note">
+        ${n.title ? `<div class="note-author">${n.title}</div>` : ''}
+        <div class="note-body">${n.body}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── COMP CARD BUILDER ──
+  // Builds a clickable card (thumbnail + title + subtitle) that opens overlay on click.
+  function buildCompCard(entry) {
+    const card = document.createElement('div');
+    card.className = 'comp-card';
+
+    const imgHTML = entry.image
+      ? `<div class="comp-card-img-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+      : `<div class="comp-card-img-wrap comp-card-img-placeholder">${entry.name[0]}</div>`;
+
+    const subtitle = entry.role || entry.subtitle || '';
+
+    card.innerHTML = `
+      ${imgHTML}
+      <div class="comp-card-footer">
+        <div class="comp-card-name">${entry.name}</div>
+        ${subtitle ? `<div class="comp-card-sub">${subtitle}</div>` : ''}
+      </div>
+    `;
+
+    card.addEventListener('click', () => openCompDetail(entry));
+    return card;
+  }
+
+  // ── COMP DETAIL ──
+  function openCompDetail(entry) {
+    const imgHTML = entry.image
+      ? `<div class="detail-portrait comp-detail-img"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+      : '';
+    const subtitle = entry.role || entry.subtitle || '';
+    const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+    detailContent.innerHTML = `
+      ${imgHTML}
+      <div class="detail-title">${entry.name}</div>
+      ${subtitle ? `<div class="detail-subtitle">${subtitle}</div>` : ''}
+      <div class="detail-desc comp-detail-body">${paragraphs}</div>
+    `;
+    openOverlay();
   }
 
   // ── DETAIL PANEL ──
@@ -114,23 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const sigilHTML = f.sigil
       ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML=''">`
       : '';
-
     const factsHTML = f.facts && f.facts.length
       ? `<p class="detail-section-label">What is known</p>
          <ul class="detail-facts">${f.facts.map(fact => `<li>${fact}</li>`).join('')}</ul>`
       : '';
-
     const membersHTML = f.members && f.members.length
       ? `<p class="detail-section-label">Notable Figures</p>
          <ul class="members-list">
-           ${f.members.map(m => `
-             <li>
-               <span class="member-name">${m.name}</span>
-               <span class="member-role">${m.role}</span>
-             </li>`).join('')}
+           ${f.members.map(m => `<li><span class="member-name">${m.name}</span><span class="member-role">${m.role}</span></li>`).join('')}
          </ul>`
       : '';
-
     detailContent.innerHTML = `
       <div class="detail-sigil">${sigilHTML}</div>
       <div class="detail-title">${f.name}</div>
@@ -138,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ${factsHTML}
       ${membersHTML}
     `;
-
     openOverlay();
   }
 
@@ -170,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── SESSIONS ──
   const sessionsList = document.getElementById('sessions-list');
-
   if (SESSIONS.length === 0) {
     sessionsList.innerHTML = '<p class="sessions-empty">The log is empty. No sessions have been recorded yet.</p>';
   } else {
@@ -187,20 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── PARTY NOTES ──
-  const partyNotesList = document.getElementById('party-notes-list');
-
-  if (!PARTY_NOTES || PARTY_NOTES.length === 0) {
-    partyNotesList.innerHTML = '<p class="notes-empty">No party notes yet.</p>';
-  } else {
-    partyNotesList.innerHTML = PARTY_NOTES.map(n => `
-      <div class="note-card gm-note">
-        ${n.title ? `<div class="note-author">${n.title}</div>` : ''}
-        <div class="note-body">${n.body}</div>
-      </div>
-    `).join('');
-  }
-
   // ── PERSONAL NOTES & COMPENDIUM ──
   const passphraseInput = document.getElementById('passphrase-input');
   const passphraseSubmit = document.getElementById('passphrase-submit');
@@ -212,25 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function normalise(str) {
     return str.replace(/[^a-zA-Z]/g, '').toUpperCase();
-  }
-
-  function renderCompendium(entries) {
-    if (!entries || entries.length === 0) return '';
-    return entries.map(entry => {
-      const imgHTML = entry.image
-        ? `<div class="comp-image-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
-        : '';
-      const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
-      const roleHTML = entry.role ? `<div class="comp-role">${entry.role}</div>` : '';
-      return `
-        <div class="comp-entry">
-          ${imgHTML}
-          <div class="comp-name">${entry.name}</div>
-          ${roleHTML}
-          <div class="comp-body">${paragraphs}</div>
-        </div>
-      `;
-    }).join('<div class="comp-divider"></div>');
   }
 
   function attemptUnlock() {
@@ -248,10 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const player = PLAYERS.find(p => p.id === match.playerId);
     const characterName = player ? player.name : 'Traveller';
-
     personalHeader.innerHTML = `<p class="personal-notes-welcome">Welcome, ${characterName}.</p>`;
 
-    personalCompendium.innerHTML = renderCompendium(match.compendium);
+    personalCompendium.innerHTML = '';
+    if (match.compendium && match.compendium.length > 0) {
+      match.compendium.forEach(entry => {
+        personalCompendium.appendChild(buildCompCard(entry));
+      });
+    }
 
     if (!match.notes || match.notes.length === 0) {
       personalNotesList.innerHTML = '';
