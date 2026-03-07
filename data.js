@@ -108,11 +108,12 @@ const PLAYERS = [
 ];
 
 // ── SHARED LORE ──
-// Entries visible to all players under the Lore tab.
+// Entries visible to all players under the Notes tab, above the passphrase.
 const LORE = [
   {
     id: 'stillmarks',
     name: 'The Stillmarks',
+    subtitle: 'Ancient sites. Older than any house.',
     image: 'Stillmarks.png',
     body: 'Ancient monolithic sites found across the known world. Three tall stone pillars, converging at the top, worn smooth by centuries of weather and attention. They predate any house, any kingdom, any name anyone alive can put to them.\n\nThe Stillkeepers tend them — monks who dedicate their lives to meditation at the base of the stones. No one knows exactly what they are meditating on. They do not speak of it. What is known: Stillkeepers tend to live far longer than their race would suggest. Some say twice as long. Others say more.\n\nThe sites are not holy in any formal sense. No church claims them. No doctrine governs them. They simply persist — and those who sit with them long enough seem, somehow, changed by it.'
   }
@@ -120,28 +121,17 @@ const LORE = [
 
 // ── SESSIONS ──
 const SESSIONS = [
-  // Add sessions here after each game. Example:
-  // {
-  //   number: 1,
-  //   title: 'The Docks',
-  //   date: 'March 2026',
-  //   paragraphs: [
-  //     'The party assembled at the docks as night fell over the capital.',
-  //     'Jorik was found below deck, alive but barely.'
-  //   ]
-  // }
+  // Add sessions here after each game.
 ];
 
 // ── PARTY NOTES ──
 // GM-authored, visible to all.
 const PARTY_NOTES = [
-  // Example:
-  // { title: 'The Job', body: 'You are employed by House Gorrund. Tessaly is your contact. Payment on delivery.' },
+  // Example: { title: 'The Job', body: 'You are employed by House Gorrund.' }
 ];
 
 // ── PERSONAL COMPENDIUM ──
 // Per-player content revealed after passphrase unlock.
-// Each entry can be a 'lore' entry (text) or 'npc' entry (portrait + text).
 const PERSONAL_NOTES = [
   {
     playerId: 'kalvorn',
@@ -150,6 +140,7 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Aldus Corvath',
+        subtitle: 'War General. Head of House Corvath.',
         image: 'Aldus Corvath.png',
         role: 'War General. Head of House Corvath.',
         body: 'You served under him for years. He was not a good man in the way that word is usually meant — but he was consistent. He had a code. He kept his word. He protected those loyal to him, and he was brutal to everyone else.\n\nThat was enough, for a long time.\n\nThe Voss campaign changed something. Not in him — in you. The family. The choice. Corvath gave the order and you did not carry it out. What happened next, you carry with you.\n\nHe knows what you did. He has not moved against you. You do not know why.'
@@ -157,6 +148,7 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Byren Holt',
+        subtitle: 'Lord Chancellor. The Crown\'s right hand.',
         image: 'Byren Holt.png',
         role: 'Lord Chancellor. The Crown\'s right hand.',
         body: 'You have seen him once, in circumstances he does not know you witnessed. A meeting with Corvath — private, carefully arranged, the kind of meeting that does not go in any record.\n\nHolt is the king\'s chief advisor. A man of precise words and careful distances. He has never been publicly connected to anything improper.\n\nYou do not know what was discussed. You know the meeting happened. That is enough to make him interesting.'
@@ -164,15 +156,13 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Maltheus',
+        subtitle: 'Your patron.',
         image: 'Maltheus-Kalvorn.png',
         role: 'Your patron.',
         body: 'You did not choose him. He chose you — or something like choosing happened, in the moment the blood was drawn and the blade first sang differently than it had before.\n\nHe is not a voice. He is not a presence in any comfortable sense. He is pressure. The feeling before a battle when everything goes quiet and the body knows what it is for.\n\nYou serve. He watches. So far, that arrangement has held.'
       }
     ],
-    notes: [
-      // Personal notes from the GM appear here.
-      // Example: { title: 'Something You Know', body: 'Text here.' }
-    ]
+    notes: []
   },
   {
     playerId: 'azrael',
@@ -181,6 +171,7 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Cadriel',
+        subtitle: 'Former superior. The one who cast you out.',
         image: 'Cadriel-Azrael.png',
         role: 'Former superior. The one who cast you out.',
         body: 'He did not explain himself. That was the worst of it — not the casting out, but the silence around it. No accusation. No hearing. Just the withdrawal of something you had always assumed was permanent.\n\nYou have tried to reconstruct what you did wrong. You have not arrived at an answer that satisfies.\n\nCadriel is not human. He does not move through the world the way humans do. When he communicated, it was not in words — it was in pressure, in certainty, in the overwhelming sense that something vast had turned its attention toward you.\n\nYou are not sure if what you felt from him was anger. You are not sure he is capable of anger in any form you would recognise.'
@@ -188,6 +179,7 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Sylvia',
+        subtitle: 'The one you lost.',
         image: 'Sylvia.png',
         role: 'The one you lost.',
         body: 'She was the defining fight. Not because of what she was — but because of what she had been, and what it cost to end it.\n\nYou buried her yourself. You remember the weight of it. Not her weight — the other kind.\n\nShe is dead. That is not in question. What stays with you is harder to name: the moment just before, when she looked at you and something behind her eyes was still her. Whether that was real or whether you imagined it to make the grief mean something — you have never fully decided.'
@@ -195,13 +187,13 @@ const PERSONAL_NOTES = [
       {
         type: 'lore',
         name: 'The Descending Horizon',
+        subtitle: 'What Cadriel showed you.',
         image: 'The Descending Horizon.png',
+        role: 'What Cadriel showed you.',
         body: 'Cadriel showed you something before the end. Not in words. In feeling — the way he always communicated, which was less like speech and more like being made to understand something against your will.\n\nEternity. Not as a concept. As a fact. The sensation of time without end, of existing past every meaningful marker, of being present for so long that presence itself loses texture.\n\nYou do not have a name for what he showed you. The Descending Horizon is the closest thing — the point at which time stops arriving anywhere and simply continues. Beyond it, nothing changes. Things exist. They do not become.\n\nYou do not know why he showed you this. You know it was not comfort.'
       }
     ],
-    notes: [
-      // Personal notes from the GM appear here.
-    ]
+    notes: []
   },
   {
     playerId: 'dirk',
@@ -210,6 +202,7 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'Aldus Corvath',
+        subtitle: 'War General. Your first significant patient.',
         image: 'Aldus Corvath.png',
         role: 'War General. Your first significant patient.',
         body: 'He came to you through an intermediary. The injury was severe — the kind that ends careers, or men. You saved the arm. It took most of a night and everything you had.\n\nHe said nothing when it was done. An arrangement was made: a property, quietly transferred. No public record. No acknowledgement of what had happened or how.\n\nYou have not spoken since. You are not sure what you are to him — asset, liability, or something he simply prefers not to think about. What you know is that he has not moved against you, and in your experience, that is a form of gratitude.'
@@ -217,13 +210,12 @@ const PERSONAL_NOTES = [
       {
         type: 'npc',
         name: 'The Teacher',
+        subtitle: 'Your patron. The presence behind the gift.',
         image: 'The Teacher - Dirk.png',
         role: 'Your patron. The presence behind the gift.',
         body: 'You have never seen it. You are not sure "it" is the right word, but you have not found a better one.\n\nThe Teacher makes itself known as guidance — a pull in a particular direction, a certainty arriving before the reasoning does, a sense that a specific person in a specific moment requires your attention. You have learned to trust it. You have not learned to understand it.\n\nWhen you heal, sometimes the work feels less like skill and more like being used well. That is not a complaint. It is simply an observation you have made and set aside.\n\nYou have not asked who or what the Teacher is. That question has not felt urgent. So far, it has not led you anywhere you would not have chosen yourself.'
       }
     ],
-    notes: [
-      // Personal notes from the GM appear here.
-    ]
+    notes: []
   }
 ];

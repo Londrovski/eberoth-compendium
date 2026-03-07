@@ -4,6 +4,65 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── OVERLAY (declared early so all builders can reference it) ──
+  const overlay = document.getElementById('overlay');
+  const detailContent = document.getElementById('detail-content');
+  const closeBtn = document.getElementById('close-overlay');
+
+  function openOverlay() {
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetail() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', closeDetail);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+  // ── COMP CARD BUILDER ──
+  // Hoisted above all callers.
+  function buildCompCard(entry) {
+    const card = document.createElement('div');
+    card.className = 'comp-card';
+
+    const imgHTML = entry.image
+      ? `<div class="comp-card-img-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+      : `<div class="comp-card-img-wrap comp-card-img-placeholder">${entry.name[0]}</div>`;
+
+    const subtitle = entry.role || entry.subtitle || '';
+
+    card.innerHTML = `
+      ${imgHTML}
+      <div class="comp-card-footer">
+        <div class="comp-card-name">${entry.name}</div>
+        ${subtitle ? `<div class="comp-card-sub">${subtitle}</div>` : ''}
+      </div>
+    `;
+
+    card.addEventListener('click', () => openCompDetail(entry));
+    return card;
+  }
+
+  // ── COMP DETAIL OPENER ──
+  function openCompDetail(entry) {
+    const imgHTML = entry.image
+      ? `<div class="detail-portrait comp-detail-img"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+      : '';
+    const subtitle = entry.role || entry.subtitle || '';
+    const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+    detailContent.innerHTML = `
+      ${imgHTML}
+      <div class="detail-title">${entry.name}</div>
+      ${subtitle ? `<div class="detail-subtitle">${subtitle}</div>` : ''}
+      <div class="detail-desc comp-detail-body">${paragraphs}</div>
+    `;
+    openOverlay();
+  }
+
   // ── NAV ──
   const navBtns = document.querySelectorAll('.nav-btn');
   const sections = document.querySelectorAll('.section');
@@ -93,51 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // ── COMP CARD BUILDER ──
-  // Builds a clickable card (thumbnail + title + subtitle) that opens overlay on click.
-  function buildCompCard(entry) {
-    const card = document.createElement('div');
-    card.className = 'comp-card';
-
-    const imgHTML = entry.image
-      ? `<div class="comp-card-img-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
-      : `<div class="comp-card-img-wrap comp-card-img-placeholder">${entry.name[0]}</div>`;
-
-    const subtitle = entry.role || entry.subtitle || '';
-
-    card.innerHTML = `
-      ${imgHTML}
-      <div class="comp-card-footer">
-        <div class="comp-card-name">${entry.name}</div>
-        ${subtitle ? `<div class="comp-card-sub">${subtitle}</div>` : ''}
-      </div>
-    `;
-
-    card.addEventListener('click', () => openCompDetail(entry));
-    return card;
-  }
-
-  // ── COMP DETAIL ──
-  function openCompDetail(entry) {
-    const imgHTML = entry.image
-      ? `<div class="detail-portrait comp-detail-img"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
-      : '';
-    const subtitle = entry.role || entry.subtitle || '';
-    const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
-    detailContent.innerHTML = `
-      ${imgHTML}
-      <div class="detail-title">${entry.name}</div>
-      ${subtitle ? `<div class="detail-subtitle">${subtitle}</div>` : ''}
-      <div class="detail-desc comp-detail-body">${paragraphs}</div>
-    `;
-    openOverlay();
-  }
-
-  // ── DETAIL PANEL ──
-  const overlay = document.getElementById('overlay');
-  const detailContent = document.getElementById('detail-content');
-  const closeBtn = document.getElementById('close-overlay');
-
+  // ── FACTION DETAIL ──
   function openFactionDetail(f) {
     const sigilHTML = f.sigil
       ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML=''">`
@@ -172,20 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <p class="detail-desc">${p.description}</p>
     `;
     openOverlay();
-  }
-
-  function openOverlay() {
-    overlay.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-
-  closeBtn.addEventListener('click', closeDetail);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
-
-  function closeDetail() {
-    overlay.classList.add('hidden');
-    document.body.style.overflow = '';
   }
 
   // ── SESSIONS ──
