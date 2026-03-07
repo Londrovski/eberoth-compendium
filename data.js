@@ -5,9 +5,29 @@
 
 const FACTIONS = [
   {
+    id: 'crown',
+    name: 'The Crown',
+    sigil: 'The Crown.png',
+    tagline: 'The throne that holds Eberoth together. For now.',
+    status: 'known',
+    description: 'The Crown is the seat of power in Eberoth — ancient, contested, and increasingly fragile. The king rules, but the houses circle.',
+    facts: [
+      'King Gaelan Arveth currently sits the throne.',
+      'The Kingsguard answer directly to the Crown.',
+      'House loyalties to the Crown vary — some performative, some genuine.'
+    ],
+    members: [
+      { name: 'King Gaelan Arveth', role: 'The King.' },
+      { name: 'Prince Davan Arveth', role: 'Heir.' },
+      { name: 'Princess Elowen Arveth', role: 'The younger.' },
+      { name: 'Captain Aldric Fenn', role: 'Kingsguard. Loyal.' },
+      { name: 'Byren Holt', role: 'Lord Chancellor.' }
+    ]
+  },
+  {
     id: 'corvath',
     name: 'House Corvath',
-    sigil: 'images/house-corvath.png',
+    sigil: 'House Corvath.png',
     tagline: 'Dominant. Military. Loyal to the Crown — or so it claims.',
     status: 'known',
     description: 'The most powerful military house in Eberoth. House Corvath has long served as the Crown\'s strong arm — its soldiers disciplined, its general feared. They ended the Voss campaign swiftly, and have not stopped moving since.',
@@ -25,7 +45,7 @@ const FACTIONS = [
   {
     id: 'voss',
     name: 'House Voss',
-    sigil: 'images/house-voss.png',
+    sigil: 'House Voss.png',
     tagline: 'Destroyed. Corvath\'s puppet state.',
     status: 'known',
     description: 'Once a well-governed house of farmers and merchants. House Voss fell quickly — too quickly, many say. They never had the soldiers for the fight that came to them.',
@@ -43,7 +63,7 @@ const FACTIONS = [
   {
     id: 'gorrund',
     name: 'House Gorrund',
-    sigil: 'images/house-gorrund.png',
+    sigil: 'House Gorrund.png',
     tagline: 'Self-made. Transactional. Respects competence above lineage.',
     status: 'known',
     description: 'A house built on commerce and capability rather than birthright. House Gorrund operates in the grey — pragmatic, professional, always weighing the ledger. They did not inherit their position. They built it.',
@@ -61,7 +81,7 @@ const FACTIONS = [
   {
     id: 'halvorn',
     name: 'House Halvorn',
-    sigil: 'images/house-halvorn.png',
+    sigil: 'House Halvorn.png',
     tagline: 'Calculating. Never in the room when things go wrong.',
     status: 'known',
     description: 'A house that operates through layers of deniability. Halvorn is rarely directly connected to anything — which makes them difficult to pin down and very dangerous. Orthon leads from distance. His son Daven does not.',
@@ -75,6 +95,33 @@ const FACTIONS = [
       { name: 'Daven Halvorn', role: 'Son. Wants to prove himself.' },
       { name: 'Syla', role: 'The fixer. Does the work nobody discusses.' }
     ]
+  }
+];
+
+const PLAYERS = [
+  {
+    id: 'kalvorn',
+    name: 'Kalvorn Valaro',
+    image: 'Kalvorn Valaro.jpeg',
+    player: 'Sam Baker',
+    tagline: 'Tiefling Paladin. Stoic. More going on beneath the surface than he lets on.',
+    description: 'A paladin who has spent years enforcing the will of those above him. Kalvorn is not a man of many words — but the ones he chooses land with weight. He is working out what loyalty means when the people you were loyal to turn out to be worth less than you thought.'
+  },
+  {
+    id: 'azrael',
+    name: 'Azrael',
+    image: 'Azrael.jpeg',
+    player: 'Butch',
+    tagline: 'Bloodhunter. Formerly Samael. The name change means something.',
+    description: 'A bloodhunter operating at the edge of what his order sanctions. Azrael has powers he doesn\'t fully understand yet, and a past that has not finished catching up with him.'
+  },
+  {
+    id: 'dirk',
+    name: 'Dr. Dirk Kaluuya',
+    image: 'Dr Dirk Kaluuya.jpeg',
+    player: 'Charlie',
+    tagline: 'Cleric. The Dirkta. Warmer than the other two, which isn\'t saying much.',
+    description: 'A cleric whose gifts come from somewhere he hasn\'t looked at too closely. Dirk moves through the world with more ease than his companions — which sometimes makes him useful, and sometimes makes him dangerous.'
   }
 ];
 
