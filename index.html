@@ -28,6 +28,8 @@
       <div class="nav-sep">✦</div>
       <button class="nav-btn" data-section="party">The Party</button>
       <div class="nav-sep">✦</div>
+      <button class="nav-btn" data-section="lore">Lore</button>
+      <div class="nav-sep">✦</div>
       <button class="nav-btn" data-section="sessions">Session Log</button>
       <div class="nav-sep">✦</div>
       <button class="nav-btn" data-section="notes">Notes</button>
@@ -50,6 +52,15 @@
       <div class="party-grid" id="party-grid"></div>
     </section>
 
+    <!-- LORE -->
+    <section id="section-lore" class="section">
+      <div class="section-header">
+        <h2>Lore</h2>
+        <p>What is known. What has been witnessed.</p>
+      </div>
+      <div id="lore-list" class="lore-list"></div>
+    </section>
+
     <!-- SESSIONS -->
     <section id="section-sessions" class="section">
       <div class="section-header">
@@ -69,7 +80,7 @@
       </div>
       <div id="party-notes-list" class="notes-wrap"></div>
 
-      <!-- PERSONAL NOTES -->
+      <!-- PERSONAL COMPENDIUM -->
       <div class="personal-notes-block">
         <div class="hierarchy-divider" style="margin: 3rem 0 2rem;">
           <span>Personal</span>
@@ -78,7 +89,6 @@
           <p>Enter your passphrase to read your private notes.</p>
         </div>
 
-        <!-- Passphrase form — autocomplete attributes defeat browser autofill -->
         <div id="passphrase-form" class="passphrase-form">
           <input id="passphrase-input"
                  type="text"
@@ -94,10 +104,10 @@
           <button id="passphrase-submit">Unlock</button>
         </div>
 
-        <!-- Personal notes reveal -->
         <div id="personal-notes-reveal" class="hidden">
           <div id="personal-notes-header" class="personal-notes-header"></div>
-          <div id="personal-notes-list" class="notes-wrap"></div>
+          <div id="personal-compendium" class="personal-compendium"></div>
+          <div id="personal-notes-list" class="notes-wrap" style="margin-top:2rem;"></div>
           <button id="passphrase-lock" class="lock-btn">Lock</button>
         </div>
       </div>

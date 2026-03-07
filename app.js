@@ -83,6 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
     partyGrid.appendChild(card);
   });
 
+  // ── LORE ──
+  const loreList = document.getElementById('lore-list');
+
+  if (!LORE || LORE.length === 0) {
+    loreList.innerHTML = '<p class="lore-empty">No lore entries yet.</p>';
+  } else {
+    LORE.forEach(entry => {
+      const el = document.createElement('div');
+      el.className = 'lore-entry';
+      const imgHTML = entry.image
+        ? `<div class="lore-image-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+        : '';
+      const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+      el.innerHTML = `
+        ${imgHTML}
+        <div class="lore-title">${entry.name}</div>
+        <div class="lore-body">${paragraphs}</div>
+      `;
+      loreList.appendChild(el);
+    });
+  }
+
   // ── DETAIL PANEL ──
   const overlay = document.getElementById('overlay');
   const detailContent = document.getElementById('detail-content');
@@ -179,17 +201,36 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // ── PERSONAL NOTES ──
+  // ── PERSONAL NOTES & COMPENDIUM ──
   const passphraseInput = document.getElementById('passphrase-input');
   const passphraseSubmit = document.getElementById('passphrase-submit');
   const personalReveal = document.getElementById('personal-notes-reveal');
   const personalHeader = document.getElementById('personal-notes-header');
+  const personalCompendium = document.getElementById('personal-compendium');
   const personalNotesList = document.getElementById('personal-notes-list');
   const lockBtn = document.getElementById('passphrase-lock');
 
-  // Normalise: strip everything except letters, uppercase
   function normalise(str) {
     return str.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  }
+
+  function renderCompendium(entries) {
+    if (!entries || entries.length === 0) return '';
+    return entries.map(entry => {
+      const imgHTML = entry.image
+        ? `<div class="comp-image-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
+        : '';
+      const paragraphs = entry.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+      const roleHTML = entry.role ? `<div class="comp-role">${entry.role}</div>` : '';
+      return `
+        <div class="comp-entry">
+          ${imgHTML}
+          <div class="comp-name">${entry.name}</div>
+          ${roleHTML}
+          <div class="comp-body">${paragraphs}</div>
+        </div>
+      `;
+    }).join('<div class="comp-divider"></div>');
   }
 
   function attemptUnlock() {
@@ -210,8 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     personalHeader.innerHTML = `<p class="personal-notes-welcome">Welcome, ${characterName}.</p>`;
 
+    personalCompendium.innerHTML = renderCompendium(match.compendium);
+
     if (!match.notes || match.notes.length === 0) {
-      personalNotesList.innerHTML = '<p class="notes-empty">No personal notes yet.</p>';
+      personalNotesList.innerHTML = '';
     } else {
       personalNotesList.innerHTML = match.notes.map(n => `
         <div class="note-card">
@@ -231,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
   lockBtn.addEventListener('click', () => {
     personalReveal.classList.add('hidden');
     document.getElementById('passphrase-form').classList.remove('hidden');
+    personalCompendium.innerHTML = '';
     personalNotesList.innerHTML = '';
     personalHeader.innerHTML = '';
   });
