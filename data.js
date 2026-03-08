@@ -121,9 +121,9 @@ const LORE = [
   {
     id: 'daven-halvorn',
     name: 'Daven Halvorn',
-    subtitle: 'Orthon\'s son. House Halvorn.',
+    subtitle: 'Son of Orthon Halvorn. House Halvorn.',
     image: 'Daven Halvorn.png',
-    body: 'Orthon Halvorn runs his house at a distance — through intermediaries, through layers, through controlled deniability. His son Daven does not operate that way.\n\nDaven is loud where his father is quiet. He takes things personally. He makes decisions quickly and does not always consult those above him. The house tolerates this because he is effective enough, and because he is the heir.\n\nHe is dangerous not because he is powerful, but because he is unpredictable. Whatever the house\'s official position on something, Daven may already have taken a different action entirely.'
+    body: 'Son of Orthon Halvorn, head of House Halvorn.\n\nLoud. Angry. Takes things personally. The kind of man who makes it a problem when it doesn\'t have to be one.'
   }
 ];
 
