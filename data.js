@@ -62,7 +62,8 @@ const FACTIONS = [
     ],
     members: [
       { name: 'Cael Gorrund', role: 'Head of House.' },
-      { name: 'Tessaly', role: 'Intermediary. Handles sensitive work.' }
+      { name: 'Tessaly', role: 'Intermediary. Handles sensitive work.' },
+      { name: 'Jorik', role: 'Gorrund operative.' }
     ]
   },
   {
@@ -124,6 +125,13 @@ const LORE = [
     subtitle: 'Son of Orthon Halvorn. House Halvorn.',
     image: 'Daven Halvorn.png',
     body: 'Son of Orthon Halvorn, head of House Halvorn.\n\nLoud. Angry. Takes things personally. The kind of man who makes it a problem when it doesn\'t have to be one.'
+  },
+  {
+    id: 'jorik',
+    name: 'Jorik',
+    subtitle: 'Gorrund operative.',
+    image: 'Jorik.png',
+    body: 'Operative for House Gorrund. Stubborn. Been through it.\n\nNot the kind of man who breaks easy.'
   }
 ];
 
