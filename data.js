@@ -77,7 +77,8 @@ const FACTIONS = [
       'Recently lost a significant prisoner from their custody.'
     ],
     members: [
-      { name: 'Orthon Halvorn', role: 'Head of House.' }
+      { name: 'Orthon Halvorn', role: 'Head of House.' },
+      { name: 'Daven Halvorn', role: 'Orthon\'s son.' }
     ]
   }
 ];
@@ -116,6 +117,13 @@ const LORE = [
     subtitle: 'Ancient sites. Older than any house.',
     image: 'Stillmarks.png',
     body: 'Ancient monolithic sites found across the known world. Three tall stone pillars, converging at the top, worn smooth by centuries of weather and attention. They predate any house, any kingdom, any name anyone alive can put to them.\n\nThe Stillkeepers tend them — monks who dedicate their lives to meditation at the base of the stones. No one knows exactly what they are meditating on. They do not speak of it. What is known: Stillkeepers tend to live far longer than their race would suggest. Some say twice as long. Others say more.\n\nThe sites are not holy in any formal sense. No church claims them. No doctrine governs them. They simply persist — and those who sit with them long enough seem, somehow, changed by it.'
+  },
+  {
+    id: 'daven-halvorn',
+    name: 'Daven Halvorn',
+    subtitle: 'Orthon\'s son. House Halvorn.',
+    image: 'Daven Halvorn.png',
+    body: 'Orthon Halvorn runs his house at a distance — through intermediaries, through layers, through controlled deniability. His son Daven does not operate that way.\n\nDaven is loud where his father is quiet. He takes things personally. He makes decisions quickly and does not always consult those above him. The house tolerates this because he is effective enough, and because he is the heir.\n\nHe is dangerous not because he is powerful, but because he is unpredictable. Whatever the house\'s official position on something, Daven may already have taken a different action entirely.'
   }
 ];
 
