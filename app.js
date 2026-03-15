@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── OVERLAY (declared early so all builders can reference it) ──
+  // ── OVERLAY ──
   const overlay = document.getElementById('overlay');
   const detailContent = document.getElementById('detail-content');
   const closeBtn = document.getElementById('close-overlay');
@@ -24,17 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
   // ── COMP CARD BUILDER ──
-  // Hoisted above all callers.
   function buildCompCard(entry) {
     const card = document.createElement('div');
     card.className = 'comp-card';
-
     const imgHTML = entry.image
       ? `<div class="comp-card-img-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
       : `<div class="comp-card-img-wrap comp-card-img-placeholder">${entry.name[0]}</div>`;
-
     const subtitle = entry.role || entry.subtitle || '';
-
     card.innerHTML = `
       ${imgHTML}
       <div class="comp-card-footer">
@@ -42,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ${subtitle ? `<div class="comp-card-sub">${subtitle}</div>` : ''}
       </div>
     `;
-
     card.addEventListener('click', () => openCompDetail(entry));
     return card;
   }
@@ -134,9 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── SHARED LORE CARDS ──
   const sharedLoreGrid = document.getElementById('shared-lore-cards');
   if (LORE && LORE.length > 0) {
-    LORE.forEach(entry => {
-      sharedLoreGrid.appendChild(buildCompCard(entry));
-    });
+    LORE.forEach(entry => sharedLoreGrid.appendChild(buildCompCard(entry)));
   }
 
   // ── PARTY NOTES ──
@@ -191,20 +184,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── SESSIONS ──
   const sessionsList = document.getElementById('sessions-list');
-  if (SESSIONS.length === 0) {
+  if (!SESSIONS || SESSIONS.length === 0) {
     sessionsList.innerHTML = '<p class="sessions-empty">The log is empty. No sessions have been recorded yet.</p>';
   } else {
     SESSIONS.forEach(s => {
       const card = document.createElement('div');
-      card.className = 'session-card';
+      card.className = 'session-row';
       card.innerHTML = `
-        <div class="session-label">Session ${s.number}</div>
-        <div class="session-title">${s.title}</div>
-        <div class="session-date">${s.date}</div>
-        <div class="session-body">${s.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>
+        <div class="session-row-number">${s.number}</div>
+        <div class="session-row-body">
+          <div class="session-row-title">${s.title}</div>
+          <div class="session-row-label">${s.date}</div>
+        </div>
+        <div class="session-row-arrow">›</div>
       `;
+      card.addEventListener('click', () => openSessionDetail(s));
       sessionsList.appendChild(card);
     });
+  }
+
+  function openSessionDetail(s) {
+    const partsHTML = s.parts.map(part => {
+      const eventsHTML = part.events.map(e =>
+        `<li><strong>${e.bold}</strong>${e.text}</li>`
+      ).join('');
+      return `
+        <div class="session-detail-part-label">${part.label}</div>
+        <ul class="session-detail-events">${eventsHTML}</ul>
+      `;
+    }).join('');
+
+    detailContent.innerHTML = `
+      <div class="session-detail-number">Session ${s.number}</div>
+      <div class="detail-title" style="margin-bottom:0.2rem">${s.title}</div>
+      <div class="detail-subtitle" style="margin-bottom:1.8rem">${s.date}</div>
+      ${partsHTML}
+    `;
+    openOverlay();
   }
 
   // ── PERSONAL NOTES & COMPENDIUM ──
@@ -223,27 +239,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function attemptUnlock() {
     const attempt = normalise(passphraseInput.value);
     const match = PERSONAL_NOTES.find(p => normalise(p.passphrase) === attempt);
-
     if (!match) {
       passphraseInput.classList.add('shake');
       passphraseInput.value = '';
       setTimeout(() => passphraseInput.classList.remove('shake'), 500);
       return;
     }
-
     passphraseInput.value = '';
-
     const player = PLAYERS.find(p => p.id === match.playerId);
     const characterName = player ? player.name : 'Traveller';
     personalHeader.innerHTML = `<p class="personal-notes-welcome">Welcome, ${characterName}.</p>`;
-
     personalCompendium.innerHTML = '';
     if (match.compendium && match.compendium.length > 0) {
-      match.compendium.forEach(entry => {
-        personalCompendium.appendChild(buildCompCard(entry));
-      });
+      match.compendium.forEach(entry => personalCompendium.appendChild(buildCompCard(entry)));
     }
-
     if (!match.notes || match.notes.length === 0) {
       personalNotesList.innerHTML = '';
     } else {
@@ -254,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
     }
-
     document.getElementById('passphrase-form').classList.add('hidden');
     personalReveal.classList.remove('hidden');
   }

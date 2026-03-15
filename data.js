@@ -110,7 +110,6 @@ const PLAYERS = [
 ];
 
 // ── SHARED LORE ──
-// Entries visible to all players under the Notes tab, above the passphrase.
 const LORE = [
   {
     id: 'stillmarks',
@@ -151,17 +150,45 @@ const LORE = [
 
 // ── SESSIONS ──
 const SESSIONS = [
-  // Add sessions here after each game.
+  {
+    number: 1,
+    title: 'The Docks',
+    date: 'Session 1',
+    parts: [
+      {
+        label: 'Part One — The Malchor',
+        events: [
+          { bold: 'The job:', text: ' House Gorrund needed an operative extracted from a Halvorn ship called the Malchor, docked in the capital overnight. The contact was Tessaly — professional, minimal. She laid out the brief and left the party to work.' },
+          { bold: 'Azrael', text: ' scouted the docks ahead of time and spotted Daven Halvorn leaving the ship with purpose before the party moved in. He did not engage.' },
+          { bold: 'The party went below deck', text: ' and found the operative — Jorik — in rough shape. He had been worked over. Dirk stabilised him.' },
+          { bold: 'A wife and daughter', text: ' were also being held below deck. They were alive. Halvorn had not bothered to kill them. The party got all three out.' },
+          { bold: 'Daven had already left', text: ' before the party reached the lower deck. He did not see their faces.' },
+          { bold: 'The three members of the party met each other for the first time', text: ' below deck — hired by the same woman, none of them knowing the others would be there.' }
+        ]
+      },
+      {
+        label: 'Part Two — The Ledger',
+        events: [
+          { bold: 'At the safehouse,', text: ' Tessaly paid on delivery. She was visibly — if briefly — surprised that Jorik was alive. The wife and daughter were taken to be looked after.' },
+          { bold: 'Jorik debriefed the party:', text: ' House Halvorn had been accumulating weapons and armour at scale, through multiple contractors. The equipment on their guards was noticeably well-made. Tessaly confirmed she had noticed more Halvorn troops in the capital.' },
+          { bold: 'Halvorn\'s official position is that the accumulation is procedural.', text: ' Jorik does not believe it.' },
+          { bold: 'A ledger exists', text: ' — held at a third-party counting office — that could prove the scale of what Halvorn has been doing. Tessaly offered the party a second job: retrieve it, tonight, before Daven moved it.' },
+          { bold: 'Dirk knew the building.', text: ' A patient had once mentioned where the safe was kept. The party moved immediately.' },
+          { bold: 'Daven had already been and gone,', text: ' having ransacked the main space and found nothing. The private back room was untouched. Kalvorn found a false wall. Dirk cracked the safe.' },
+          { bold: 'The ledger named Byren Holt', text: ' — Lord Chancellor of Eberoth — in documents he has no business being near. Kalvorn recognised the name. He had seen Holt before, in circumstances Holt does not know he was observed.' },
+          { bold: 'The party navigated home through the capital', text: ' in the early hours, talking their way past a Kingsguard patrol.' },
+          { bold: 'Tessaly paid the agreed sum', text: ' and indicated there may be more work. The party separated for the night.' },
+          { bold: 'Each member returned home to find their property had been broken into.', text: ' Someone knows they were involved. Nothing was taken. The message was the point.' }
+        ]
+      }
+    ]
+  }
 ];
 
 // ── PARTY NOTES ──
-// GM-authored, visible to all.
-const PARTY_NOTES = [
-  // Example: { title: 'The Job', body: 'You are employed by House Gorrund.' }
-];
+const PARTY_NOTES = [];
 
 // ── PERSONAL COMPENDIUM ──
-// Per-player content revealed after passphrase unlock.
 const PERSONAL_NOTES = [
   {
     playerId: 'kalvorn',
@@ -192,7 +219,12 @@ const PERSONAL_NOTES = [
         body: 'You did not choose him. He chose you — or something like choosing happened, in the moment the blood was drawn and the blade first sang differently than it had before.\n\nHe is not a voice. He is not a presence in any comfortable sense. He is pressure. The feeling before a battle when everything goes quiet and the body knows what it is for.\n\nYou serve. He watches. So far, that arrangement has held.'
       }
     ],
-    notes: []
+    notes: [
+      {
+        title: 'Something to Consider',
+        body: 'House Corvath moved against House Voss quickly. Very quickly. A house with strong walls and deep resources — and their defence collapsed faster than it should have. The people who knew how to hold their ground seemed to vanish before the siege began.\n\nYou were there. You saw what a prepared defence looks like when it falls apart from the inside. You have never fully accounted for why Voss went as easily as it did.'
+      }
+    ]
   },
   {
     playerId: 'azrael',
@@ -246,6 +278,11 @@ const PERSONAL_NOTES = [
         body: 'You have never seen it. You are not sure "it" is the right word, but you have not found a better one.\n\nThe Teacher makes itself known as guidance — a pull in a particular direction, a certainty arriving before the reasoning does, a sense that a specific person in a specific moment requires your attention. You have learned to trust it. You have not learned to understand it.\n\nWhen you heal, sometimes the work feels less like skill and more like being used well. That is not a complaint. It is simply an observation you have made and set aside.\n\nYou have not asked who or what the Teacher is. That question has not felt urgent. So far, it has not led you anywhere you would not have chosen yourself.'
       }
     ],
-    notes: []
+    notes: [
+      {
+        title: 'The Arm',
+        body: 'You saved a man\'s arm in a field tent during the Voss campaign. You do not advertise this. The arrangement that followed — the property, the silent payment — suits you. It is clean. It does not require conversation.\n\nWhat happened on the table that night was not entirely your doing. You are aware of this. You have not examined it too closely.\n\nThe arm healed. The man returned to public life within a month. No one asked questions. That is, in your experience, the best possible outcome.'
+      }
+    ]
   }
 ];
