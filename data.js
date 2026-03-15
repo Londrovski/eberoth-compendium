@@ -9,7 +9,7 @@ const FACTIONS = [
     name: 'The Crown',
     sigil: 'The Crown.png',
     status: 'known',
-    description: 'The Crown is the ancient seat of power in Eberoth, holding the royal bloodline for over 2000 years. The king rules, but the houses circle.',
+    description: 'The Crown is the ancient seat of power, holding the royal bloodline for over 2000 years. The king rules, but the houses circle.',
     facts: [
       'King Gaelan Arveth currently sits the throne.',
       'The Kingsguard answer directly to the Crown.',
@@ -24,7 +24,7 @@ const FACTIONS = [
     name: 'House Corvath',
     sigil: 'House Corvath.png',
     status: 'known',
-    description: 'The most powerful military house in Eberoth. House Corvath has long served as the Crown\'s strong arm — its soldiers disciplined, its general feared. They ended the Voss campaign swiftly, and have not stopped moving since.',
+    description: 'The most powerful military house in the kingdom. House Corvath has long served as the Crown\'s strong arm — its soldiers disciplined, its general feared. They ended the Voss campaign swiftly, and have not stopped moving since.',
     facts: [
       'Controls significant territory in the north.',
       'Led by a general with a reputation for absolute loyalty to the king.',
@@ -123,7 +123,7 @@ const LORE = [
     name: 'Tessaly',
     subtitle: 'Gorrund intermediary.',
     image: 'Tessaly.png',
-    body: 'Intermediary for House Gorrund. Professional. No wasted words.\n\nThe kind of person who gives you exactly as much information as you need and not one detail more.'
+    body: 'Intermediary for House Gorrund.\n\nThe kind of person who gives you exactly as much information as you need and not one detail more.'
   },
   {
     id: 'daven-halvorn',
@@ -144,7 +144,7 @@ const LORE = [
     name: 'Byren Holt',
     subtitle: 'Lord Chancellor. The Crown\'s right hand.',
     image: 'Byren Holt.png',
-    body: 'Lord Chancellor of Eberoth. Runs the kingdom\'s bureaucracy on behalf of the king — appointments, records, the machinery of governance that keeps everything moving.\n\nPrecise. Careful. The kind of man who is never directly connected to anything.\n\nHis name has surfaced in places it should not be.'
+    body: 'Lord Chancellor of the kingdom. Runs the Crown\'s bureaucracy on behalf of the king — appointments, records, the machinery of governance that keeps everything moving.\n\nPrecise. Careful. The kind of man who is never directly connected to anything.\n\nHis name has surfaced in places it should not be.'
   }
 ];
 
@@ -158,24 +158,23 @@ const SESSIONS = [
       {
         label: 'Part One — The Malchor',
         events: [
-          { bold: 'The job:', text: ' House Gorrund needed an operative extracted from a Halvorn ship called the Malchor, docked in the capital overnight. The contact was Tessaly — professional, minimal. She laid out the brief and left the party to work.' },
+          { bold: 'The job:', text: ' House Gorrund needed an operative extracted from a Halvorn ship called the Malchor, docked in the capital overnight. The contact was Tessaly. She laid out the brief and left the party to work.' },
           { bold: 'Azrael', text: ' scouted the docks ahead of time and spotted Daven Halvorn leaving the ship with purpose before the party moved in. He did not engage.' },
-          { bold: 'The party went below deck', text: ' and found the operative — Jorik — in rough shape. He had been worked over. Dirk stabilised him.' },
-          { bold: 'A wife and daughter', text: ' were also being held below deck. They were alive. Halvorn had not bothered to kill them. The party got all three out.' },
-          { bold: 'Daven had already left', text: ' before the party reached the lower deck. He did not see their faces.' },
-          { bold: 'The three members of the party met each other for the first time', text: ' below deck — hired by the same woman, none of them knowing the others would be there.' }
+          { bold: 'The party executed the extraction,', text: ' fighting their way below deck. Daven was present — and ran.' },
+          { bold: 'Jorik was found below deck', text: ' in rough shape. He had been worked over. Dirk stabilised him.' },
+          { bold: 'A wife and daughter', text: ' were also being held below deck. They were alive. Halvorn had not bothered to kill them. The party got all three out.' }
         ]
       },
       {
         label: 'Part Two — The Ledger',
         events: [
-          { bold: 'At the safehouse,', text: ' Tessaly paid on delivery. She was visibly — if briefly — surprised that Jorik was alive. The wife and daughter were taken to be looked after.' },
+          { bold: 'At the safehouse,', text: ' Tessaly paid on delivery. The wife and daughter were taken to be looked after.' },
           { bold: 'Jorik debriefed the party:', text: ' House Halvorn had been accumulating weapons and armour at scale, through multiple contractors. The equipment on their guards was noticeably well-made. Tessaly confirmed she had noticed more Halvorn troops in the capital.' },
           { bold: 'Halvorn\'s official position is that the accumulation is procedural.', text: ' Jorik does not believe it.' },
           { bold: 'A ledger exists', text: ' — held at a third-party counting office — that could prove the scale of what Halvorn has been doing. Tessaly offered the party a second job: retrieve it, tonight, before Daven moved it.' },
           { bold: 'Dirk knew the building.', text: ' A patient had once mentioned where the safe was kept. The party moved immediately.' },
-          { bold: 'Daven had already been and gone,', text: ' having ransacked the main space and found nothing. The private back room was untouched. Kalvorn found a false wall. Dirk cracked the safe.' },
-          { bold: 'The ledger named Byren Holt', text: ' — Lord Chancellor of Eberoth — in documents he has no business being near. Kalvorn recognised the name. He had seen Holt before, in circumstances Holt does not know he was observed.' },
+          { bold: 'Daven had already been and gone,', text: ' having ransacked the main space and found nothing. The private back room was untouched. Dirk cracked the safe.' },
+          { bold: 'The ledger named Byren Holt', text: ' — Lord Chancellor of the kingdom — in documents he has no business being near. Kalvorn recognised the name.' },
           { bold: 'The party navigated home through the capital', text: ' in the early hours, talking their way past a Kingsguard patrol.' },
           { bold: 'Tessaly paid the agreed sum', text: ' and indicated there may be more work. The party separated for the night.' },
           { bold: 'Each member returned home to find their property had been broken into.', text: ' Someone knows they were involved. Nothing was taken. The message was the point.' }
