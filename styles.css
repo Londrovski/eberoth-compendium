@@ -41,7 +41,6 @@ body {
   background-size: 180px 180px;
 }
 
-/* ── HEADER ── */
 header {
   position: relative;
   text-align: center;
@@ -71,11 +70,7 @@ header {
     linear-gradient(180deg, rgba(11,9,5,0.35) 0%, rgba(11,9,5,0.1) 35%, rgba(11,9,5,0.1) 65%, rgba(11,9,5,0.6) 100%);
 }
 
-.header-inner {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-}
+.header-inner { position: relative; z-index: 1; width: 100%; }
 
 .header-rule {
   height: 1px;
@@ -98,7 +93,6 @@ header h1 {
   line-height: 1.15;
 }
 
-/* ── NAV ── */
 nav {
   background: var(--bg-mid);
   border-top: 1px solid var(--border);
@@ -136,7 +130,6 @@ nav {
 .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 .nav-sep { color: var(--gold-dim); font-size: 0.5rem; opacity: 0.5; pointer-events: none; }
 
-/* ── MAIN ── */
 main {
   max-width: 1200px;
   margin: 0 auto;
@@ -173,7 +166,6 @@ main {
   font-size: 1.05rem;
 }
 
-/* ── CROWN FEATURE ── */
 .crown-feature {
   display: flex;
   flex-direction: column;
@@ -219,7 +211,6 @@ main {
   line-height: 1.6;
 }
 
-/* ── HIERARCHY DIVIDER ── */
 .hierarchy-divider {
   display: flex;
   align-items: center;
@@ -245,7 +236,6 @@ main {
   white-space: nowrap;
 }
 
-/* ── FACTION CARDS ── */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -309,7 +299,6 @@ main {
   letter-spacing: 0.07em;
 }
 
-/* ── PARTY CARDS ── */
 .party-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -382,7 +371,6 @@ main {
   color: var(--gold-dim);
 }
 
-/* ── COMPENDIUM CARDS ── */
 .comp-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -458,14 +446,11 @@ main {
   height: 210px !important;
 }
 
-.comp-detail-img img {
-  object-position: top !important;
-}
+.comp-detail-img img { object-position: top !important; }
 
 .comp-detail-body p { margin-bottom: 0.85rem; }
 .comp-detail-body p:last-child { margin-bottom: 0; }
 
-/* ── DETAIL OVERLAY ── */
 .overlay {
   position: fixed;
   inset: 0;
@@ -613,7 +598,6 @@ main {
 .member-name { font-family: 'Cinzel', serif; font-size: 0.95rem; color: var(--text); }
 .member-role { font-style: italic; color: var(--text-mid); font-size: 0.92rem; text-align: right; }
 
-/* ── SESSION ROWS ── */
 #sessions-list {
   display: flex;
   flex-direction: column;
@@ -661,22 +645,27 @@ main {
   opacity: 0.85;
 }
 
-.session-row-body {
-  flex: 1;
-}
+.session-row-body { flex: 1; }
 
 .session-row-title {
   font-family: 'Cinzel', serif;
   font-size: 1.15rem;
   color: var(--text);
   letter-spacing: 0.05em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
 .session-row-label {
   font-style: italic;
   color: var(--text-dim);
   font-size: 0.9rem;
+}
+
+.session-row-summary {
+  font-style: italic;
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 .session-row-arrow {
@@ -691,7 +680,6 @@ main {
   transform: translateX(3px);
 }
 
-/* ── SESSION DETAIL (inside popup) ── */
 .session-detail-number {
   font-family: 'Cinzel', serif;
   font-size: 0.75rem;
@@ -740,7 +728,51 @@ main {
   font-weight: 600;
 }
 
-/* ── SESSION BLOCKS (new format, Session 2+) ── */
+.session-summary-box {
+  background: rgba(200,168,75,0.04);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 1.2rem 1.4rem 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-summary-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 0.7rem;
+}
+
+.session-summary-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.session-summary-list li {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.5;
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.session-summary-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--gold-dim);
+}
+
+.session-summary-list li strong {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
 .session-block-para {
   color: var(--text);
   font-size: 1.1rem;
@@ -805,7 +837,6 @@ main {
 
 .sessions-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 4rem 1rem; font-size: 1.05rem; }
 
-/* ── NOTES ── */
 .notes-wrap {
   max-width: 680px;
   margin: 0 auto;
@@ -835,7 +866,6 @@ main {
 .note-body { color: var(--text); font-size: 1rem; line-height: 1.6; }
 .notes-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 2rem 1rem; font-size: 1.05rem; }
 
-/* ── PERSONAL NOTES ── */
 .personal-notes-block {
   max-width: 900px;
   margin: 0 auto;
@@ -924,7 +954,6 @@ main {
 
 .shake { animation: shake 0.45s ease; }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   header { padding: 3.5rem 1rem 2.5rem; min-height: 200px; }
   .nav-btn { padding: 0.75rem 0.7rem; font-size: 0.62rem; letter-spacing: 0.08em; }

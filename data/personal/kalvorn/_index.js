@@ -1,0 +1,11 @@
+const KALVORN_PERSONAL = {
+  ...KALVORN_META,
+  compendium: [
+    KALVORN_ALDUS_CORVATH,
+    KALVORN_BYREN_HOLT,
+    KALVORN_MALTHEUS
+  ],
+  notes: [
+    KALVORN_NOTE_SOMETHING_TO_CONSIDER
+  ]
+};

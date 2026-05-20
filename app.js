@@ -190,11 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
     SESSIONS.forEach(s => {
       const card = document.createElement('div');
       card.className = 'session-row';
+      const subtitle = s.rowSummary
+        ? `<div class="session-row-summary">${s.rowSummary}</div>`
+        : `<div class="session-row-label">${s.date}</div>`;
       card.innerHTML = `
         <div class="session-row-number">${s.number}</div>
         <div class="session-row-body">
           <div class="session-row-title">${s.title}</div>
-          <div class="session-row-label">${s.date}</div>
+          ${subtitle}
         </div>
         <div class="session-row-arrow">›</div>
       `;
@@ -224,6 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openSessionDetail(s) {
+    const summaryHTML = s.summary && s.summary.length
+      ? `<div class="session-summary-box">
+           <div class="session-summary-label">Summary</div>
+           <ul class="session-summary-list">${s.summary.map(line => `<li>${line}</li>`).join('')}</ul>
+         </div>`
+      : '';
+
     const partsHTML = s.parts.map(part => {
       const contentHTML = part.blocks
         ? renderBlocks(part.blocks)
@@ -240,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="session-detail-number">Session ${s.number}</div>
       <div class="detail-title" style="margin-bottom:0.2rem">${s.title}</div>
       <div class="detail-subtitle" style="margin-bottom:1.8rem">${s.date}</div>
+      ${summaryHTML}
       ${partsHTML}
     `;
     openOverlay();
