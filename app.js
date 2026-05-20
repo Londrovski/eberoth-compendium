@@ -203,14 +203,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── SESSION BLOCK RENDERER ──
+  function renderBlocks(blocks) {
+    return blocks.map(block => {
+      switch (block.type) {
+        case 'para':
+          return `<p class="session-block-para">${block.text}</p>`;
+        case 'highlight':
+          return `<p class="session-block-highlight">${block.text}</p>`;
+        case 'takeaway':
+          return `<p class="session-block-takeaway">${block.text}</p>`;
+        case 'testimonies':
+          return `<ul class="session-block-testimonies">${block.items.map(item =>
+            `<li><span class="testimony-name">${item.name}:</span> ${item.text}</li>`
+          ).join('')}</ul>`;
+        default:
+          return '';
+      }
+    }).join('');
+  }
+
   function openSessionDetail(s) {
     const partsHTML = s.parts.map(part => {
-      const eventsHTML = part.events.map(e =>
-        `<li><strong>${e.bold}</strong>${e.text}</li>`
-      ).join('');
+      const contentHTML = part.blocks
+        ? renderBlocks(part.blocks)
+        : `<ul class="session-detail-events">${part.events.map(e =>
+            `<li><strong>${e.bold}</strong>${e.text}</li>`
+          ).join('')}</ul>`;
       return `
         <div class="session-detail-part-label">${part.label}</div>
-        <ul class="session-detail-events">${eventsHTML}</ul>
+        ${contentHTML}
       `;
     }).join('');
 

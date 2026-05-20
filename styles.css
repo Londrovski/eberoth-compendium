@@ -740,6 +740,69 @@ main {
   font-weight: 600;
 }
 
+/* ── SESSION BLOCKS (new format, Session 2+) ── */
+.session-block-para {
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  margin-bottom: 0.9rem;
+}
+
+.session-block-para strong {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.session-block-highlight {
+  color: var(--gold-bright);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.1rem 0 0.5rem;
+}
+
+.session-block-takeaway {
+  color: var(--gold-bright);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.6;
+  padding-left: 1.2rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.session-block-takeaway::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--gold-dim);
+  font-weight: 400;
+}
+
+.session-block-testimonies {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  padding-left: 0.5rem;
+}
+
+.session-block-testimonies li {
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.testimony-name {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.session-block-testimonies li strong {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
 .sessions-empty { text-align: center; font-style: italic; color: var(--text-dim); padding: 4rem 1rem; font-size: 1.05rem; }
 
 /* ── NOTES ── */
