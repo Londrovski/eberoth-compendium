@@ -1,8 +1,11 @@
 // ===========================
 // EBEROTH COMPENDIUM — APP
 // ===========================
+// This file is loaded by loader.js AFTER DOMContentLoaded has already
+// fired. We can't wait for that event (it's already gone). Instead we
+// check document.readyState and either run immediately or wait once.
 
-document.addEventListener('DOMContentLoaded', () => {
+function initEberoth() {
 
   // ── OVERLAY ──
   const overlay = document.getElementById('overlay');
@@ -311,4 +314,11 @@ document.addEventListener('DOMContentLoaded', () => {
     personalHeader.innerHTML = '';
   });
 
-});
+}
+
+// Run init whether DOM is already ready (loader case) or not (normal case)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEberoth);
+} else {
+  initEberoth();
+}
