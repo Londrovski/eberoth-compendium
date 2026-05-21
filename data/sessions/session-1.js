@@ -1,4 +1,4 @@
-const SESSION_1 = {
+(window.SESSIONS = window.SESSIONS || []).push({
   number: 1,
   title: 'The Docks',
   date: 'Session 1',
@@ -51,4 +51,4 @@ const SESSION_1 = {
       ]
     }
   ]
-};
+});

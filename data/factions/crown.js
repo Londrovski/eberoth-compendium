@@ -1,4 +1,4 @@
-const CROWN = {
+(window.FACTIONS = window.FACTIONS || []).push({
   id: 'crown',
   name: 'The Crown',
   sigil: 'The Crown.png',
@@ -14,4 +14,4 @@ const CROWN = {
     { name: 'Byren Holt', role: 'Lord Chancellor.' },
     { name: 'High Inquisitor Mael Dross', role: 'High Inquisitor.' }
   ]
-};
+});

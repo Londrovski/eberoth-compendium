@@ -1,25 +1,18 @@
 // ===========================
-// EBEROTH COMPENDIUM — DATA ASSEMBLY
+// EBEROTH COMPENDIUM — DATA FINALISER
 // ===========================
-// All content lives in /data/ as small files. This file just assembles
-// the top-level arrays that app.js reads. See README.md for details.
+// All content self-registers from /data/ leaf files.
+// This file just ensures the globals exist (in case any folder is empty)
+// and applies any final normalisation (e.g. session ordering).
+// See README.md for architecture.
 
-const FACTIONS = [CROWN, CORVATH, VOSS, GORRUND, HALVORN];
+window.FACTIONS       = window.FACTIONS       || [];
+window.PLAYERS        = window.PLAYERS        || [];
+window.LORE           = window.LORE           || [];
+window.SESSIONS       = window.SESSIONS       || [];
+window.PARTY_NOTES    = window.PARTY_NOTES    || [];
+window.PERSONAL_NOTES = window.PERSONAL_NOTES || [];
 
-const PLAYERS = [KALVORN_PLAYER, AZRAEL_PLAYER, DIRK_PLAYER];
-
-const LORE = [
-  STILLMARKS,
-  TESSALY,
-  DAVEN_HALVORN,
-  JORIK,
-  BYREN_HOLT,
-  MAEL_DROSS,
-  BROTHERHOOD_OF_THE_PATIENT_DAWN
-];
-
-const SESSIONS = [SESSION_1, SESSION_2, SESSION_3, SESSION_4];
-
-const PARTY_NOTES = [];
-
-const PERSONAL_NOTES = [KALVORN_PERSONAL, AZRAEL_PERSONAL, DIRK_PERSONAL];
+// Sessions can be added in any order — sort by number so they always
+// render chronologically.
+SESSIONS.sort((a, b) => a.number - b.number);

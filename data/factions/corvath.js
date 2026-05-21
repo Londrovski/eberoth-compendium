@@ -1,4 +1,4 @@
-const CORVATH = {
+(window.FACTIONS = window.FACTIONS || []).push({
   id: 'corvath',
   name: 'House Corvath',
   sigil: 'House Corvath.png',
@@ -12,4 +12,4 @@ const CORVATH = {
   members: [
     { name: 'Aldus Corvath', role: 'General. Head of House.' }
   ]
-};
+});

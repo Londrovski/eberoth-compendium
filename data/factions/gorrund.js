@@ -1,4 +1,4 @@
-const GORRUND = {
+(window.FACTIONS = window.FACTIONS || []).push({
   id: 'gorrund',
   name: 'House Gorrund',
   sigil: 'House Gorrund.png',
@@ -14,4 +14,4 @@ const GORRUND = {
     { name: 'Tessaly', role: 'Intermediary. Handles sensitive work.' },
     { name: 'Jorik', role: 'Gorrund operative.' }
   ]
-};
+});

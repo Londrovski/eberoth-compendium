@@ -1,4 +1,4 @@
-const VOSS = {
+(window.FACTIONS = window.FACTIONS || []).push({
   id: 'voss',
   name: 'House Voss',
   sigil: 'House Voss.png',
@@ -12,4 +12,4 @@ const VOSS = {
   members: [
     { name: 'Theron Voss', role: 'Current head.' }
   ]
-};
+});

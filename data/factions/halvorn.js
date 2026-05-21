@@ -1,4 +1,4 @@
-const HALVORN = {
+(window.FACTIONS = window.FACTIONS || []).push({
   id: 'halvorn',
   name: 'House Halvorn',
   sigil: 'House Halvorn.png',
@@ -13,4 +13,4 @@ const HALVORN = {
     { name: 'Orthon Halvorn', role: 'Head of House.' },
     { name: 'Daven Halvorn', role: 'Orthon\'s son.' }
   ]
-};
+});
