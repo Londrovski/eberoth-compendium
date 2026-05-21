@@ -115,65 +115,14 @@
   </div>
 
   <!-- ===========================
-       DATA LOAD ORDER
-       Leaf files first, then assembly, then app.
+       LOADER
+       Reads each folder's _manifest.js and injects <script> tags
+       for every listed leaf. Then loads data.js (finaliser) and
+       app.js (renderer). No script tags here — add new content via
+       the relevant _manifest.js file.
        See README.md for architecture.
        =========================== -->
-
-  <!-- Factions -->
-  <script src="data/factions/crown.js"></script>
-  <script src="data/factions/corvath.js"></script>
-  <script src="data/factions/voss.js"></script>
-  <script src="data/factions/gorrund.js"></script>
-  <script src="data/factions/halvorn.js"></script>
-
-  <!-- Players -->
-  <script src="data/players/kalvorn.js"></script>
-  <script src="data/players/azrael.js"></script>
-  <script src="data/players/dirk.js"></script>
-
-  <!-- Shared lore -->
-  <script src="data/lore/stillmarks.js"></script>
-  <script src="data/lore/tessaly.js"></script>
-  <script src="data/lore/daven-halvorn.js"></script>
-  <script src="data/lore/jorik.js"></script>
-  <script src="data/lore/byren-holt.js"></script>
-  <script src="data/lore/mael-dross.js"></script>
-  <script src="data/lore/brotherhood-of-the-patient-dawn.js"></script>
-
-  <!-- Sessions -->
-  <script src="data/sessions/session-1.js"></script>
-  <script src="data/sessions/session-2.js"></script>
-  <script src="data/sessions/session-3.js"></script>
-  <script src="data/sessions/session-4.js"></script>
-
-  <!-- Personal: Kalvorn -->
-  <script src="data/personal/kalvorn/meta.js"></script>
-  <script src="data/personal/kalvorn/compendium/aldus-corvath.js"></script>
-  <script src="data/personal/kalvorn/compendium/byren-holt.js"></script>
-  <script src="data/personal/kalvorn/compendium/maltheus.js"></script>
-  <script src="data/personal/kalvorn/notes/something-to-consider.js"></script>
-  <script src="data/personal/kalvorn/_index.js"></script>
-
-  <!-- Personal: Azrael -->
-  <script src="data/personal/azrael/meta.js"></script>
-  <script src="data/personal/azrael/compendium/cadriel.js"></script>
-  <script src="data/personal/azrael/compendium/sylvia.js"></script>
-  <script src="data/personal/azrael/compendium/descending-horizon.js"></script>
-  <script src="data/personal/azrael/_index.js"></script>
-
-  <!-- Personal: Dirk -->
-  <script src="data/personal/dirk/meta.js"></script>
-  <script src="data/personal/dirk/compendium/aldus-corvath.js"></script>
-  <script src="data/personal/dirk/compendium/the-teacher.js"></script>
-  <script src="data/personal/dirk/notes/the-arm.js"></script>
-  <script src="data/personal/dirk/_index.js"></script>
-
-  <!-- Top-level assembly -->
-  <script src="data.js"></script>
-
-  <!-- App renderer -->
-  <script src="app.js"></script>
+  <script src="loader.js"></script>
 
 </body>
 </html>
