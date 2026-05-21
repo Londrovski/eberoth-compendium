@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.className = 'comp-card';
     const imgHTML = entry.image
       ? `<div class="comp-card-img-wrap"><img src="${entry.image}" alt="${entry.name}" onerror="this.parentElement.style.display='none'"></div>`
-      : `<div class="comp-card-img-wrap comp-card-img-placeholder">${entry.name[0]}</div>`;
+      : `<div class="comp-card-img-wrap comp-card-img-placeholder">?</div>`;
     const subtitle = entry.role || entry.subtitle || '';
     card.innerHTML = `
       ${imgHTML}
@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'faction-card' + (f.status === 'locked' ? ' locked' : '');
     const imgHTML = f.sigil
-      ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML='<span class=card-image-placeholder>${f.name[0]}</span>'">`
-      : `<span class="card-image-placeholder">${f.name[0]}</span>`;
+      ? `<img src="${f.sigil}" alt="${f.name}" onerror="this.parentElement.innerHTML='<span class=card-image-placeholder>?</span>'">`
+      : `<span class="card-image-placeholder">?</span>`;
     card.innerHTML = `
       <div class="card-image-wrap">${imgHTML}</div>
       <div class="card-footer"><div class="card-name">${f.name}</div></div>
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'party-card';
     const imgHTML = p.image
-      ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-image-placeholder>${p.name[0]}</span>'">`
-      : `<span class="party-image-placeholder">${p.name[0]}</span>`;
+      ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span class=party-image-placeholder>?</span>'">`
+      : `<span class="party-image-placeholder">?</span>`;
     card.innerHTML = `
       <div class="party-image-wrap">${imgHTML}</div>
       <div class="party-footer">

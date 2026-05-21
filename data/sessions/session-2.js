@@ -2,6 +2,14 @@ const SESSION_2 = {
   number: 2,
   title: 'The Inquest',
   date: 'Session 2',
+  rowSummary: 'Questioned by High Inquisitor Dross over the ledger. Daven swore vengeance. Tessaly named your next target: Aldenmere & Sons in Windfall.',
+  summary: [
+    'You were questioned individually by <strong>High Inquisitor Mael Dross</strong> over the ledger.',
+    '<strong>Dross</strong> ended the inquest with an unexplained question about the <strong>Stillmarks</strong>.',
+    '<strong>Daven Halvorn</strong> was released alongside you and made his hatred personal.',
+    '<strong>Azrael</strong> felt a strange recognition twice — on a Crown clerk, and on <strong>Orthon Halvorn</strong>.',
+    '<strong>Tessaly</strong> named the next target: <strong>Aldenmere & Sons</strong> in <strong>Windfall</strong>.'
+  ],
   parts: [
     {
       label: 'Part One — The Inquest',

@@ -2,6 +2,14 @@ const SESSION_4 = {
   number: 4,
   title: 'Aldenmere & Sons',
   date: 'Session 4',
+  rowSummary: 'Killed the creatures and time itself rippled. The carbon archive confirmed Halvorn\'s weapons trade — and named the Brotherhood of the Patient Dawn.',
+  summary: [
+    'You fought the patchwork creatures inside the same distortion you\'d felt at the <strong>Stillmark</strong>.',
+    'When <strong>Kalvorn</strong> killed the first one, time rippled — and <strong>Kalvorn</strong> heard his mother\'s voice.',
+    'The carbon archive confirmed <strong>Halvorn\'s</strong> illegal weapons trade — three times the legal maximum.',
+    'Payments flow into <strong>Halvorn</strong> from the <strong>Brotherhood of the Patient Dawn</strong>, with <strong>Byren Holt</strong> as the conduit.',
+    'Returning to the <strong>Stillmark</strong>, the field was simply gone.'
+  ],
   parts: [
     {
       label: 'Part One — The Basement',

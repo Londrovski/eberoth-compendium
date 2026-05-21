@@ -2,6 +2,14 @@ const SESSION_3 = {
   number: 3,
   title: 'Windfall',
   date: 'Session 3',
+  rowSummary: 'Passed a Halvorn weapons convoy heading out of Windfall. Found the town\'s Stillmark broken and bleeding time. Descended into Aldenmere\'s basement and found something wrong waiting.',
+  summary: [
+    'You passed a <strong>Halvorn</strong> convoy moving weapons out of <strong>Windfall</strong> as you arrived.',
+    'The town\'s <strong>Stillmark</strong> was broken — and the space around it was bleeding time.',
+    '<strong>Azrael</strong> and <strong>Dirk</strong> reached into the effect and experienced it differently.',
+    'The <strong>Halvorn</strong> records at <strong>Aldenmere & Sons</strong> had been scrubbed.',
+    'In the basement: two patchwork creatures, with different stages of life in the same body.'
+  ],
   parts: [
     {
       label: 'Part One — The Road',
