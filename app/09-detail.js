@@ -17,6 +17,8 @@
       }
       if (e.target.closest('.detail-back')) {
         var prevId = detailHistory.pop();
+        // Special sentinel: the sessions list isn't a regular entity.
+        if (prevId === '__sessions_list__') { EB.openSessionsList(true); return; }
         var prev = EB.byId[prevId];
         if (prev) EB.openDetail(prev, true);
       }
@@ -73,6 +75,48 @@
       });
       notesEl.addEventListener('input', function () {
         EB.setEntityNotes(item.id, notesEl.innerHTML);
+      });
+      detail.classList.add('open');
+    };
+
+    // Session log: list view rendered into the detail panel. Each row
+    // opens that session's normal detail (with back → list support).
+    EB.openSessionsList = function (fromNav) {
+      if (!fromNav) {
+        // Coming in via the topbar button — fresh entry, clear history.
+        detailHistory = [];
+      }
+      currentDetailId = '__sessions_list__';
+      var sessions = ((window.SESSIONS || []).slice()).sort(function (a, b) { return a.number - b.number; });
+      var rows = sessions.map(function (s) {
+        var sub = s.rowSummary || s.date || s.sub || '';
+        return '<button class="session-row" data-id="' + EB.escapeAttr(s.id) + '">' +
+          '<span class="session-row-number">' + (s.number != null ? s.number : '') + '</span>' +
+          '<div class="session-row-body">' +
+            '<div class="session-row-title">' + EB.escapeHtml(s.title || s.name || '') + '</div>' +
+            (sub ? '<div class="session-row-sub">' + EB.escapeHtml(sub) + '</div>' : '') +
+          '</div>' +
+          '<span class="session-row-arrow">›</span>' +
+        '</button>';
+      }).join('');
+
+      detailInner.innerHTML =
+        '<button class="detail-close" title="Close">✕</button>' +
+        '<h2>Session Log</h2>' +
+        '<div class="subtitle">A record of what has passed.</div>' +
+        (rows ? '<div class="session-list">' + rows + '</div>'
+              : '<div class="sessions-empty">No sessions yet.</div>');
+
+      Array.prototype.forEach.call(detailInner.querySelectorAll('.session-row'), function (row) {
+        row.onclick = function () {
+          var s = EB.byId[row.dataset.id];
+          if (!s) return;
+          // Push the list sentinel so the session's back button returns here.
+          detailHistory.push('__sessions_list__');
+          EB.openDetail(s, true);
+          // Reset currentDetailId after openDetail set it; we want the
+          // session as current, but we already pushed the sentinel above.
+        };
       });
       detail.classList.add('open');
     };

@@ -1,4 +1,5 @@
-/* Slide-in detail panel + per-entity notes inside it. */
+/* Slide-in detail panel + per-entity notes inside it. Also the session
+   log list view (rendered into the same panel by openSessionsList). */
 
 .detail {
   width: 0;
@@ -95,3 +96,63 @@
   cursor: pointer;
 }
 .entity-notes .tag:hover { color: var(--gold-bright); }
+
+/* ===== SESSION LOG (list view in the detail panel) ===== */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text);
+  width: 100%;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+.session-row:hover {
+  border-color: var(--gold-dim);
+  transform: translateX(2px);
+}
+.session-row-number {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 20px;
+  color: var(--gold);
+  min-width: 28px;
+  text-align: center;
+  line-height: 1;
+}
+.session-row-body { flex: 1; min-width: 0; }
+.session-row-title {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.session-row-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.35;
+}
+.session-row-arrow {
+  color: var(--gold-dim);
+  font-size: 16px;
+  line-height: 1;
+}
+.sessions-empty {
+  text-align: center;
+  font-style: italic;
+  color: var(--text-dim);
+  padding: 24px 0;
+  font-size: 13px;
+}

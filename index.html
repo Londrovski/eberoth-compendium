@@ -40,17 +40,13 @@
   </div>
 
   <!-- ===== APP ===== -->
-  <!-- Hidden until auth completes. Layout matches the prototype: -->
-  <!--   topbar  : title + nav + role badge + logout                -->
-  <!--   drawer  : threads (top) + tabbed notepad (bottom)          -->
-  <!--   main    : map viewport + slide-in detail panel             -->
   <div id="app" class="app" style="display:none;">
     <div class="topbar">
       <h1>The Compendium</h1>
       <nav class="nav">
-        <button class="active">Home</button>
-        <button>Sessions</button>
-        <button>Party</button>
+        <!-- Home + Party dropped: the map IS home; the party cards
+             live on the map. Only Sessions needs a way in. -->
+        <button id="navSessions">Sessions</button>
       </nav>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>
@@ -100,8 +96,6 @@
     </div>
   </div>
 
-  <!-- Loader walks data/ folders, registers entities, then loads
-       data.js (finaliser) and app.js (renderer). -->
   <script src="loader.js"></script>
 </body>
 </html>

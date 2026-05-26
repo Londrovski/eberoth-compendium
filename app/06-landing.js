@@ -1,4 +1,4 @@
-// Landing page + role badge wiring. DOM refs grabbed at initLanding()
+// Landing page + topbar wiring. DOM refs grabbed at initLanding()
 // time, which boot calls once on startup.
 (function () {
   EB.initLanding = function () {
@@ -10,6 +10,7 @@
     var appEl         = document.getElementById('app');
     var roleBadge     = document.getElementById('roleBadge');
     var logoutBtn     = document.getElementById('logout');
+    var navSessions   = document.getElementById('navSessions');
 
     EB.showLanding = function () {
       landing.style.display = 'flex';
@@ -51,5 +52,12 @@
     landingInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
     landingGuest.addEventListener('click', function () { EB.setBucket('guest'); EB.boot(); });
     logoutBtn.addEventListener('click', function () { EB.setBucket(null); location.reload(); });
+
+    // Topbar Sessions → opens the session log in the detail panel.
+    if (navSessions) {
+      navSessions.addEventListener('click', function () {
+        if (EB.openSessionsList) EB.openSessionsList();
+      });
+    }
   };
 })();
