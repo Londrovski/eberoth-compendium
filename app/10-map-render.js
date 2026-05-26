@@ -17,8 +17,10 @@
       var el = document.createElement('div');
       el.className = 'eberoth-title';
       el.textContent = 'Eberoth';
+      // Centred horizontally above the Crown. Shifted up ~half the
+      // word's visual height to sit higher on the canvas.
       el.style.left = EB.LAYOUT.crown.x + 'px';
-      el.style.top = '100px';
+      el.style.top = '52px';
       canvas.appendChild(el);
     }
     function makeNode(cls, p, id, html, onOpen) {

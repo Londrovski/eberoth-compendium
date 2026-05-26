@@ -1,5 +1,5 @@
-/* Faction circles: sigil fills 100% of the circle, name labelled
-   beneath. Position-based house tinting also lives here. */
+/* Faction circles: sigil sits ~91% of circle size (1 : 1.1 image-to-circle),
+   name labelled beneath. Position-based house tinting also here. */
 
 .node-faction .shape {
   position: relative;
@@ -18,10 +18,9 @@
 }
 .node-faction .shape img {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: 4.5%;          /* image is 91% of circle → 1:1.1 ratio */
   object-fit: cover;
+  border-radius: 50%;   /* keep the image itself circular */
   opacity: 0.9;
 }
 
@@ -52,11 +51,14 @@
 }
 .node-faction.crown    { color: var(--c-crown); }
 .node-faction.crown   .shape { box-shadow: 0 0 50px rgba(201, 169, 97, 0.35); }
-.node-faction.halvorn  { color: var(--c-halvorn); }
-.node-faction.halvorn .shape { box-shadow: 0 0 36px rgba(168, 58, 58, 0.4); }
-.node-faction.gorrund  { color: var(--c-gorrund); }
-.node-faction.gorrund .shape { box-shadow: 0 0 36px rgba(107, 142, 78, 0.4); }
+
+/* House glows match the recoloured palette:
+   Corvath red, Voss green, Gorrund yellow, Halvorn purple. */
 .node-faction.corvath  { color: var(--c-corvath); }
-.node-faction.corvath .shape { box-shadow: 0 0 36px rgba(90, 122, 154, 0.4); }
+.node-faction.corvath .shape { box-shadow: 0 0 36px rgba(168,  58,  58, 0.4); }
 .node-faction.voss     { color: var(--c-voss); }
-.node-faction.voss    .shape { box-shadow: 0 0 36px rgba(138, 111, 163, 0.4); }
+.node-faction.voss    .shape { box-shadow: 0 0 36px rgba( 61, 107,  58, 0.4); }
+.node-faction.gorrund  { color: var(--c-gorrund); }
+.node-faction.gorrund .shape { box-shadow: 0 0 36px rgba(184, 147,  46, 0.4); }
+.node-faction.halvorn  { color: var(--c-halvorn); }
+.node-faction.halvorn .shape { box-shadow: 0 0 36px rgba( 90,  58, 138, 0.4); }

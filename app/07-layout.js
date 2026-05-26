@@ -1,5 +1,6 @@
 // Map layout: positions, anchors, saved-state. Party + Personal shifted
 // right + down vs the prototype to free top space for the Eberoth title.
+// House order (left → right): Corvath, Voss, Gorrund, Halvorn.
 (function () {
   EB.LAYOUT = {
     party: { x: 290, y: 490, gap: 110 },
@@ -8,7 +9,8 @@
     crownRingRadius: 220,
     crownRingPoints: 6,
     housesY: 800,
-    housesXs: { halvorn: 640, gorrund: 880, corvath: 1120, voss: 1360 },
+    // L → R: Corvath, Voss, Gorrund, Halvorn.
+    housesXs: { corvath: 640, voss: 880, gorrund: 1120, halvorn: 1360 },
     houseGridY: 1080,
     houseGridGapX: 130,
     houseGridGapY: 150,
@@ -20,7 +22,7 @@
     loreGridGapY: 145,
     headerOffset: 84
   };
-  EB.LAYOUT_VERSION = 9;  // bump when LAYOUT changes meaningfully
+  EB.LAYOUT_VERSION = 10;  // bumped: houses reordered, saved positions now stale
   EB.SNAP_DISTANCE = 60;
 
   EB.initLayout = function () {
@@ -67,7 +69,7 @@
     var pref = [5, 1, 4, 2, 3, 0];
     crownNpcs.forEach(function (n, i) { pos[n.id] = hexSlots[pref[i % pref.length]]; });
     Object.keys(L.housesXs).forEach(function (hid) { pos[hid] = { x: L.housesXs[hid], y: L.housesY }; });
-    ['halvorn', 'gorrund', 'corvath', 'voss'].forEach(function (hid) {
+    ['corvath', 'voss', 'gorrund', 'halvorn'].forEach(function (hid) {
       var npcs = (window.NPCS || []).filter(function (n) { return n.factionId === hid; });
       var base = pos[hid];
       npcs.forEach(function (n, i) {
@@ -95,7 +97,7 @@
   EB.getAnchors = function () {
     var L = EB.LAYOUT, def = EB.defaultLayout(), anchors = [];
     Object.keys(def).forEach(function (k) { anchors.push({ x: def[k].x, y: def[k].y }); });
-    ['halvorn', 'gorrund', 'corvath', 'voss'].forEach(function (hid) {
+    ['corvath', 'voss', 'gorrund', 'halvorn'].forEach(function (hid) {
       var base = def[hid];
       if (!base) return;
       for (var r = 0; r < 4; r++) for (var c = 0; c < 2; c++)

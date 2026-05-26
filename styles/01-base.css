@@ -1,5 +1,10 @@
-/* CSS variables + body baseline + scrollbar. House colours are
-   placeholders — swap to proper heraldic values when ready. */
+/* CSS variables + body baseline + scrollbar.
+   House colours (per request, batch 2):
+     - Corvath: deep red
+     - Voss:    deep green
+     - Gorrund: deep yellow
+     - Halvorn: deep purple
+   Crown stays gold. Box-shadow rgba values in 13-/14- mirror these. */
 
 :root {
   --bg: #0e0d0b;
@@ -15,10 +20,10 @@
   --red: #8b3a3a;
 
   --c-crown:   #c9a961;   /* gold */
-  --c-halvorn: #a83a3a;   /* deep red */
-  --c-gorrund: #6b8e4e;   /* green-gold */
-  --c-corvath: #5a7a9a;   /* steel blue */
-  --c-voss:    #8a6fa3;   /* pale violet */
+  --c-corvath: #a83a3a;   /* deep red */
+  --c-voss:    #3d6b3a;   /* deep green */
+  --c-gorrund: #b8932e;   /* deep yellow */
+  --c-halvorn: #5a3a8a;   /* deep purple */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

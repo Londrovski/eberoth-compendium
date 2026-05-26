@@ -1,6 +1,10 @@
 /* Map viewport + canvas. Canvas carries the Descending Horizon
    background image so it pans with the world. A dark gradient is
-   layered on top so nodes remain legible against the image. */
+   layered on top so nodes remain legible against the image.
+
+   The image URL is *absolute* (/The Descending Horizon.png) because
+   this stylesheet now lives in styles/ — a relative path would resolve
+   inside styles/ where the image doesn't exist. */
 
 .map-wrap { flex: 1; display: flex; min-height: 0; }
 .map-viewport {
@@ -20,7 +24,7 @@
   transform-origin: 0 0;
   background-image:
     linear-gradient(180deg, rgba(11,9,5,0.55) 0%, rgba(11,9,5,0.45) 35%, rgba(11,9,5,0.45) 65%, rgba(11,9,5,0.75) 100%),
-    url('The Descending Horizon.png');
+    url('/The Descending Horizon.png');
   background-size: cover, cover;
   background-position: center, center 30%;
   background-repeat: no-repeat, no-repeat;
