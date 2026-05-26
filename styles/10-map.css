@@ -1,10 +1,13 @@
-/* Map viewport + canvas. Canvas carries the Descending Horizon
-   background image so it pans with the world. A dark gradient is
-   layered on top so nodes remain legible against the image.
+/* Map viewport + canvas. The Descending Horizon image is placed as a
+   sized backdrop centred below the Crown (canvas coords ~(1000, 550))
+   so it backs the active content area with a buffer all round.
+   Native image is 1536×1024 (3:2). We size it to 2700×1800 — also
+   3:2 — so no aspect distortion. The dark gradient overlay is matched
+   to the image extent; outside that area the canvas shows the plain
+   dark bg.
 
-   The image URL is *absolute* (/The Descending Horizon.png) because
-   this stylesheet now lives in styles/ — a relative path would resolve
-   inside styles/ where the image doesn't exist. */
+   The image URL is absolute (/The Descending Horizon.png) because
+   this stylesheet lives in styles/. */
 
 .map-wrap { flex: 1; display: flex; min-height: 0; }
 .map-viewport {
@@ -22,11 +25,12 @@
   width: 3000px;
   height: 2400px;
   transform-origin: 0 0;
+  background-color: var(--bg);
   background-image:
-    linear-gradient(180deg, rgba(11,9,5,0.55) 0%, rgba(11,9,5,0.45) 35%, rgba(11,9,5,0.45) 65%, rgba(11,9,5,0.75) 100%),
+    linear-gradient(180deg, rgba(11,9,5,0.55) 0%, rgba(11,9,5,0.45) 35%, rgba(11,9,5,0.45) 65%, rgba(11,9,5,0.7) 100%),
     url('/The Descending Horizon.png');
-  background-size: cover, cover;
-  background-position: center, center 30%;
+  background-size: 2700px 1800px, 2700px 1800px;
+  background-position: -350px -350px, -350px -350px;
   background-repeat: no-repeat, no-repeat;
 }
 .map-canvas svg {
