@@ -1,6 +1,11 @@
-// Slide-in detail panel + per-entity notes. Back/close use event
-// delegation so they survive the inner-HTML rewrites that each open
-// triggers.
+// Slide-in detail panel. Two flavours of content:
+//   - regular entity (NPC, faction, player, lore, backstory): portrait
+//     + h2 + sub + role + affiliation + body + per-entity notes
+//   - session: no portrait, rich content (summary box + parts/blocks)
+//     same as the main site's session log
+//
+// The session log list view (openSessionsList) also lives here so it
+// shares the panel's history + DOM.
 (function () {
   EB.initDetail = function () {
     var detail = document.getElementById('detail');
@@ -17,7 +22,6 @@
       }
       if (e.target.closest('.detail-back')) {
         var prevId = detailHistory.pop();
-        // Special sentinel: the sessions list isn't a regular entity.
         if (prevId === '__sessions_list__') { EB.openSessionsList(true); return; }
         var prev = EB.byId[prevId];
         if (prev) EB.openDetail(prev, true);
@@ -34,7 +38,43 @@
       EB.lsSave('entity-notes', all);
     };
 
-    EB.openDetail = function (item, fromNav) {
+    // ---- Block / part rendering for session content ----
+    // Body text in blocks contains author-controlled HTML (e.g. <strong>);
+    // we render it raw. Labels and testimony names are escaped.
+    function renderBlocks(blocks) {
+      if (!Array.isArray(blocks)) return '';
+      return blocks.map(function (b) {
+        if (b.type === 'para')
+          return '<p class="session-block-para">' + (b.text || '') + '</p>';
+        if (b.type === 'highlight')
+          return '<p class="session-block-highlight">' + (b.text || '') + '</p>';
+        if (b.type === 'takeaway')
+          return '<p class="session-block-takeaway">' + (b.text || '') + '</p>';
+        if (b.type === 'testimonies')
+          return '<ul class="session-block-testimonies">' +
+            (b.items || []).map(function (it) {
+              return '<li><span class="testimony-name">' + EB.escapeHtml(it.name || '') + ':</span> ' + (it.text || '') + '</li>';
+            }).join('') +
+          '</ul>';
+        return '';
+      }).join('');
+    }
+    function renderSessionParts(s) {
+      if (!Array.isArray(s.parts)) return '';
+      return s.parts.map(function (part) {
+        var content = part.blocks
+          ? renderBlocks(part.blocks)
+          // Legacy session schema fallback: part.events with bold/text.
+          : '<ul class="session-block-testimonies">' +
+              (part.events || []).map(function (e) {
+                return '<li><strong>' + (e.bold || '') + '</strong>' + (e.text || '') + '</li>';
+              }).join('') +
+            '</ul>';
+        return '<div class="session-detail-part-label">' + EB.escapeHtml(part.label || '') + '</div>' + content;
+      }).join('');
+    }
+
+    function openEntityDetail(item, fromNav) {
       if (!fromNav) {
         if (currentDetailId && currentDetailId !== item.id) detailHistory.push(currentDetailId);
       }
@@ -43,13 +83,11 @@
       var fallbackIcon = kind === 'faction'   ? '⚔'
                        : kind === 'lore'      ? '◈'
                        : kind === 'player'    ? '★'
-                       : kind === 'session'   ? '✦'
                        : kind === 'backstory' ? '✥'
                        : '👤';
       var faction = item.factionId ? (window.FACTIONS || []).find(function (f) { return f.id === item.factionId; }) : null;
-      var isSession = kind === 'session';
       var bodyHTML = item.body
-        ? '<div class="field"><div class="field-label">' + (isSession ? 'Summary' : 'About') + '</div><div class="field-body">' + item.body + '</div></div>'
+        ? '<div class="field"><div class="field-label">About</div><div class="field-body">' + item.body + '</div></div>'
         : '';
 
       detailInner.innerHTML =
@@ -61,29 +99,68 @@
         (item.role ? '<div class="field"><div class="field-label">Role</div>' + EB.escapeHtml(item.role) + '</div>' : '') +
         (faction ? '<div class="field"><div class="field-label">Affiliation</div>' + EB.escapeHtml(faction.name) + '</div>' : '') +
         bodyHTML +
-        '<div class="field entity-notes-wrap">' +
-          '<div class="field-label">Your Notes</div>' +
-          '<div class="entity-notes" id="entityNotes" contenteditable="true"></div>' +
-          '<div class="mention-dropdown" id="detailMentionDropdown"></div>' +
-        '</div>';
+        wireNotesBlock();
+      mountNotes(item.id);
+      detail.classList.add('open');
+    }
 
+    function openSessionDetail(s, fromNav) {
+      if (!fromNav) {
+        if (currentDetailId && currentDetailId !== s.id) detailHistory.push(currentDetailId);
+      }
+      currentDetailId = s.id;
+      var summaryHTML = (Array.isArray(s.summary) && s.summary.length)
+        ? '<div class="session-summary-box">' +
+            '<div class="session-summary-label">Summary</div>' +
+            '<ul class="session-summary-list">' +
+              s.summary.map(function (line) { return '<li>' + line + '</li>'; }).join('') +
+            '</ul>' +
+          '</div>'
+        : '';
+
+      // No portrait for sessions — per request.
+      detailInner.innerHTML =
+        '<button class="detail-back" title="Back">←</button>' +
+        '<button class="detail-close" title="Close">✕</button>' +
+        '<div class="session-detail-number">Session ' + (s.number != null ? s.number : '') + '</div>' +
+        '<h2 class="session-detail-title">' + EB.escapeHtml(s.title || s.name || '') + '</h2>' +
+        summaryHTML +
+        renderSessionParts(s) +
+        wireNotesBlock();
+      mountNotes(s.id);
+      detail.classList.add('open');
+    }
+
+    // Shared bottom-of-panel notes block markup + wiring.
+    function wireNotesBlock() {
+      return '<div class="field entity-notes-wrap notes-after">' +
+               '<div class="field-label">Your Notes</div>' +
+               '<div class="entity-notes" id="entityNotes" contenteditable="true"></div>' +
+               '<div class="mention-dropdown" id="detailMentionDropdown"></div>' +
+             '</div>';
+    }
+    function mountNotes(entityId) {
       var notesEl = detailInner.querySelector('#entityNotes');
-      notesEl.innerHTML = EB.getEntityNotes(item.id);
+      if (!notesEl) return;
+      notesEl.innerHTML = EB.getEntityNotes(entityId);
       EB.wireTagClicks(notesEl);
       EB.attachMentions(notesEl, detailInner.querySelector('#detailMentionDropdown'), function () {
-        EB.setEntityNotes(item.id, notesEl.innerHTML);
+        EB.setEntityNotes(entityId, notesEl.innerHTML);
       });
       notesEl.addEventListener('input', function () {
-        EB.setEntityNotes(item.id, notesEl.innerHTML);
+        EB.setEntityNotes(entityId, notesEl.innerHTML);
       });
-      detail.classList.add('open');
+    }
+
+    EB.openDetail = function (item, fromNav) {
+      if (item.kind === 'session') return openSessionDetail(item, fromNav);
+      return openEntityDetail(item, fromNav);
     };
 
     // Session log: list view rendered into the detail panel. Each row
     // opens that session's normal detail (with back → list support).
     EB.openSessionsList = function (fromNav) {
       if (!fromNav) {
-        // Coming in via the topbar button — fresh entry, clear history.
         detailHistory = [];
       }
       currentDetailId = '__sessions_list__';
@@ -111,11 +188,8 @@
         row.onclick = function () {
           var s = EB.byId[row.dataset.id];
           if (!s) return;
-          // Push the list sentinel so the session's back button returns here.
           detailHistory.push('__sessions_list__');
           EB.openDetail(s, true);
-          // Reset currentDetailId after openDetail set it; we want the
-          // session as current, but we already pushed the sentinel above.
         };
       });
       detail.classList.add('open');

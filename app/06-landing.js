@@ -10,7 +10,9 @@
     var appEl         = document.getElementById('app');
     var roleBadge     = document.getElementById('roleBadge');
     var logoutBtn     = document.getElementById('logout');
+    var navHome       = document.getElementById('navHome');
     var navSessions   = document.getElementById('navSessions');
+    var navParty      = document.getElementById('navParty');
 
     EB.showLanding = function () {
       landing.style.display = 'flex';
@@ -25,7 +27,6 @@
       if (b === 'dm') label = 'DM';
       else if (b === 'guest' || !b) label = 'GUEST';
       else {
-        // Players: full character name in the top-right badge.
         var charId = EB.BUCKET_TO_CHARACTER[b];
         var char = (window.PLAYERS || []).find(function (p) { return p.id === charId; });
         label = char ? char.name : b.toUpperCase();
@@ -53,11 +54,9 @@
     landingGuest.addEventListener('click', function () { EB.setBucket('guest'); EB.boot(); });
     logoutBtn.addEventListener('click', function () { EB.setBucket(null); location.reload(); });
 
-    // Topbar Sessions → opens the session log in the detail panel.
-    if (navSessions) {
-      navSessions.addEventListener('click', function () {
-        if (EB.openSessionsList) EB.openSessionsList();
-      });
-    }
+    // Topbar nav. Each is a one-shot action; no persistent active state.
+    if (navHome)     navHome.addEventListener('click', function () { if (EB.centerInitial) EB.centerInitial(); });
+    if (navSessions) navSessions.addEventListener('click', function () { if (EB.openSessionsList) EB.openSessionsList(); });
+    if (navParty)    navParty.addEventListener('click', function () { if (EB.zoomToParty) EB.zoomToParty(); });
   };
 })();

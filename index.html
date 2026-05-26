@@ -12,7 +12,6 @@
 <body>
 
   <!-- ===== LANDING ===== -->
-  <!-- Shown until a passcode is entered (or guest is chosen). -->
   <div id="landing">
     <div class="landing-card">
       <div class="landing-rule"></div>
@@ -44,9 +43,13 @@
     <div class="topbar">
       <h1>The Compendium</h1>
       <nav class="nav">
-        <!-- Home + Party dropped: the map IS home; the party cards
-             live on the map. Only Sessions needs a way in. -->
+        <!-- Each button is a one-shot action wired in app/06-landing.js.
+             Home    → reset to default view (zoom + centre on Crown).
+             Sessions → open the session log in the right-hand panel.
+             Party    → zoom in on the player cluster. -->
+        <button id="navHome">Home</button>
         <button id="navSessions">Sessions</button>
+        <button id="navParty">Party</button>
       </nav>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>

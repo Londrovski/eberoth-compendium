@@ -8,11 +8,30 @@
   function applyTransform() {
     canvas.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + EB.scale + ')';
   }
+
+  // Home / reset view: scale back to 0.6, centre on the Crown near the
+  // top of the viewport.
   EB.centerInitial = function () {
+    EB.scale = 0.6;
     var vw = viewport.clientWidth;
     tx = vw / 2 - EB.LAYOUT.crown.x * EB.scale;
     ty = 30;
     applyTransform();
+  };
+
+  // Generic: put canvas-coords (cx, cy) at viewport centre, at `scale`.
+  EB.zoomToPoint = function (cx, cy, scale) {
+    EB.scale = scale;
+    tx = viewport.clientWidth / 2 - cx * scale;
+    ty = viewport.clientHeight / 2 - cy * scale;
+    applyTransform();
+  };
+
+  // Party button: zoom in on the player cluster (3 cards in a row).
+  EB.zoomToParty = function () {
+    var L = EB.LAYOUT;
+    // Centre on the middle player card.
+    EB.zoomToPoint(L.party.x + L.party.gap, L.party.y, 1.2);
   };
 
   EB.initPanZoom = function () {
@@ -53,7 +72,7 @@
       EB.scale = Math.max(0.3, EB.scale / 1.1); applyTransform();
     };
     document.getElementById('zoomReset').onclick = function () {
-      EB.scale = 0.6; EB.centerInitial();
+      EB.centerInitial();
     };
     document.getElementById('layoutReset').onclick = function () {
       if (Object.keys(EB.customPositions).length === 0) return;
