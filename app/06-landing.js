@@ -1,6 +1,10 @@
 // Landing page + topbar wiring. DOM refs grabbed at initLanding()
 // time, which boot calls once on startup.
 (function () {
+  // Move mode is OFF by default. Ephemeral: every reload starts safe.
+  // Phase 3 could choose to persist this per-bucket if useful.
+  EB.moveMode = false;
+
   EB.initLanding = function () {
     var landing       = document.getElementById('landing');
     var landingInput  = document.getElementById('landingInput');
@@ -13,6 +17,7 @@
     var navHome       = document.getElementById('navHome');
     var navSessions   = document.getElementById('navSessions');
     var navParty      = document.getElementById('navParty');
+    var navMoveMode   = document.getElementById('navMoveMode');
 
     EB.showLanding = function () {
       landing.style.display = 'flex';
@@ -58,5 +63,13 @@
     if (navHome)     navHome.addEventListener('click', function () { if (EB.centerInitial) EB.centerInitial(); });
     if (navSessions) navSessions.addEventListener('click', function () { if (EB.openSessionsList) EB.openSessionsList(); });
     if (navParty)    navParty.addEventListener('click', function () { if (EB.zoomToParty) EB.zoomToParty(); });
+
+    // Move-mode toggle — ephemeral, resets on reload.
+    if (navMoveMode) {
+      navMoveMode.addEventListener('click', function () {
+        EB.moveMode = !EB.moveMode;
+        navMoveMode.classList.toggle('on', EB.moveMode);
+      });
+    }
   };
 })();

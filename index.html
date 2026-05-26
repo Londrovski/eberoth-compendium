@@ -47,6 +47,9 @@
         <button id="navSessions">Sessions</button>
         <button id="navParty">Party</button>
       </nav>
+      <!-- Move toggle: when ON, nodes can be dragged. Ephemeral —
+           every reload starts in the safe (read-only) state. -->
+      <button id="navMoveMode" class="move-mode-toggle" title="Toggle move mode">Move</button>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>
     </div>
@@ -80,7 +83,6 @@
             <div class="map-controls">
               <button id="zoomIn" title="Zoom in">+</button>
               <button id="zoomOut" title="Zoom out">−</button>
-              <!-- Home glyph (⌂) — reset view to the default Crown-centred frame. -->
               <button id="zoomReset" title="Home">⌂</button>
               <button id="layoutReset" title="Reset layout">↺</button>
             </div>

@@ -1,4 +1,4 @@
-/* Full-width topbar: title, nav, role badge, logout. */
+/* Full-width topbar: title, nav, move-mode toggle, role badge, logout. */
 
 .topbar {
   padding: 14px 24px;
@@ -29,7 +29,33 @@
   padding: 4px 0;
   border-bottom: 1px solid transparent;
 }
+.nav button:hover { color: var(--text); }
 .nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Move toggle — outlined when off, gold-filled when on so the mode
+   state is unambiguous at a glance. */
+.move-mode-toggle {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-dim);
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 4px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.move-mode-toggle:hover { color: var(--gold); border-color: var(--gold); }
+.move-mode-toggle.on {
+  background: var(--gold);
+  color: var(--bg);
+  border-color: var(--gold);
+}
+.move-mode-toggle.on:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
+
 .role-tag {
   margin-left: auto;
   font-size: 11px;

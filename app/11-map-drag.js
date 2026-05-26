@@ -1,7 +1,16 @@
 // Node drag + snap, using Pointer Events with setPointerCapture.
-// This is what fixes the "node sticks to the cursor" bug — capture
-// guarantees pointerup fires on the element even if the cursor leaves
-// the window. The previous mouse-events impl could miss the up event.
+//
+// Drag is opt-in via EB.moveMode (toggled by the "Move" button in the
+// topbar). When move mode is OFF:
+//   - press + release without moving → opens that node's detail panel
+//   - press + move past the threshold → nothing (drag won't start, and
+//     the release is NOT treated as a click — prevents accidental
+//     detail-panel opens while a player is trying to scroll past)
+// When move mode is ON: same as above but past-threshold movement
+// activates a drag and the release snaps to the nearest anchor.
+//
+// Move mode is ephemeral — every reload starts in the safe (off)
+// state so players can't accidentally rearrange the world.
 (function () {
   var DRAG_THRESHOLD = 5;     // px in screen space before drag activates
   var anchorEls = [];
@@ -55,8 +64,6 @@
       startX = e.clientX; startY = e.clientY;
       nodeStartX = parseFloat(el.style.left);
       nodeStartY = parseFloat(el.style.top);
-      // Capture so pointermove + pointerup always come back to us,
-      // even if the cursor leaves the element/window.
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
     });
 
@@ -65,6 +72,8 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      // Past threshold — only enter drag state when move mode is on.
+      if (!dragging && !EB.moveMode) return;
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
@@ -82,7 +91,16 @@
       armed = false;
       try { el.releasePointerCapture(activePointer); } catch (err) {}
       activePointer = null;
-      if (!dragging) { onOpen(); return; }
+      if (!dragging) {
+        // No drag activated. Treat as click ONLY if the press was clean
+        // (movement stayed under the threshold). Past-threshold movement
+        // without a drag = user moved but couldn't drag (move mode off)
+        // — swallow silently so we don't accidentally open the panel.
+        var movedX = (e && e.clientX != null) ? Math.abs(e.clientX - startX) : 0;
+        var movedY = (e && e.clientY != null) ? Math.abs(e.clientY - startY) : 0;
+        if (Math.hypot(movedX, movedY) < DRAG_THRESHOLD) onOpen();
+        return;
+      }
       dragging = false;
       el.classList.remove('node-dragging');
       var x = parseFloat(el.style.left);
