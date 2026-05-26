@@ -3,126 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eberoth</title>
+  <title>The Compendium</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <div class="grain"></div>
-
-  <header>
-    <div class="header-bg"></div>
-    <div class="header-inner">
-      <div class="header-rule"></div>
-      <h1>Eberoth</h1>
-      <div class="header-rule"></div>
-    </div>
-  </header>
-
-  <nav>
-    <div class="nav-inner">
-      <button class="nav-btn active" data-section="party">The Party</button>
-      <div class="nav-sep">✦</div>
-      <button class="nav-btn" data-section="factions">Houses &amp; Factions</button>
-      <div class="nav-sep">✦</div>
-      <button class="nav-btn" data-section="notes">Notes</button>
-      <div class="nav-sep">✦</div>
-      <button class="nav-btn" data-section="sessions">Session Log</button>
-    </div>
-  </nav>
-
-  <main>
-
-    <!-- PARTY -->
-    <section id="section-party" class="section active">
-      <div class="party-grid" id="party-grid"></div>
-    </section>
-
-    <!-- FACTIONS -->
-    <section id="section-factions" class="section">
-      <div id="crown-slot"></div>
-      <div class="hierarchy-divider">
-        <span>The Houses</span>
+  <!-- ===== LANDING ===== -->
+  <!-- Shown until a passcode is entered (or guest is chosen). -->
+  <div id="landing">
+    <div class="landing-card">
+      <div class="landing-rule"></div>
+      <h1>The Compendium</h1>
+      <div class="landing-rule"></div>
+      <p class="landing-tag">Enter your passphrase.</p>
+      <input id="landingInput"
+             type="text"
+             placeholder="Passphrase"
+             maxlength="30"
+             autocomplete="off"
+             autocorrect="off"
+             autocapitalize="off"
+             spellcheck="false"
+             data-form-type="other"
+             data-lpignore="true"
+             data-1p-ignore="true" />
+      <div class="landing-actions">
+        <button id="landingSubmit">Enter</button>
+        <button id="landingGuest" class="secondary">Guest</button>
       </div>
-      <div class="cards-grid" id="factions-grid"></div>
-    </section>
-
-    <!-- NOTES -->
-    <section id="section-notes" class="section">
-
-      <!-- SHARED LORE CARDS -->
-      <div class="section-header">
-        <h2>Party Notes</h2>
-        <p>What the group knows. Shared by the GM.</p>
-      </div>
-      <div id="shared-lore-cards" class="comp-cards-grid"></div>
-      <div id="party-notes-list" class="notes-wrap" style="margin-top:1.5rem;"></div>
-
-      <!-- PERSONAL COMPENDIUM -->
-      <div class="personal-notes-block">
-        <div class="hierarchy-divider" style="margin: 3rem 0 2rem;">
-          <span>Personal</span>
-        </div>
-        <div class="section-header" style="border:none; margin-bottom:1.5rem; padding-bottom:0;">
-          <p>Enter your passphrase to read your private notes.</p>
-        </div>
-
-        <div id="passphrase-form" class="passphrase-form">
-          <input id="passphrase-input"
-                 type="text"
-                 placeholder="Passphrase"
-                 maxlength="30"
-                 autocomplete="off"
-                 autocorrect="off"
-                 autocapitalize="off"
-                 spellcheck="false"
-                 data-form-type="other"
-                 data-lpignore="true"
-                 data-1p-ignore="true" />
-          <button id="passphrase-submit">Unlock</button>
-        </div>
-
-        <div id="personal-notes-reveal" class="hidden">
-          <div id="personal-notes-header" class="personal-notes-header"></div>
-          <div id="personal-compendium" class="comp-cards-grid"></div>
-          <div id="personal-notes-list" class="notes-wrap" style="margin-top:2rem;"></div>
-          <button id="passphrase-lock" class="lock-btn">Lock</button>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- SESSIONS -->
-    <section id="section-sessions" class="section">
-      <div class="section-header">
-        <h2>Session Log</h2>
-        <p>A record of what has passed.</p>
-      </div>
-      <div id="sessions-list"></div>
-    </section>
-
-  </main>
-
-  <!-- DETAIL OVERLAY -->
-  <div id="overlay" class="overlay hidden">
-    <div class="detail-panel">
-      <button id="close-overlay" class="close-btn">✕</button>
-      <div id="detail-content"></div>
+      <div id="landingError" class="landing-error"></div>
     </div>
   </div>
 
-  <!-- ===========================
-       LOADER
-       Reads each folder's _manifest.js and injects <script> tags
-       for every listed leaf. Then loads data.js (finaliser) and
-       app.js (renderer). No script tags here — add new content via
-       the relevant _manifest.js file.
-       See README.md for architecture.
-       =========================== -->
-  <script src="loader.js"></script>
+  <!-- ===== APP ===== -->
+  <!-- Hidden until auth completes. Layout matches the prototype: -->
+  <!--   topbar  : title + nav + role badge + logout                -->
+  <!--   drawer  : threads (top) + tabbed notepad (bottom)          -->
+  <!--   main    : map viewport + slide-in detail panel             -->
+  <div id="app" class="app" style="display:none;">
+    <div class="topbar">
+      <h1>The Compendium</h1>
+      <nav class="nav">
+        <button class="active">Home</button>
+        <button>Sessions</button>
+        <button>Party</button>
+      </nav>
+      <div class="role-tag"><span id="roleBadge">…</span></div>
+      <button id="logout" class="logout-btn" title="Sign out">Lock</button>
+    </div>
 
+    <div class="body">
+
+      <aside class="drawer" id="drawer">
+        <section class="drawer-section threads">
+          <div class="drawer-header">
+            <span>Active Threads</span>
+            <button id="addThread" title="Add thread">+</button>
+          </div>
+          <div class="threads-list" id="threadsList"></div>
+        </section>
+        <section class="drawer-section notes">
+          <div class="drawer-header"><span>Notes</span></div>
+          <div class="notes-tabs" id="notesTabs"></div>
+          <div class="note-body-wrap">
+            <div class="note-body" id="noteBody" contenteditable="true"></div>
+            <div class="mention-dropdown" id="mentionDropdown"></div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <div class="map-wrap">
+          <div class="map-viewport" id="viewport">
+            <div class="map-canvas" id="canvas">
+              <svg id="lines"></svg>
+            </div>
+            <div class="map-controls">
+              <button id="zoomIn" title="Zoom in">+</button>
+              <button id="zoomOut" title="Zoom out">−</button>
+              <button id="zoomReset" title="Reset view">⊙</button>
+              <button id="layoutReset" title="Reset layout">↺</button>
+            </div>
+          </div>
+
+          <aside class="detail" id="detail">
+            <div class="detail-inner" id="detailInner"></div>
+          </aside>
+        </div>
+      </main>
+
+      <button class="drawer-toggle" id="drawerToggle">◀</button>
+    </div>
+  </div>
+
+  <!-- Loader walks data/ folders, registers entities, then loads
+       data.js (finaliser) and app.js (renderer). -->
+  <script src="loader.js"></script>
 </body>
 </html>
