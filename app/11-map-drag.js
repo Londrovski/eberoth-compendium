@@ -8,6 +8,8 @@
 //     detail-panel opens while a player is trying to scroll past)
 // When move mode is ON: same as above but past-threshold movement
 // activates a drag and the release snaps to the nearest anchor.
+// Anchor dots are visible the whole time move mode is on (shown when
+// the toggle is enabled; hidden when it is disabled).
 //
 // Move mode is ephemeral — every reload starts in the safe (off)
 // state so players can't accidentally rearrange the world.
@@ -15,8 +17,10 @@
   var DRAG_THRESHOLD = 5;     // px in screen space before drag activates
   var anchorEls = [];
 
-  function showAnchors() {
-    hideAnchors();
+  // Exposed: called by both the drag start AND the topbar Move toggle.
+  // Idempotent — if anchors are already shown, this is a no-op.
+  EB.showAnchors = function () {
+    if (anchorEls.length > 0) return;
     EB.getAnchors().forEach(function (a, i) {
       var el = document.createElement('div');
       el.className = 'anchor';
@@ -26,11 +30,12 @@
       EB.canvas.appendChild(el);
       anchorEls.push(el);
     });
-  }
-  function hideAnchors() {
+  };
+  EB.hideAnchors = function () {
     anchorEls.forEach(function (el) { el.remove(); });
     anchorEls = [];
-  }
+  };
+
   function highlightNearest(x, y) {
     var anchors = EB.getAnchors();
     var bestIdx = -1, bestDist = Infinity;
@@ -41,6 +46,9 @@
     anchorEls.forEach(function (el, i) {
       el.classList.toggle('anchor-near', i === bestIdx && bestDist < EB.SNAP_DISTANCE);
     });
+  }
+  function clearHighlights() {
+    anchorEls.forEach(function (el) { el.classList.remove('anchor-near'); });
   }
   function nearestAnchor(x, y) {
     var anchors = EB.getAnchors();
@@ -77,7 +85,7 @@
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
-        showAnchors();
+        EB.showAnchors();   // idempotent
       }
       var newX = nodeStartX + dx / EB.scale;
       var newY = nodeStartY + dy / EB.scale;
@@ -92,10 +100,7 @@
       try { el.releasePointerCapture(activePointer); } catch (err) {}
       activePointer = null;
       if (!dragging) {
-        // No drag activated. Treat as click ONLY if the press was clean
-        // (movement stayed under the threshold). Past-threshold movement
-        // without a drag = user moved but couldn't drag (move mode off)
-        // — swallow silently so we don't accidentally open the panel.
+        // No drag activated. Open detail only if the press was clean.
         var movedX = (e && e.clientX != null) ? Math.abs(e.clientX - startX) : 0;
         var movedY = (e && e.clientY != null) ? Math.abs(e.clientY - startY) : 0;
         if (Math.hypot(movedX, movedY) < DRAG_THRESHOLD) onOpen();
@@ -114,7 +119,10 @@
       }
       EB.customPositions[id] = final;
       EB.savePositions();
-      hideAnchors();
+      // Keep anchors up if move mode is still on; clear the highlight
+      // so the just-snapped target doesn't stay glowing.
+      if (EB.moveMode) clearHighlights();
+      else EB.hideAnchors();
       if (EB.applyHouseTints) EB.applyHouseTints();
     }
 

@@ -64,11 +64,14 @@
     if (navSessions) navSessions.addEventListener('click', function () { if (EB.openSessionsList) EB.openSessionsList(); });
     if (navParty)    navParty.addEventListener('click', function () { if (EB.zoomToParty) EB.zoomToParty(); });
 
-    // Move-mode toggle — ephemeral, resets on reload.
+    // Move-mode toggle — ephemeral, resets on reload. Anchors shown the
+    // whole time move mode is on, hidden again when turned off.
     if (navMoveMode) {
       navMoveMode.addEventListener('click', function () {
         EB.moveMode = !EB.moveMode;
         navMoveMode.classList.toggle('on', EB.moveMode);
+        if (EB.moveMode) { if (EB.showAnchors) EB.showAnchors(); }
+        else             { if (EB.hideAnchors) EB.hideAnchors(); }
       });
     }
   };

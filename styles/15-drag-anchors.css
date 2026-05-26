@@ -1,9 +1,15 @@
-/* Drag-state highlights + the anchor dots shown only while dragging. */
+/* Drag-state highlights + the anchor dots shown only while dragging
+   (or, when move mode is on, the entire time it is on). */
 
 .node.node-dragging {
   z-index: 20;
   opacity: 0.9;
   cursor: grabbing;
+  /* Override the :hover scale(1.06) on .node so the node doesn't pulse
+     in and out of scale as the cursor enters/leaves it mid-drag, and
+     kill the transform transition so position updates are immediate. */
+  transform: translate(-50%, -50%);
+  transition: none;
 }
 .node.node-dragging .shape { box-shadow: 0 0 24px rgba(201, 169, 97, 0.6); }
 
