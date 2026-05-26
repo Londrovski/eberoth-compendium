@@ -1,0 +1,29 @@
+/* The editable notepad body itself. */
+
+.note-body-wrap { flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0; }
+.note-body {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.note-body:empty:before {
+  content: "Write whatever you'll need to remember… type @ to tag an NPC, faction, or party member.";
+  color: var(--text-dim);
+  font-style: italic;
+  pointer-events: none;
+}
+.note-body .tag {
+  color: var(--gold);
+  font-weight: bold;
+  cursor: pointer;
+}
+.note-body .tag:hover { color: var(--gold-bright); }

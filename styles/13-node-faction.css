@@ -1,0 +1,62 @@
+/* Faction circles: sigil fills 100% of the circle, name labelled
+   beneath. Position-based house tinting also lives here. */
+
+.node-faction .shape {
+  position: relative;
+  width: 210px; height: 210px;
+  border: 2px solid currentColor;
+  background: var(--bg-panel-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+  overflow: hidden;
+}
+.node-faction .shape img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.node-faction .faction-label {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 14px);
+  color: currentColor;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.85);
+}
+.node-faction.crown .faction-label {
+  font-size: 15px;
+  letter-spacing: 4px;
+  transform: translate(-50%, 18px);
+}
+
+.node-faction.crown .shape {
+  width: 255px; height: 255px;
+  border-width: 3px;
+  font-size: 15px;
+}
+.node-faction.crown    { color: var(--c-crown); }
+.node-faction.crown   .shape { box-shadow: 0 0 50px rgba(201, 169, 97, 0.35); }
+.node-faction.halvorn  { color: var(--c-halvorn); }
+.node-faction.halvorn .shape { box-shadow: 0 0 36px rgba(168, 58, 58, 0.4); }
+.node-faction.gorrund  { color: var(--c-gorrund); }
+.node-faction.gorrund .shape { box-shadow: 0 0 36px rgba(107, 142, 78, 0.4); }
+.node-faction.corvath  { color: var(--c-corvath); }
+.node-faction.corvath .shape { box-shadow: 0 0 36px rgba(90, 122, 154, 0.4); }
+.node-faction.voss     { color: var(--c-voss); }
+.node-faction.voss    .shape { box-shadow: 0 0 36px rgba(138, 111, 163, 0.4); }

@@ -1,0 +1,25 @@
+/* Drag-state highlights + the anchor dots shown only while dragging. */
+
+.node.node-dragging {
+  z-index: 20;
+  opacity: 0.9;
+  cursor: grabbing;
+}
+.node.node-dragging .shape { box-shadow: 0 0 24px rgba(201, 169, 97, 0.6); }
+
+.anchor {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(201, 169, 97, 0.2);
+  border: 1px solid var(--gold-dim);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+.anchor.anchor-near {
+  background: var(--gold);
+  transform: translate(-50%, -50%) scale(1.6);
+  box-shadow: 0 0 12px var(--gold);
+}

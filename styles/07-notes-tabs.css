@@ -1,0 +1,59 @@
+/* Notepad tab strip across the bottom of the drawer's notes section. */
+
+.notes-tabs {
+  display: flex;
+  background: var(--bg-panel-2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.notes-tabs::-webkit-scrollbar { height: 6px; }
+.notes-tabs::-webkit-scrollbar-track { background: var(--bg); }
+.notes-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.notes-tabs::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+.note-tab {
+  padding: 6px 12px;
+  border-right: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+}
+.note-tab.active {
+  color: var(--gold);
+  background: var(--bg-panel);
+  border-bottom: 2px solid var(--gold);
+}
+.note-tab .label { outline: none; min-width: 30px; }
+.note-tab .label.editing {
+  color: var(--gold-bright);
+  background: var(--bg);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.note-tab .close {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 0 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.note-tab .close:hover { color: var(--red); }
+.add-tab {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+}

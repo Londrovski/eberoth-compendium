@@ -1,0 +1,51 @@
+/* Threads list inside the drawer. Drag-reorder visuals included. */
+
+.threads-list { overflow-y: auto; padding: 8px 10px; position: relative; }
+.thread {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-dim);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  position: relative;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.thread.dragging { opacity: 0.5; border-color: var(--gold); }
+.thread.drop-above { box-shadow: 0 -2px 0 var(--gold); }
+.thread.drop-below { box-shadow: 0 2px 0 var(--gold); }
+.thread .drag {
+  color: var(--text-dim);
+  font-size: 16px;
+  padding-top: 2px;
+  user-select: none;
+  cursor: grab;
+  line-height: 1;
+  width: 16px;
+  text-align: center;
+}
+.thread .drag:active { cursor: grabbing; }
+.thread .drag:hover { color: var(--gold); }
+.thread .text { flex: 1; outline: none; }
+.thread .text[contenteditable]:focus { color: var(--gold-bright); }
+.thread .del {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  font-family: inherit;
+}
+.thread .del:hover { color: var(--red); }
+.threads-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+}

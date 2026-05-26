@@ -1,0 +1,37 @@
+/* CSS variables + body baseline + scrollbar. House colours are
+   placeholders — swap to proper heraldic values when ready. */
+
+:root {
+  --bg: #0e0d0b;
+  --bg-panel: #1a1814;
+  --bg-panel-2: #221f1a;
+  --bg-card: #2a261f;
+  --border: #3a3530;
+  --gold: #c9a961;
+  --gold-dim: #8a7544;
+  --gold-bright: #e6c87c;
+  --text: #e8e2d4;
+  --text-dim: #a39d8e;
+  --red: #8b3a3a;
+
+  --c-crown:   #c9a961;   /* gold */
+  --c-halvorn: #a83a3a;   /* deep red */
+  --c-gorrund: #6b8e4e;   /* green-gold */
+  --c-corvath: #5a7a9a;   /* steel blue */
+  --c-voss:    #8a6fa3;   /* pale violet */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }

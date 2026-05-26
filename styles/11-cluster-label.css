@@ -1,0 +1,11 @@
+/* Small ‘THE PARTY’ / ‘PERSONAL’ / ‘LORE’ headers above clusters. */
+
+.cluster-label {
+  position: absolute;
+  color: var(--gold-dim);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+}

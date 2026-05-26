@@ -1,0 +1,20 @@
+/* Big map title — same family + glow as the main site's header h1.
+   Positioned above the Crown by JS (10-map-render.js). */
+
+.eberoth-title {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel Decorative', 'Cinzel', 'Georgia', serif;
+  font-weight: 700;
+  font-size: 96px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0 40px rgba(201, 169, 97, 0.8),
+    0 0 80px rgba(201, 169, 97, 0.4),
+    0 2px 16px rgba(0,0,0,1),
+    0 4px 32px rgba(0,0,0,0.9);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+}

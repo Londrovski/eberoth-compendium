@@ -1,0 +1,97 @@
+/* Slide-in detail panel + per-entity notes inside it. */
+
+.detail {
+  width: 0;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.detail.open { width: 380px; }
+.detail-inner { padding: 48px 22px 20px; overflow-y: auto; width: 380px; }
+
+.detail-back, .detail-close {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-back  { left: 12px; }
+.detail-close { right: 12px; }
+.detail-close:hover,
+.detail-back:hover {
+  color: var(--gold);
+  background: var(--bg-panel-2);
+}
+
+.detail .portrait {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  font-size: 48px;
+  overflow: hidden;
+}
+.detail .portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detail h2 { color: var(--gold); font-size: 22px; margin-bottom: 4px; font-weight: normal; }
+.detail .subtitle { color: var(--text-dim); font-size: 13px; font-style: italic; margin-bottom: 14px; }
+.detail .field { margin-bottom: 12px; font-size: 14px; }
+.detail .field-label {
+  color: var(--gold-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 3px;
+}
+.detail .field-body { white-space: pre-wrap; }
+
+.entity-notes-wrap { position: relative; }
+.entity-notes {
+  min-height: 100px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  outline: none;
+}
+.entity-notes:focus { border-color: var(--gold-dim); }
+.entity-notes:empty:before {
+  content: "Your notes on this entry… type @ to tag.";
+  color: var(--text-dim);
+  font-style: italic;
+  pointer-events: none;
+}
+.entity-notes .tag {
+  color: var(--gold);
+  font-weight: bold;
+  cursor: pointer;
+}
+.entity-notes .tag:hover { color: var(--gold-bright); }

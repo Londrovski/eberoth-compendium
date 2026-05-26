@@ -1,0 +1,109 @@
+/* Card-shaped nodes: NPCs, players, lore. House tints applied by
+   position via the .in-{house} classes (set in JS). */
+
+.node-npc .shape {
+  width: 96px;
+  height: 128px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.node-npc.in-halvorn .shape { border-color: var(--c-halvorn); box-shadow: 0 0 16px rgba(168, 58, 58, 0.45); }
+.node-npc.in-gorrund .shape { border-color: var(--c-gorrund); box-shadow: 0 0 16px rgba(107, 142, 78, 0.45); }
+.node-npc.in-corvath .shape { border-color: var(--c-corvath); box-shadow: 0 0 16px rgba(90, 122, 154, 0.45); }
+.node-npc.in-voss    .shape { border-color: var(--c-voss);    box-shadow: 0 0 16px rgba(138, 111, 163, 0.45); }
+.node-npc .portrait {
+  flex: 1;
+  background: linear-gradient(180deg, var(--bg-panel-2), var(--bg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  font-size: 32px;
+  font-weight: bold;
+  overflow: hidden;
+}
+.node-npc .portrait img,
+.node-player .portrait img,
+.node-special .portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.node-npc .name {
+  padding: 4px 4px 5px;
+  font-size: 11px;
+  color: var(--text);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.node-player .shape {
+  width: 96px;
+  height: 128px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(201, 169, 97, 0.2);
+}
+.node-player .portrait {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 32px;
+  font-weight: bold;
+  background: linear-gradient(180deg, #2a221a, #1a1410);
+  overflow: hidden;
+}
+.node-player .name {
+  padding: 4px 4px 5px;
+  font-size: 11px;
+  color: var(--gold-bright);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--gold-dim);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.node-special .shape {
+  width: 96px;
+  height: 128px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.node-special .portrait {
+  flex: 1;
+  background: linear-gradient(180deg, var(--bg-panel-2), var(--bg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  font-size: 28px;
+  overflow: hidden;
+}
+.node-special .name {
+  padding: 4px 4px 5px;
+  font-size: 11px;
+  color: var(--text);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  line-height: 1.2;
+  text-align: center;
+}

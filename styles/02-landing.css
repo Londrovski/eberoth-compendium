@@ -1,0 +1,101 @@
+/* Landing page — passphrase card shown until a bucket is set. */
+
+#landing {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(201, 169, 97, 0.06), transparent 60%),
+    var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.landing-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 40px 48px 32px;
+  width: min(440px, 90vw);
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+.landing-rule {
+  height: 1px;
+  background: var(--gold-dim);
+  opacity: 0.5;
+  margin: 0 auto;
+  width: 80%;
+}
+.landing-card h1 {
+  font-size: 26px;
+  color: var(--gold);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  font-weight: normal;
+  padding: 16px 0;
+}
+.landing-tag {
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 22px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+#landingInput {
+  width: 100%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+#landingInput:focus { border-color: var(--gold-dim); }
+#landingInput.shake { animation: shake 0.35s ease; border-color: var(--red); }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+.landing-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.landing-actions button {
+  flex: 1;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-dim);
+  color: var(--bg);
+  padding: 9px 0;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.landing-actions button:hover { background: var(--gold); border-color: var(--gold); }
+.landing-actions button.secondary {
+  background: transparent;
+  color: var(--gold-dim);
+}
+.landing-actions button.secondary:hover {
+  background: var(--bg-panel-2);
+  color: var(--gold);
+}
+.landing-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 18px;
+  font-style: italic;
+}

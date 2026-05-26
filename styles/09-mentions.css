@@ -1,0 +1,30 @@
+/* @-mention dropdown. Used by both the notepad and per-entity notes. */
+
+.mention-dropdown {
+  position: absolute;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  min-width: 200px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  display: none;
+}
+.mention-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+}
+.mention-item:last-child { border-bottom: none; }
+.mention-item:hover,
+.mention-item.selected {
+  background: var(--bg-card);
+  color: var(--gold);
+}
+.mention-item .m-name { font-weight: bold; }
+.mention-item .m-sub { font-size: 11px; color: var(--text-dim); }
