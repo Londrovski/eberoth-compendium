@@ -1,0 +1,55 @@
+// Landing page + role badge wiring. DOM refs grabbed at initLanding()
+// time, which boot calls once on startup.
+(function () {
+  EB.initLanding = function () {
+    var landing       = document.getElementById('landing');
+    var landingInput  = document.getElementById('landingInput');
+    var landingSubmit = document.getElementById('landingSubmit');
+    var landingGuest  = document.getElementById('landingGuest');
+    var landingError  = document.getElementById('landingError');
+    var appEl         = document.getElementById('app');
+    var roleBadge     = document.getElementById('roleBadge');
+    var logoutBtn     = document.getElementById('logout');
+
+    EB.showLanding = function () {
+      landing.style.display = 'flex';
+      appEl.style.display = 'none';
+      setTimeout(function () { landingInput.focus(); }, 50);
+    };
+    EB.showApp = function () {
+      landing.style.display = 'none';
+      appEl.style.display = 'flex';
+      var b = EB.currentBucket();
+      var label;
+      if (b === 'dm') label = 'DM';
+      else if (b === 'guest' || !b) label = 'GUEST';
+      else {
+        // Players: full character name in the top-right badge.
+        var charId = EB.BUCKET_TO_CHARACTER[b];
+        var char = (window.PLAYERS || []).find(function (p) { return p.id === charId; });
+        label = char ? char.name : b.toUpperCase();
+      }
+      roleBadge.textContent = label;
+    };
+
+    function tryLogin() {
+      var code = EB.normalisePasscode(landingInput.value);
+      var bucket = EB.PASSCODES[code];
+      if (!bucket) {
+        landingError.textContent = 'Not recognised.';
+        landingInput.value = '';
+        landingInput.classList.add('shake');
+        setTimeout(function () { landingInput.classList.remove('shake'); }, 500);
+        return;
+      }
+      landingError.textContent = '';
+      EB.setBucket(bucket);
+      EB.boot();
+    }
+
+    landingSubmit.addEventListener('click', tryLogin);
+    landingInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
+    landingGuest.addEventListener('click', function () { EB.setBucket('guest'); EB.boot(); });
+    logoutBtn.addEventListener('click', function () { EB.setBucket(null); location.reload(); });
+  };
+})();
