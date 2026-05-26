@@ -24,8 +24,16 @@
   const FOLDERS = [
     'data/factions',
     'data/players',
+    'data/npcs',
     'data/lore',
     'data/sessions',
+    'data/backstory/kalvorn',
+    'data/backstory/azrael',
+    'data/backstory/dirk',
+    // legacy passphrase-gated personal sections — still loaded so the
+    // old app.js keeps working during the redesign port. Once the new
+    // app.js ships and entity_notes replace PERSONAL_NOTES, these can
+    // be removed from FOLDERS.
     'data/personal/kalvorn',
     'data/personal/azrael',
     'data/personal/dirk'
