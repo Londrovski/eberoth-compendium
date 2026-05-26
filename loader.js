@@ -10,8 +10,9 @@
 // Load order rules enforced here:
 //   1. All leaf files in a manifest load (in declared order) before
 //      the next manifest
-//   2. All leaves finish before data.js (the finaliser)
-//   3. data.js finishes before app.js
+//   2. All data leaves finish before data.js (the finaliser)
+//   3. app/* loads after data so modules can read PLAYERS/FACTIONS/etc.
+//   4. data.js + app.js are loaded at the end
 //
 // See README.md for architecture.
 
@@ -22,6 +23,7 @@
   // Each manifest declares: window.MANIFEST = ['file-a', 'file-b', ...]
   // The loader then injects <script src="{folder}/{file}.js"> for each.
   const FOLDERS = [
+    // --- data ---
     'data/factions',
     'data/players',
     'data/npcs',
@@ -30,13 +32,14 @@
     'data/backstory/kalvorn',
     'data/backstory/azrael',
     'data/backstory/dirk',
-    // legacy passphrase-gated personal sections — still loaded so the
-    // old app.js keeps working during the redesign port. Once the new
-    // app.js ships and entity_notes replace PERSONAL_NOTES, these can
-    // be removed from FOLDERS.
+    // legacy passphrase-gated personal sections — ignored by the new
+    // app but still loaded so the old surface doesn't error if something
+    // references it. Safe to remove later.
     'data/personal/kalvorn',
     'data/personal/azrael',
-    'data/personal/dirk'
+    'data/personal/dirk',
+    // --- app modules (must load after data so they can read globals) ---
+    'app'
   ];
 
   function loadScript(src) {
@@ -69,7 +72,7 @@
       for (const folder of FOLDERS) {
         await loadFolder(folder);
       }
-      // All content loaded — now the finaliser, then the renderer
+      // All content + app modules loaded. Run the finaliser, then boot.
       await loadScript('data.js');
       await loadScript('app.js');
     } catch (err) {
