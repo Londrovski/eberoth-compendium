@@ -18,11 +18,12 @@
       if (!email) return;
       clearTimeout(saveTimer);
       saveTimer = setTimeout(function () {
-        EB.sb.from('user_notepad').upsert({
-          user_email: email,
-          notepad:    notesState,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_email' }).then(function () {});
+        EB.sb
+          .from('user_notepad')
+          .upsert({ user_email: email, notepad: notesState }, { onConflict: 'user_email' })
+          .then(function (res) {
+            if (res.error) console.error('[Eberoth] notepad save failed:', res.error);
+          });
       }, 500);
     }
 
@@ -106,22 +107,30 @@
     }
 
     // Load from Supabase on init, then render
-    (function load() {
-      var email = getEmail();
-      if (!email) { renderTabs(); loadActiveBody(); return; }
-      EB.sb.from('user_notepad')
+    var email = getEmail();
+    if (!email) {
+      renderTabs();
+      loadActiveBody();
+    } else {
+      EB.sb
+        .from('user_notepad')
         .select('notepad')
         .eq('user_email', email)
         .maybeSingle()
         .then(function (res) {
+          if (res.error) console.error('[Eberoth] notepad load failed:', res.error);
           if (res.data && res.data.notepad && Array.isArray(res.data.notepad.tabs)) {
             notesState = res.data.notepad;
           }
           renderTabs();
           loadActiveBody();
         })
-        .catch(function () { renderTabs(); loadActiveBody(); });
-    })();
+        .catch(function (e) {
+          console.error('[Eberoth] notepad load exception:', e);
+          renderTabs();
+          loadActiveBody();
+        });
+    }
 
     EB.attachMentions(noteBody, dropdown, persistBody);
   };
