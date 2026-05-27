@@ -19,13 +19,11 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  /* shift down 7.5% of the circle height (210px * 7.5% = ~15.75px) */
-  transform: translateY(7.5%);
+  transform: translateY(2.5%);
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
 }
-/* Crown circle is 255px — 7.5% = ~19px, same rule applies */
 
 /* Missing-image fallback inside a faction circle */
 .node-faction .shape .portrait-missing {
