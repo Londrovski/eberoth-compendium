@@ -1,5 +1,7 @@
 /* Big map title — same family + glow as the main site's header h1.
-   Positioned above the Crown by JS (10-map-render.js). */
+   Positioned above the Crown by JS (10-map-render.js). Pointer events
+   are enabled so DM block-mode drag works — the title sits above the
+   Crown ring with no nodes beneath it, so it doesn't shadow clicks. */
 
 .eberoth-title {
   position: absolute;
@@ -14,7 +16,14 @@
     0 0 80px rgba(201, 169, 97, 0.4),
     0 2px 16px rgba(0,0,0,1),
     0 4px 32px rgba(0,0,0,0.9);
-  pointer-events: none;
+  pointer-events: auto;
   white-space: nowrap;
   user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  touch-action: none;
 }
+
+/* Show a grab cursor when block mode is on (so DM knows it's draggable). */
+body:has(#navBlockMode.on) .eberoth-title { cursor: grab; }
+.eberoth-title.node-dragging { cursor: grabbing; }
