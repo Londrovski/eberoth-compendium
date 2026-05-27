@@ -4,10 +4,11 @@
 //   - EB.moveMode (everyone): per-node drag, snap to anchors, saves
 //     to node_positions (per-user override).
 //   - EB.blockMoveMode (DM only): grabbing any node moves the whole
-//     cluster (Players, Houses, or Lore) together; on drop the
-//     cluster offset is saved globally via EB.saveClusterOffset,
-//     which also wipes per-user customs + globals for the affected
-//     entities so the shift is the new baseline for everyone.
+//     cluster (Players, Houses, Lore, or Title) together; on drop the
+//     cluster offset is saved globally via EB.saveClusterOffset.
+//
+// Elements tagged data-cluster="title" are block-mode-only — they
+// have no entity row, so per-node mode skips them entirely.
 //
 // Snap behaviour (per-node mode only): prefers the nearest UNOCCUPIED
 // anchor (cards don't pile up). If no free anchor sits within ~2.5x
@@ -65,12 +66,6 @@
     });
   }
 
-  // ---- Block-mode helpers -------------------------------------------------
-
-  // Collect every element on the canvas tagged data-cluster=<cluster>
-  // (nodes, shadows, cluster labels, the Eberoth title). Each entry
-  // records its starting style.left/top so the drag can move them all
-  // by the same delta.
   function collectClusterElements(cluster) {
     if (!cluster || !EB.canvas) return [];
     var els = EB.canvas.querySelectorAll('[data-cluster="' + cluster + '"]');
@@ -84,13 +79,12 @@
     return out;
   }
 
-  // ---- Drag handler -------------------------------------------------------
-
   EB.attachNodeInteraction = function (el, id, onOpen) {
     var startX = 0, startY = 0, nodeStartX = 0, nodeStartY = 0;
     var dragging = false, armed = false, activePointer = null;
-    var blockCluster = null;   // cluster being dragged, when in block mode
-    var blockEls = null;       // [{el, x0, y0}] in block-mode drag
+    var blockCluster = null;
+    var blockEls = null;
+    var isTitleEl = (el.dataset && el.dataset.cluster === 'title');
 
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
@@ -110,7 +104,8 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      // Neither mode? Don't initiate a drag.
+      // Title is block-mode-only.
+      if (isTitleEl && !EB.blockMoveMode) return;
       if (!dragging && !EB.moveMode && !EB.blockMoveMode) return;
 
       if (!dragging) {
@@ -123,13 +118,11 @@
             blockEls.forEach(function (b) { b.el.classList.add('cluster-dragging'); });
           }
         } else {
-          // Per-node mode shows anchors for snap feedback.
           EB.showAnchors();
         }
       }
 
       if (blockCluster && blockEls) {
-        // Move every element in the cluster by the same scaled delta.
         var ddx = dx / EB.scale, ddy = dy / EB.scale;
         blockEls.forEach(function (b) {
           b.el.style.left = (b.x0 + ddx) + 'px';
@@ -160,7 +153,6 @@
       el.classList.remove('node-dragging');
 
       if (blockCluster && blockEls) {
-        // ---- Block-mode drop: save new cluster offset ----
         var endX = parseFloat(el.style.left);
         var endY = parseFloat(el.style.top);
         var ddx = endX - nodeStartX;
@@ -185,7 +177,16 @@
         return;
       }
 
-      // ---- Per-node mode drop: snap + per-user save ----
+      // Per-node mode drop: snap + per-user save. Skip for the title
+      // (no entity row, no useful node_positions write).
+      if (isTitleEl) {
+        if (EB.moveMode) {
+          anchorEls.forEach(function (el) { el.classList.remove('anchor-near'); });
+        } else {
+          EB.hideAnchors();
+        }
+        return;
+      }
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
       var snap = pickSnap(x, y, id);
