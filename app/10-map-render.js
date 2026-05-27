@@ -3,6 +3,12 @@
 // Reads EB.shiftedLayout() (not EB.LAYOUT directly) so cluster offsets
 // applied by the DM ripple through to labels, ref shadows, etc.
 //
+// Every node + shadow + cluster label is tagged with data-cluster so
+// the DM block-move drag can collect "everything in this cluster" via
+// a single DOM query. Ref shadows always belong to the players
+// cluster (they live in the Personal column) regardless of where the
+// underlying entity normally lives.
+//
 // Shadows:
 //   - For PLAYERS: their backstory cards that have been placed
 //     elsewhere render an extra shadow in the Personal column, AND
@@ -33,24 +39,28 @@
       var L = EB.shiftedLayout();
       el.style.left = L.crown.x + 'px';
       el.style.top = (L.titleY || 50) + 'px';
+      // Title rides with the houses cluster (Crown anchors it).
+      el.dataset.cluster = 'houses';
       canvas.appendChild(el);
     }
-    function makeNode(cls, p, id, html, onOpen) {
+    function makeNode(cls, p, id, html, onOpen, cluster) {
       if (!p) return;
       var el = document.createElement('div');
       el.className = 'node ' + cls;
       el.dataset.id = id;
+      if (cluster) el.dataset.cluster = cluster;
       el.style.left = p.x + 'px';
       el.style.top = p.y + 'px';
       el.innerHTML = html;
       EB.attachNodeInteraction(el, id, onOpen);
       canvas.appendChild(el);
     }
-    function makeShadow(entity, p, suffix) {
+    function makeShadow(entity, p, suffix, cluster) {
       if (!p) return;
       var el = document.createElement('div');
       el.className = 'node node-npc shadow';
       el.dataset.id = entity.id + (suffix || '-shadow');
+      if (cluster) el.dataset.cluster = cluster;
       el.style.left = p.x + 'px';
       el.style.top = p.y + 'px';
       el.innerHTML =
@@ -58,6 +68,10 @@
         '<div class="name">' + EB.escapeHtml(entity.name) + '</div></div>';
       el.addEventListener('click', function () { EB.openDetail(entity); });
       canvas.appendChild(el);
+    }
+
+    function clusterForEntity(id) {
+      return EB.clusterOf ? EB.clusterOf(id) : null;
     }
 
     EB.renderMap = function () {
@@ -83,31 +97,34 @@
       (window.PLAYERS || []).forEach(function (p) {
         makeNode('node-player', pos[p.id], p.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(p) + '</div><div class="name">' + EB.escapeHtml(p.name) + '</div></div>',
-          function () { EB.openDetail(p); });
+          function () { EB.openDetail(p); }, 'players');
       });
       (window.LORE || []).forEach(function (l) {
         makeNode('node-special', pos[l.id], l.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(l, '◈') + '</div><div class="name">' + EB.escapeHtml(l.name) + '</div></div>',
-          function () { EB.openDetail(l); });
+          function () { EB.openDetail(l); }, 'lore');
       });
       (window.FACTIONS || []).forEach(function (f) {
         makeNode('node-faction ' + f.id, pos[f.id], f.id,
           '<div class="shape">' + EB.factionSigilHTML(f) + '</div>' +
           '<div class="faction-label">' + EB.escapeHtml(f.name) + '</div>',
-          function () { EB.openDetail(f); });
+          function () { EB.openDetail(f); }, clusterForEntity(f.id));
       });
       (window.NPCS || []).forEach(function (n) {
         makeNode('node-npc', pos[n.id], n.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(n) + '</div><div class="name">' + EB.escapeHtml(n.name) + '</div></div>',
-          function () { EB.openDetail(n); });
+          function () { EB.openDetail(n); }, clusterForEntity(n.id));
       });
       EB.BACKSTORY.forEach(function (b) {
         makeNode('node-npc', pos[b.id], b.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + EB.escapeHtml(b.name) + '</div></div>',
-          function () { EB.openDetail(b); });
+          function () { EB.openDetail(b); }, 'players');
       });
 
       // ---- Shadow duplicates ----
+      // All ref/backstory shadows live in the Personal column, so they
+      // belong to the players cluster regardless of the underlying
+      // entity's home faction.
       if (!isDM) {
         // Player view: backstory shadows + ref shadows in middle column.
         EB.BACKSTORY.forEach(function (b) {
@@ -115,7 +132,7 @@
           var defPos = EB.getBackstoryDefaultPos(b);
           if (!actual || !defPos) return;
           if (Math.hypot(actual.x - defPos.x, actual.y - defPos.y) > 50) {
-            makeShadow(b, defPos, '-shadow');
+            makeShadow(b, defPos, '-shadow', 'players');
           }
         });
         var stackIdx = EB.BACKSTORY.length;
@@ -126,7 +143,7 @@
             x: L.party.x + L.party.gap,
             y: L.personalY + stackIdx * L.personalCardGapY
           };
-          makeShadow(entity, p, '-ref');
+          makeShadow(entity, p, '-ref', 'players');
           stackIdx++;
         });
       } else {
@@ -148,7 +165,7 @@
               x: L.party.x + ownerIdx * L.party.gap,
               y: L.personalY + s * L.personalCardGapY
             };
-            makeShadow(entity, p, '-ref-' + bkt);
+            makeShadow(entity, p, '-ref-' + bkt, 'players');
             s++;
           });
         });
