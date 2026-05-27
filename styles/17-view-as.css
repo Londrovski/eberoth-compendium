@@ -1,0 +1,66 @@
+/* =====================================================
+   View-As mode styling.
+   Active when body.viewing-as is present (DM impersonating
+   a player via the topbar dropdown). Goals:
+     - signal the read-only state clearly without being ugly
+     - grey out the drawer so writes feel impossible
+     - banner across the top of the drawer naming the viewed
+       perspective (no extra DOM needed — pseudo-element)
+     - subtle tint on the topbar role badge so the mode is
+       visible even when the drawer is collapsed
+   ===================================================== */
+
+/* Drawer: muted background + reduced contrast on its inputs. */
+body.viewing-as .drawer {
+  background:
+    linear-gradient(180deg, rgba(255, 220, 170, 0.06), transparent 80px),
+    var(--drawer-bg, #1a1410);
+  position: relative;
+}
+
+/* Banner via ::before so we don't have to add markup. */
+body.viewing-as .drawer::before {
+  content: 'Viewing as another player — read-only';
+  display: block;
+  padding: 8px 12px;
+  background: linear-gradient(90deg,
+    rgba(212, 165, 109, 0.18),
+    rgba(212, 165, 109, 0.08) 60%,
+    transparent);
+  color: #d4a56d;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(212, 165, 109, 0.25);
+  text-align: center;
+}
+
+/* Threads + notepad: greyed and faded a touch. */
+body.viewing-as .drawer-section.threads,
+body.viewing-as .drawer-section.notes {
+  opacity: 0.85;
+  filter: saturate(0.7);
+}
+
+/* Add-buttons + close-buttons + the note add tab: hide entirely.
+   The JS already skips rendering them, but belt-and-braces. */
+body.viewing-as #addThread,
+body.viewing-as .note-tab .close,
+body.viewing-as .notes-tabs .add-tab {
+  display: none !important;
+}
+
+/* Note body: visually communicate non-editable. */
+body.viewing-as .note-body {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(212, 165, 109, 0.15);
+}
+
+/* Topbar role badge: tint amber so the mode is visible from anywhere. */
+body.viewing-as .role-tag {
+  background: rgba(212, 165, 109, 0.15);
+  border-color: rgba(212, 165, 109, 0.5);
+  color: #d4a56d;
+}
