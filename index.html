@@ -11,6 +11,18 @@
 </head>
 <body>
 
+  <!-- ===== LOADING OVERLAY ===== -->
+  <!-- Visible immediately on page load. Dismissed by app.js once the
+       Supabase content fetch resolves. Swap .loading-glyph content for
+       a campaign logo image once it exists. -->
+  <div id="loadingOverlay">
+    <div class="loading-glyph">?</div>
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="loading-text">Loading</div>
+  </div>
+
   <!-- ===== LANDING ===== -->
   <div id="landing">
     <div class="landing-card">
