@@ -11,16 +11,17 @@
 
     function getEmail() { return EB._userEmail || null; }
 
-    // Debounced save — coalesce rapid edits into one upsert
     function save() {
-      if (!getEmail()) return;
+      var email = getEmail();
+      if (!email) return;
       clearTimeout(saveTimer);
       saveTimer = setTimeout(function () {
-        EB.sb.from('user_threads').upsert({
-          user_email: getEmail(),
-          threads:    threads,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_email' }).then(function () {});
+        EB.sb
+          .from('user_threads')
+          .upsert({ user_email: email, threads: threads }, { onConflict: 'user_email' })
+          .then(function (res) {
+            if (res.error) console.error('[Eberoth] threads save failed:', res.error);
+          });
       }, 500);
     }
 
@@ -96,20 +97,26 @@
     };
 
     // Load from Supabase on init
-    (function load() {
-      var email = getEmail();
-      if (!email) { render(); return; }
-      EB.sb.from('user_threads')
+    var email = getEmail();
+    if (!email) {
+      render();
+    } else {
+      EB.sb
+        .from('user_threads')
         .select('threads')
         .eq('user_email', email)
         .maybeSingle()
         .then(function (res) {
+          if (res.error) console.error('[Eberoth] threads load failed:', res.error);
           if (res.data && Array.isArray(res.data.threads)) {
             threads = res.data.threads;
           }
           render();
         })
-        .catch(function () { render(); });
-    })();
+        .catch(function (e) {
+          console.error('[Eberoth] threads load exception:', e);
+          render();
+        });
+    }
   };
 })();
