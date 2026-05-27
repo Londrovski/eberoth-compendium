@@ -10,35 +10,18 @@
 // Load order rules enforced here:
 //   1. All leaf files in a manifest load (in declared order) before
 //      the next manifest
-//   2. All data leaves finish before data.js (the finaliser)
-//   3. app/* loads after data so modules can read PLAYERS/FACTIONS/etc.
-//   4. data.js + app.js are loaded at the end
+//   2. data.js resolves _dataReady immediately (no-op since Supabase migration)
+//   3. app/* loads after data.js so EB namespace exists
+//   4. EB.loadContent() is called inside EB.boot() after auth, not here
 //
-// See README.md for architecture.
+// Static data files in /data/ are archived and no longer loaded.
+// All entity/session content comes from Supabase via EB.loadContent().
 
 (function() {
   'use strict';
 
-  // Folders to load, in order. Manifest paths are relative to repo root.
-  // Each manifest declares: window.MANIFEST = ['file-a', 'file-b', ...]
-  // The loader then injects <script src="{folder}/{file}.js"> for each.
   const FOLDERS = [
-    // --- data ---
-    'data/factions',
-    'data/players',
-    'data/npcs',
-    'data/lore',
-    'data/sessions',
-    'data/backstory/kalvorn',
-    'data/backstory/azrael',
-    'data/backstory/dirk',
-    // legacy passphrase-gated personal sections — ignored by the new
-    // app but still loaded so the old surface doesn't error if something
-    // references it. Safe to remove later.
-    'data/personal/kalvorn',
-    'data/personal/azrael',
-    'data/personal/dirk',
-    // --- app modules (must load after data so they can read globals) ---
+    // app modules only — data comes from Supabase
     'app'
   ];
 
@@ -53,13 +36,11 @@
   }
 
   async function loadFolder(folder) {
-    // Load the manifest, which sets window.MANIFEST to an array of filenames
     await loadScript(folder + '/_manifest.js');
     const files = window.MANIFEST;
     if (!Array.isArray(files)) {
       throw new Error('Manifest at ' + folder + '/_manifest.js did not set window.MANIFEST to an array');
     }
-    // Clear it before iterating so the next folder's manifest starts clean
     window.MANIFEST = null;
 
     for (const file of files) {
@@ -72,7 +53,6 @@
       for (const folder of FOLDERS) {
         await loadFolder(folder);
       }
-      // All content + app modules loaded. Run the finaliser, then boot.
       await loadScript('data.js');
       await loadScript('app.js');
     } catch (err) {
