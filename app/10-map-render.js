@@ -1,4 +1,10 @@
 // Renders the map nodes + cluster labels + Eberoth title.
+//
+// For players (not DM), a card belonging to the viewer that's been
+// pushed elsewhere on the grid by DM ALSO gets a semi-transparent
+// shadow rendered at its Personal-column default position — so the
+// player can always find their backstory cards in the Personal area
+// even when the "real" placement is somewhere else.
 (function () {
   EB.initMapRender = function () {
     var canvas = document.getElementById('canvas');
@@ -32,6 +38,22 @@
       EB.attachNodeInteraction(el, id, onOpen);
       canvas.appendChild(el);
     }
+    // Shadow: a non-draggable, click-only duplicate of a backstory card
+    // sitting in the Personal column. Used for players whose card has
+    // been placed elsewhere.
+    function makeShadow(b, p) {
+      if (!p) return;
+      var el = document.createElement('div');
+      el.className = 'node node-npc shadow';
+      el.dataset.id = b.id + '-shadow';
+      el.style.left = p.x + 'px';
+      el.style.top = p.y + 'px';
+      el.innerHTML =
+        '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div>' +
+        '<div class="name">' + EB.escapeHtml(b.name) + '</div></div>';
+      el.addEventListener('click', function () { EB.openDetail(b); });
+      canvas.appendChild(el);
+    }
 
     EB.renderMap = function () {
       Array.prototype.forEach.call(canvas.querySelectorAll('.node, .cluster-label, .eberoth-title'), function (n) { n.remove(); });
@@ -41,12 +63,11 @@
 
       addEberothTitle();
       addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset);
-      // Personal label: centred over the middle player card, mirroring the Party label.
       if (EB.BACKSTORY.length > 0) {
         addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset);
       }
       if ((window.LORE || []).length > 0) {
-        addClusterLabel('Lore', L.special.x + L.loreGridGapX / 2, L.loreGridY - L.headerOffset);
+        addClusterLabel('Lore', L.special.x, L.loreGridY - L.headerOffset);
       }
 
       (window.PLAYERS || []).forEach(function (p) {
@@ -75,6 +96,19 @@
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + EB.escapeHtml(b.name) + '</div></div>',
           function () { EB.openDetail(b); });
       });
+
+      // Player view only: add shadows for backstory cards that have
+      // been placed elsewhere (>50px from their Personal default).
+      if (EB.currentBucket() !== 'dm') {
+        EB.BACKSTORY.forEach(function (b) {
+          var actual = pos[b.id];
+          var defPos = EB.getBackstoryDefaultPos(b);
+          if (!actual || !defPos) return;
+          if (Math.hypot(actual.x - defPos.x, actual.y - defPos.y) > 50) {
+            makeShadow(b, defPos);
+          }
+        });
+      }
 
       if (EB.applyHouseTints) EB.applyHouseTints();
     };

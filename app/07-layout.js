@@ -2,18 +2,17 @@
 // Supabase — global_positions (DM-authored, world-readable) and
 // node_positions (per-user override, RLS-scoped).
 //
-// IMPORTANT: in Supabase JS v2, builder chains like .from(t).upsert(x)
-// are lazy — the HTTP request only fires when .then()/await is called.
-// All save/delete helpers below call .then() internally so callers can
-// fire-and-forget safely.
-//
-// Backstory cards live in vertical stacks DIRECTLY under their owner's
-// player card — not in a shared grid. This keeps DM and player views
-// aligned by default: same entity has the same (column, stack-row)
-// regardless of how many other cards are visible to the viewer.
+// Backstory cards default to:
+//   DM viewer    → per-owner columns under each player's card.
+//   Player viewer → all stacked in the middle column (under the
+//                    "Personal" label), so it lines up with the label
+//                    regardless of which player they are.
+// Globals/customs still override per entity.
 (function () {
   EB.LAYOUT = {
-    party: { x: 290, y: 490, gap: 110 },
+    // party.x shifted left so the rightmost player+personal column
+    // (Dirk under DM view) clears the Corvath sigil on the right.
+    party: { x: 242, y: 490, gap: 110 },
     special: { x: 1610, y: 240 },
     crown: { x: 1000, y: 400 },
     crownRingRadius: 220,
@@ -26,11 +25,10 @@
     personalY: 690,
     personalCardGapY: 145,
     loreGridY: 440,
-    loreGridGapX: 110,
     loreGridGapY: 145,
     headerOffset: 84
   };
-  EB.LAYOUT_VERSION = 10;
+  EB.LAYOUT_VERSION = 11;  // bumped: new spatial defaults
   EB.SNAP_DISTANCE = 60;
 
   EB.customPositions = {};
@@ -134,14 +132,34 @@
     });
   };
 
+  // Where a backstory card lives in the Personal cluster by default.
+  // Used by defaultLayout AND by the shadow-duplicate renderer.
+  EB.getBackstoryDefaultPos = function (b) {
+    var L = EB.LAYOUT;
+    var PLAYERS = window.PLAYERS || [];
+    var ownerIdx = PLAYERS.findIndex(function (p) { return p.id === b.ownerId; });
+    if (ownerIdx < 0) return null;
+    var siblings = EB.BACKSTORY.filter(function (x) { return x.ownerId === b.ownerId; });
+    var stackIdx = siblings.findIndex(function (x) { return x.id === b.id; });
+    var isDM = EB.currentBucket() === 'dm';
+    var columnX = isDM
+      ? L.party.x + ownerIdx * L.party.gap   // DM: per-owner column
+      : L.party.x + L.party.gap;              // Player: always middle
+    return {
+      x: columnX,
+      y: L.personalY + stackIdx * L.personalCardGapY
+    };
+  };
+
   EB.defaultLayout = function () {
     var L = EB.LAYOUT, pos = {};
     var PLAYERS = window.PLAYERS || [];
     PLAYERS.forEach(function (p, i) {
       pos[p.id] = { x: L.party.x + i * L.party.gap, y: L.party.y };
     });
+    // Lore: single vertical column.
     (window.LORE || []).forEach(function (l, i) {
-      pos[l.id] = { x: L.special.x + (i % 2) * L.loreGridGapX, y: L.loreGridY + Math.floor(i / 2) * L.loreGridGapY };
+      pos[l.id] = { x: L.special.x, y: L.loreGridY + i * L.loreGridGapY };
     });
     pos['crown'] = { x: L.crown.x, y: L.crown.y };
     var crownNpcs = (window.NPCS || []).filter(function (n) { return n.factionId === 'crown'; });
@@ -164,19 +182,10 @@
         };
       });
     });
-    // Backstory: vertical stack under the owner's player card. Owner
-    // index in PLAYERS sets the column; stack index within the owner's
-    // visible backstory sets the row. Identical positions whether DM
-    // sees the full set or a player sees only their own.
+    // Backstory — see EB.getBackstoryDefaultPos for the rule.
     EB.BACKSTORY.forEach(function (b) {
-      var ownerIdx = PLAYERS.findIndex(function (p) { return p.id === b.ownerId; });
-      if (ownerIdx < 0) return;
-      var siblings = EB.BACKSTORY.filter(function (x) { return x.ownerId === b.ownerId; });
-      var stackIdx = siblings.findIndex(function (x) { return x.id === b.id; });
-      pos[b.id] = {
-        x: L.party.x + ownerIdx * L.party.gap,
-        y: L.personalY + stackIdx * L.personalCardGapY
-      };
+      var defPos = EB.getBackstoryDefaultPos(b);
+      if (defPos) pos[b.id] = defPos;
     });
     Object.keys(EB.globalPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.globalPositions[id];
@@ -206,7 +215,7 @@
       var a = (Math.PI * 2 * i) / L.crownRingPoints - Math.PI / 2;
       anchors.push({ x: cp.x + Math.cos(a) * L.crownRingRadius, y: cp.y + Math.sin(a) * L.crownRingRadius });
     }
-    // Personal anchors: vertical stack (5 deep) directly under each player.
+    // Personal anchors: one vertical column under each player slot, 5 deep.
     (window.PLAYERS || []).forEach(function (p, ownerIdx) {
       for (var s = 0; s < 5; s++) {
         anchors.push({
@@ -215,9 +224,9 @@
         });
       }
     });
-    // Lore anchors (unchanged 2x4 grid)
-    for (var r = 0; r < 4; r++) for (var c = 0; c < 2; c++) {
-      anchors.push({ x: L.special.x + c * L.loreGridGapX, y: L.loreGridY + r * L.loreGridGapY });
+    // Lore anchors: single 8-deep column.
+    for (var r = 0; r < 8; r++) {
+      anchors.push({ x: L.special.x, y: L.loreGridY + r * L.loreGridGapY });
     }
     var dedup = [];
     anchors.forEach(function (a) {
