@@ -2,9 +2,12 @@
 // Order = load order. Each module attaches functions/state to window.EB.
 // 00-supabase initialises the client and must load first so other
 // modules can rely on EB.sb at boot time.
+// 01-content registers EB.loadContent() — called by data.js to fetch
+// all entities and sessions from Supabase before the app boots.
 
 window.MANIFEST = [
   '00-supabase',
+  '01-content',
   '01-namespace',
   '02-util',
   '03-auth',
