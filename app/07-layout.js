@@ -45,6 +45,9 @@
   EB.CLUSTERS = ['players', 'houses', 'lore', 'title'];
   EB.TITLE_ID = 'eberoth-title';
 
+  // Per-player statuses — always route to 'players' cluster regardless of faction_id.
+  var PLAYER_ONLY_STATUSES = ['baker_only', 'butcher_only', 'charlie_only'];
+
   // Resolve which cluster an entity belongs to.
   EB.clusterOf = function (entityId) {
     if (!entityId) return null;
@@ -53,6 +56,8 @@
     var PLAYERS = window.PLAYERS || [];
     if (PLAYERS.some(function (p) { return p.id === entityId; })) return 'players';
     var ent = byId[entityId];
+    // Per-player personal cards always belong to players cluster.
+    if (ent && PLAYER_ONLY_STATUSES.indexOf(ent.status) >= 0) return 'players';
     if (ent && ent.ownerId && PLAYERS.some(function (p) { return p.id === ent.ownerId; })) return 'players';
     if ((window.LORE || []).some(function (l) { return l.id === entityId; })) return 'lore';
     var HOUSE_IDS = ['corvath', 'voss', 'gorrund', 'halvorn', 'crown'];
@@ -70,10 +75,12 @@
     return ids;
   };
 
+  // Personal refs: per-player shared NPC cards that appear in their personal area.
+  // Baker = Kalvorn, Butcher = Dirk, Charlie = Azrael.
   EB.PERSONAL_REFS = {
-    baker:   ['aldus-corvath', 'byren-holt'],
-    butcher: [],
-    charlie: ['aldus-corvath']
+    baker:   ['aldus-corvath', 'byren-holt', 'maltheus'],
+    butcher: ['aldus-corvath-dirk', 'the-teacher'],
+    charlie: ['cadriel', 'sylvia', 'descending-horizon'],
   };
   EB.getMyRefs = function () {
     var b = EB.currentBucket();
@@ -88,7 +95,7 @@
     };
   }
   function logRej(label) {
-    return function (err) { console.error('[Eberoth] ' + label + ' failed', err); };
+    return function (err) { console.error('[Eberoth] ' + label + ' failed', err); }
   }
 
   EB.initLayout = function () {
@@ -311,6 +318,42 @@
     };
   };
 
+  // Return the default position for a personal (*_only) card.
+  // Player's personal cards stack below their own player token.
+  EB.getPersonalCardDefaultPos = function (entityId) {
+    var L = EB.shiftedLayout();
+    var PLAYERS = window.PLAYERS || [];
+    var ent = (EB.byId || {})[entityId];
+    if (!ent) return null;
+
+    // Determine which player owns this card.
+    var ownerBucket = null;
+    if (ent.status === 'baker_only')   ownerBucket = 'baker';
+    if (ent.status === 'butcher_only') ownerBucket = 'butcher';
+    if (ent.status === 'charlie_only') ownerBucket = 'charlie';
+    if (!ownerBucket) return null;
+
+    // Map bucket to character id.
+    var bucketToChar = EB.BUCKET_TO_CHARACTER || {};
+    var charId = bucketToChar[ownerBucket];
+    var ownerIdx = PLAYERS.findIndex(function (p) { return p.id === charId; });
+    if (ownerIdx < 0) return null;
+
+    // Stack index among all personal cards belonging to this player.
+    var myRefs = EB.PERSONAL_REFS[ownerBucket] || [];
+    var stackIdx = myRefs.indexOf(entityId);
+    if (stackIdx < 0) stackIdx = 0;
+
+    var isDM = EB.currentBucket() === 'dm';
+    var columnX = isDM
+      ? L.party.x + ownerIdx * L.party.gap
+      : L.party.x + L.party.gap;
+    return {
+      x: columnX,
+      y: L.personalY + stackIdx * L.personalCardGapY
+    };
+  };
+
   EB.defaultLayout = function () {
     var L = EB.shiftedLayout(), pos = {};
     var PLAYERS = window.PLAYERS || [];
@@ -341,6 +384,16 @@
         };
       });
     });
+    // Personal (*_only) cards — stacked below the owning player's token.
+    var byId = EB.byId || {};
+    Object.keys(byId).forEach(function (id) {
+      var ent = byId[id];
+      if (ent && PLAYER_ONLY_STATUSES.indexOf(ent.status) >= 0) {
+        var defPos = EB.getPersonalCardDefaultPos(id);
+        if (defPos) pos[id] = defPos;
+      }
+    });
+    // Backstory cards (old system — kept for DM view).
     EB.BACKSTORY.forEach(function (b) {
       var defPos = EB.getBackstoryDefaultPos(b);
       if (defPos) pos[b.id] = defPos;
