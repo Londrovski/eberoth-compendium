@@ -92,13 +92,20 @@
     // want to render only what the View-As bucket would see.
     var clientFilter = (actual === 'dm') && viewer && viewer !== 'dm';
 
+    // entity_visibility is only consulted by the client when the DM is
+    // in View-As — RLS handles real players. Skip the round-trip
+    // otherwise.
+    var visJob = clientFilter
+      ? sb.from('entity_visibility').select('entity_id, viewer')
+      : Promise.resolve({ data: [], error: null });
+
     var [entRes, factsRes, membersRes, tagsRaw, bodiesRaw, visRaw] = await Promise.all([
       sb.from('entities').select('*').order('sort_order'),
       sb.from('entity_facts').select('*').order('sort_order'),
       sb.from('entity_members').select('*').order('sort_order'),
       sb.from('entity_player_tag').select('entity_id, viewer'),
       sb.from('entity_player_body').select('entity_id, viewer, body'),
-      sb.from('entity_visibility').select('entity_id, viewer'),
+      visJob,
     ]);
 
     // Hard errors on the legacy tables.
@@ -202,6 +209,12 @@
     var isDM      = viewer === 'dm';
     var clientFilter = (actual === 'dm') && viewer && viewer !== 'dm';
 
+    // session_visibility is only consulted client-side when DM is in
+    // View-As — RLS handles real players.
+    var sVisJob = clientFilter
+      ? sb.from('session_visibility').select('session_id, viewer')
+      : Promise.resolve({ data: [], error: null });
+
     var [sessRes, summaryRes, partsRes, blocksRes, testimRes, sTagsRaw, sBodiesRaw, sVisRaw] = await Promise.all([
       sb.from('sessions').select('*').order('number'),
       sb.from('session_summary_lines').select('*').order('sort_order'),
@@ -210,7 +223,7 @@
       sb.from('session_testimonies').select('*').order('sort_order'),
       sb.from('session_player_tag').select('session_id, viewer'),
       sb.from('session_player_body').select('session_id, viewer, body'),
-      sb.from('session_visibility').select('session_id, viewer'),
+      sVisJob,
     ]);
 
     if (sessRes.error)    throw new Error('[Eberoth] sessions fetch failed: '            + sessRes.error.message);
