@@ -15,11 +15,32 @@
 // gives them everything — client-side filtering below mirrors what a
 // player would see.
 //
+// Status values:
+//   visible      — everyone sees it
+//   dm_only      — DM only (hidden from all players)
+//   hidden       — archived, nobody sees it
+//   baker_only   — visible to Baker + DM
+//   butcher_only — visible to Butcher + DM
+//   charlie_only — visible to Charlie + DM
+//
 // Call: await EB.loadContent()
 // Returns nothing; populates globals as a side effect.
 // Safe to call multiple times (re-fetches each time).
 
 (function () {
+
+  // ------------------------------------------------------------------
+  // STATUS VISIBILITY HELPER
+  // ------------------------------------------------------------------
+
+  function isVisibleTo(status, bucket) {
+    if (bucket === 'dm') return true;           // DM sees everything
+    if (status === 'visible') return true;
+    if (status === 'baker_only'   && bucket === 'baker')   return true;
+    if (status === 'butcher_only' && bucket === 'butcher') return true;
+    if (status === 'charlie_only' && bucket === 'charlie') return true;
+    return false;
+  }
 
   // ------------------------------------------------------------------
   // ENTITIES
@@ -55,11 +76,10 @@
 
     // When DM is using view-as, mirror what that bucket's RLS would return.
     var effectiveBucket = EB.currentBucket ? EB.currentBucket() : null;
-    var isDM = effectiveBucket === 'dm';
 
     entRes.data.forEach(function (e) {
-      // Client-side status filter for view-as: non-DM buckets only see 'visible'.
-      if (!isDM && e.status !== 'visible') return;
+      // Client-side status filter for view-as.
+      if (!isVisibleTo(e.status, effectiveBucket)) return;
 
       var obj = {
         id:          e.id,
@@ -135,12 +155,11 @@
     });
 
     var effectiveBucket = EB.currentBucket ? EB.currentBucket() : null;
-    var isDM = effectiveBucket === 'dm';
 
     var sessions = [];
     sessRes.data.forEach(function (s) {
       // Same status filter for sessions under view-as.
-      if (!isDM && s.status !== 'visible') return;
+      if (!isVisibleTo(s.status, effectiveBucket)) return;
 
       var parts = (partsMap[s.id] || []).map(function (p) {
         var blocks = (blocksMap[p.id] || []).map(function (b) {
