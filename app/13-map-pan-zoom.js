@@ -24,9 +24,20 @@
     viewport.scrollTop  = cy * s - viewport.clientHeight / 2;
   }
 
+  // Home: fit the entire canvas inside the viewport, then centre on
+  // the canvas centroid (which equals the Crown/Voss/Gorrund centroid
+  // after the recent layout shift).
   EB.centerInitial = function () {
-    setScale(0.6);
-    scrollToCanvasPoint(EB.LAYOUT.crown.x, EB.LAYOUT.crown.y);
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    if (vw > 0 && vh > 0) {
+      var fitX = vw / CANVAS_W;
+      var fitY = vh / CANVAS_H;
+      var fit = Math.min(fitX, fitY) * 0.98; // small margin
+      setScale(Math.max(0.3, Math.min(2, fit)));
+    } else {
+      setScale(0.6);
+    }
+    scrollToCanvasPoint(CANVAS_W / 2, CANVAS_H / 2);
   };
 
   EB.zoomToPoint = function (cx, cy, scale) {
