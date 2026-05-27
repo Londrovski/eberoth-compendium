@@ -1,75 +1,83 @@
-// Pan / zoom + the four map control buttons. EB.scale is read by
-// the drag handler to convert screen-space deltas to canvas-space.
+// Pan / zoom for the map.
+//
+// The viewport is a real scrollable container (overflow:auto). Pan is
+// the viewport's own scroll position; nothing in JS needs to track tx/ty.
+// Trackpad/wheel pans natively; drag on empty area pans via
+// scrollLeft/Top updates. Zoom is buttons only (no wheel-zoom).
+//
+// EB.scale is still exposed for the drag handler so screen-space deltas
+// translate to canvas-space cleanly.
 (function () {
   EB.scale = 0.6;
-  var tx = 0, ty = 0;
-  var canvas, viewport;
+  var canvas, canvasWrap, viewport;
+  // Natural canvas dimensions (must match .map-canvas-wrap / .map-canvas
+  // CSS values). Kept in sync with the image bounds.
+  var CANVAS_W = 2700, CANVAS_H = 1800;
 
-  function applyTransform() {
-    canvas.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + EB.scale + ')';
+  function setScale(s) {
+    EB.scale = s;
+    canvas.style.transform = 'scale(' + s + ')';
+    // Grow/shrink the wrap so the scrollable area matches current zoom.
+    canvasWrap.style.width  = (CANVAS_W * s) + 'px';
+    canvasWrap.style.height = (CANVAS_H * s) + 'px';
   }
 
-  // Home / reset view: scale back to 0.6, centre on the Crown near the
-  // top of the viewport.
+  // Scroll the viewport so canvas-coords (cx, cy) sit at the viewport
+  // centre at the current scale. Browser clamps to the scrollable area.
+  function scrollToCanvasPoint(cx, cy) {
+    var s = EB.scale;
+    viewport.scrollLeft = cx * s - viewport.clientWidth  / 2;
+    viewport.scrollTop  = cy * s - viewport.clientHeight / 2;
+  }
+
+  // Home / reset view: 0.6 scale, centred on the Crown.
   EB.centerInitial = function () {
-    EB.scale = 0.6;
-    var vw = viewport.clientWidth;
-    tx = vw / 2 - EB.LAYOUT.crown.x * EB.scale;
-    ty = 30;
-    applyTransform();
+    setScale(0.6);
+    scrollToCanvasPoint(EB.LAYOUT.crown.x, EB.LAYOUT.crown.y);
   };
 
-  // Generic: put canvas-coords (cx, cy) at viewport centre, at `scale`.
   EB.zoomToPoint = function (cx, cy, scale) {
-    EB.scale = scale;
-    tx = viewport.clientWidth / 2 - cx * scale;
-    ty = viewport.clientHeight / 2 - cy * scale;
-    applyTransform();
+    setScale(scale);
+    scrollToCanvasPoint(cx, cy);
   };
 
-  // Party button: zoom in on the player cluster (3 cards in a row).
   EB.zoomToParty = function () {
     var L = EB.LAYOUT;
-    // Centre on the middle player card.
     EB.zoomToPoint(L.party.x + L.party.gap, L.party.y, 1.2);
   };
 
   EB.initPanZoom = function () {
     canvas = document.getElementById('canvas');
+    canvasWrap = document.getElementById('canvasWrap');
     viewport = document.getElementById('viewport');
 
-    var isPanning = false, lastX = 0, lastY = 0;
+    // Initial sizing so the wrap reflects the boot scale.
+    setScale(EB.scale);
+
+    // Drag-to-pan on empty viewport area. Updates scrollLeft/Top so it
+    // co-operates with native scroll instead of fighting it.
+    var isPanning = false;
+    var startScrollX = 0, startScrollY = 0, startMouseX = 0, startMouseY = 0;
     viewport.addEventListener('mousedown', function (e) {
       if (e.target.closest('.node') || e.target.closest('.map-controls')) return;
-      isPanning = true; lastX = e.clientX; lastY = e.clientY;
+      isPanning = true;
+      startScrollX = viewport.scrollLeft;
+      startScrollY = viewport.scrollTop;
+      startMouseX = e.clientX;
+      startMouseY = e.clientY;
     });
     window.addEventListener('mousemove', function (e) {
       if (!isPanning) return;
-      tx += e.clientX - lastX;
-      ty += e.clientY - lastY;
-      lastX = e.clientX; lastY = e.clientY;
-      applyTransform();
+      viewport.scrollLeft = startScrollX - (e.clientX - startMouseX);
+      viewport.scrollTop  = startScrollY - (e.clientY - startMouseY);
     });
     window.addEventListener('mouseup', function () { isPanning = false; });
 
-    viewport.addEventListener('wheel', function (e) {
-      e.preventDefault();
-      var rect = viewport.getBoundingClientRect();
-      var mx = e.clientX - rect.left;
-      var my = e.clientY - rect.top;
-      var delta = e.deltaY < 0 ? 1.04 : 0.96;
-      var newScale = Math.max(0.3, Math.min(2, EB.scale * delta));
-      tx = mx - (mx - tx) * (newScale / EB.scale);
-      ty = my - (my - ty) * (newScale / EB.scale);
-      EB.scale = newScale;
-      applyTransform();
-    }, { passive: false });
-
     document.getElementById('zoomIn').onclick = function () {
-      EB.scale = Math.min(2, EB.scale * 1.1); applyTransform();
+      setScale(Math.min(2, EB.scale * 1.1));
     };
     document.getElementById('zoomOut').onclick = function () {
-      EB.scale = Math.max(0.3, EB.scale / 1.1); applyTransform();
+      setScale(Math.max(0.3, EB.scale / 1.1));
     };
     document.getElementById('zoomReset').onclick = function () {
       EB.centerInitial();
@@ -78,7 +86,7 @@
       if (Object.keys(EB.customPositions).length === 0) return;
       if (confirm('Reset all node positions to default?')) {
         EB.customPositions = {};
-        EB.savePositions();
+        EB.savePositions && EB.savePositions();
         EB.renderMap();
       }
     };

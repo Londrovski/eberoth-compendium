@@ -1,36 +1,57 @@
-/* Map viewport + canvas. The Descending Horizon image is placed as a
-   sized backdrop centred below the Crown (canvas coords ~(1000, 550))
-   so it backs the active content area with a buffer all round.
-   Native image is 1536×1024 (3:2). We size it to 2700×1800 — also
-   3:2 — so no aspect distortion. The dark gradient overlay is matched
-   to the image extent; outside that area the canvas shows the plain
-   dark bg.
+/* Map viewport + canvas. The viewport is a real scrollable container
+   now: native browser scrollbars, two-finger trackpad pans it, drag
+   on the empty area also pans (via scrollLeft/Top — see
+   13-map-pan-zoom.js). Zoom only via the toolbar buttons.
 
-   The image URL is absolute (/The Descending Horizon.png) because
-   this stylesheet lives in styles/. */
+   The canvas is pinned to the image's dimensions (2700×1800, 3:2 to
+   match the native Descending Horizon image), so scroll naturally
+   stops at the image edges — you can't pan off into empty space. */
 
 .map-wrap { flex: 1; display: flex; min-height: 0; }
+
 .map-viewport {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   background: var(--bg);
   cursor: grab;
+  /* Allow native pan gestures but reserve pinch/zoom for our buttons. */
+  touch-action: pan-x pan-y;
 }
 .map-viewport:active { cursor: grabbing; }
 
+.map-viewport::-webkit-scrollbar { width: 10px; height: 10px; }
+.map-viewport::-webkit-scrollbar-track { background: var(--bg); }
+.map-viewport::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+.map-viewport::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+.map-viewport::-webkit-scrollbar-corner { background: var(--bg); }
+
+/* Wrap sizes with zoom so the scrollable area reflects current scale.
+   JS sets width/height = canvas_natural_size * scale on every setScale. */
+.map-canvas-wrap {
+  position: relative;
+  width: 2700px;
+  height: 1800px;
+}
+
+/* Canvas at the image's natural dimensions. background image fills it
+   exactly so the image IS the panable area. */
 .map-canvas {
-  position: absolute;
-  top: 0; left: 0;
-  width: 3000px;
-  height: 2400px;
+  position: relative;
+  width: 2700px;
+  height: 1800px;
   transform-origin: 0 0;
+  transform: scale(1);
   background-color: var(--bg);
   background-image:
     linear-gradient(180deg, rgba(11,9,5,0.55) 0%, rgba(11,9,5,0.45) 35%, rgba(11,9,5,0.45) 65%, rgba(11,9,5,0.7) 100%),
     url('/The Descending Horizon.png');
-  background-size: 2700px 1800px, 2700px 1800px;
-  background-position: -350px -350px, -350px -350px;
+  background-size: cover, cover;
+  background-position: center, center;
   background-repeat: no-repeat, no-repeat;
 }
 .map-canvas svg {

@@ -48,8 +48,6 @@
         <button id="navParty">Party</button>
       </nav>
       <button id="navMoveMode" class="move-mode-toggle" title="Toggle move mode">Move</button>
-      <!-- DM-only. Revealed by the Move toggle handler when bucket is dm.
-           Click pushes DM's current layout to all players (overwrites). -->
       <button id="navPushToAll" class="push-to-all" style="display:none" title="DM-only: push your current layout to all players (overwrites theirs)">Push to Players</button>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>
@@ -78,8 +76,13 @@
       <main class="main">
         <div class="map-wrap">
           <div class="map-viewport" id="viewport">
-            <div class="map-canvas" id="canvas">
-              <svg id="lines"></svg>
+            <!-- Wrap exists so the scrollable area can grow with zoom
+                 (its width/height = canvas size * scale, set by JS).
+                 Canvas itself stays at its natural pixel size. -->
+            <div class="map-canvas-wrap" id="canvasWrap">
+              <div class="map-canvas" id="canvas">
+                <svg id="lines"></svg>
+              </div>
             </div>
             <div class="map-controls">
               <button id="zoomIn" title="Zoom in">+</button>
