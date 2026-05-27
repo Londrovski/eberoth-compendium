@@ -14,8 +14,43 @@
 // Editable fields: name, sub, body/description, status, facts[], members[].
 // Save writes to Supabase (entities + entity_facts + entity_members) and
 // updates the in-memory globals so the map re-renders immediately.
+//
+// Entity notes: saved per user per entity to Supabase user_notes table.
+// Falls back gracefully if the table doesn't exist yet.
 (function () {
   var MISSING = '<span class="portrait-missing">?</span>';
+
+  // ---- Supabase note helpers ----
+  // These are async; the UI optimistically writes without waiting.
+  function getNoteKey(id) {
+    // entity_id is stored as text; sessions use their string id too
+    return String(id);
+  }
+
+  EB.getEntityNotes = async function (id) {
+    try {
+      var email = EB._userEmail;
+      if (!email) return '';
+      var res = await EB.sb
+        .from('user_notes')
+        .select('html')
+        .eq('user_email', email)
+        .eq('entity_id', getNoteKey(id))
+        .maybeSingle();
+      return (res.data && res.data.html) || '';
+    } catch (e) { return ''; }
+  };
+
+  EB.setEntityNotes = function (id, html) {
+    var email = EB._userEmail;
+    if (!email) return;
+    EB.sb.from('user_notes').upsert({
+      user_email: email,
+      entity_id:  getNoteKey(id),
+      html:       html,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_email,entity_id' }).then(function () {});
+  };
 
   EB.initDetail = function () {
     var detail = document.getElementById('detail');
@@ -38,16 +73,6 @@
         if (prev) EB.openDetail(prev, true);
       }
     });
-
-    EB.getEntityNotes = function (id) {
-      var all = EB.lsLoad('entity-notes', {});
-      return all[id] || '';
-    };
-    EB.setEntityNotes = function (id, html) {
-      var all = EB.lsLoad('entity-notes', {});
-      all[id] = html;
-      EB.lsSave('entity-notes', all);
-    };
 
     // ---- Block / part rendering for session content ----
     function renderBlocks(blocks) {
@@ -177,19 +202,13 @@
     function openEditForm(item) {
       var isFaction = item.kind === 'faction';
 
-      // Build facts rows HTML
       var factsHTML = '';
       var factsList = Array.isArray(item.facts) ? item.facts : [];
-      factsList.forEach(function (f, i) {
-        factsHTML += editFactRow(f, i);
-      });
+      factsList.forEach(function (f, i) { factsHTML += editFactRow(f, i); });
 
-      // Build members rows HTML
       var membersHTML = '';
       var membersList = Array.isArray(item.members) ? item.members : [];
-      membersList.forEach(function (m, i) {
-        membersHTML += editMemberRow(m.name, m.role, i);
-      });
+      membersList.forEach(function (m, i) { membersHTML += editMemberRow(m.name, m.role, i); });
 
       detailInner.innerHTML =
         '<button class="detail-back" title="Back">←</button>' +
@@ -239,7 +258,6 @@
 
         '</div>';
 
-      // Wire add buttons
       detailInner.querySelector('#ef-facts-add').addEventListener('click', function () {
         var list = detailInner.querySelector('#ef-facts-list');
         var idx = list.querySelectorAll('.edit-fact-row').length;
@@ -287,15 +305,11 @@
       });
     }
 
-    // ---- Read form values ----
     function readFormValues() {
       var facts = [];
       Array.prototype.forEach.call(
         detailInner.querySelectorAll('.edit-fact-input'),
-        function (inp) {
-          var v = inp.value.trim();
-          if (v) facts.push(v);
-        }
+        function (inp) { var v = inp.value.trim(); if (v) facts.push(v); }
       );
       var members = [];
       Array.prototype.forEach.call(
@@ -316,7 +330,6 @@
       };
     }
 
-    // ---- Save to Supabase + update in-memory ----
     async function saveEntity(item) {
       var savingEl = detailInner.querySelector('#ef-saving');
       var errorEl  = detailInner.querySelector('#ef-error');
@@ -328,39 +341,28 @@
       var vals = readFormValues();
 
       try {
-        // 1. Update entity row
         var { error: entErr } = await EB.sb
           .from('entities')
-          .update({
-            name:       vals.name,
-            sub:        vals.sub   || null,
-            body:       vals.body  || null,
-            status:     vals.status,
-          })
+          .update({ name: vals.name, sub: vals.sub || null, body: vals.body || null, status: vals.status })
           .eq('id', item.id);
         if (entErr) throw entErr;
 
-        // 2. Replace facts
         await EB.sb.from('entity_facts').delete().eq('entity_id', item.id);
         if (vals.facts.length) {
-          var factRows = vals.facts.map(function (f, i) {
-            return { entity_id: item.id, fact: f, sort_order: i };
-          });
-          var { error: factsErr } = await EB.sb.from('entity_facts').insert(factRows);
+          var { error: factsErr } = await EB.sb.from('entity_facts').insert(
+            vals.facts.map(function (f, i) { return { entity_id: item.id, fact: f, sort_order: i }; })
+          );
           if (factsErr) throw factsErr;
         }
 
-        // 3. Replace members
         await EB.sb.from('entity_members').delete().eq('entity_id', item.id);
         if (vals.members.length) {
-          var memberRows = vals.members.map(function (m, i) {
-            return { entity_id: item.id, name: m.name, role: m.role || null, sort_order: i };
-          });
-          var { error: membersErr } = await EB.sb.from('entity_members').insert(memberRows);
+          var { error: membersErr } = await EB.sb.from('entity_members').insert(
+            vals.members.map(function (m, i) { return { entity_id: item.id, name: m.name, role: m.role || null, sort_order: i }; })
+          );
           if (membersErr) throw membersErr;
         }
 
-        // 4. Update in-memory object (all arrays that could reference this id)
         var lists = [window.FACTIONS, window.NPCS, window.PLAYERS, window.LORE];
         lists.forEach(function (arr) {
           if (!Array.isArray(arr)) return;
@@ -369,22 +371,15 @@
           arr[idx].name        = vals.name;
           arr[idx].sub         = vals.sub   || undefined;
           arr[idx].body        = vals.body  || undefined;
-          arr[idx].description = vals.body  || undefined;  // faction alias
+          arr[idx].description = vals.body  || undefined;
           arr[idx].status      = vals.status;
           arr[idx].facts       = vals.facts.length   ? vals.facts   : undefined;
           arr[idx].members     = vals.members.length ? vals.members : undefined;
-          item = arr[idx];  // re-point so we re-open the updated object
+          item = arr[idx];
         });
 
-        // Also update EB.byId cache if present
-        if (EB.byId && EB.byId[item.id]) {
-          Object.assign(EB.byId[item.id], item);
-        }
-
-        // 5. Re-render map card name if changed
+        if (EB.byId && EB.byId[item.id]) Object.assign(EB.byId[item.id], item);
         if (EB.renderMap) EB.renderMap();
-
-        // 6. Re-open read view with updated data
         openEntityDetail(item, true);
 
       } catch (err) {
@@ -428,11 +423,19 @@
                '<div class="mention-dropdown" id="detailMentionDropdown"></div>' +
              '</div>';
     }
+
     function mountNotes(entityId) {
       var notesEl = detailInner.querySelector('#entityNotes');
       if (!notesEl) return;
-      notesEl.innerHTML = EB.getEntityNotes(entityId);
-      EB.wireTagClicks(notesEl);
+
+      // Load from Supabase asynchronously; show blank while fetching
+      EB.getEntityNotes(entityId).then(function (html) {
+        // Check the panel is still showing this entity
+        if (currentDetailId !== entityId) return;
+        notesEl.innerHTML = html;
+        EB.wireTagClicks(notesEl);
+      });
+
       EB.attachMentions(notesEl, detailInner.querySelector('#detailMentionDropdown'), function () {
         EB.setEntityNotes(entityId, notesEl.innerHTML);
       });
