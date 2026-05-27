@@ -1,14 +1,11 @@
-// Map layout: positions, anchors, saved-state. Positions are sourced
-// from Supabase now — two tables:
-//   global_positions   — DM-authored baseline, read by all
-//   node_positions     — per-user overrides, RLS-scoped
+// Map layout: positions, anchors, saved-state. Positions sourced from
+// Supabase — global_positions (DM-authored, world-readable) and
+// node_positions (per-user override, RLS-scoped).
 //
-// defaultLayout() = computed spatial layout + globals on top
-// currentPositions() = defaultLayout() + per-user customs on top
-//                      (skipped when EB.viewingGlobals is true, so DM
-//                      in Move All mode sees what other players see)
-//
-// House order (L → R): Corvath, Voss, Gorrund, Halvorn.
+// IMPORTANT: in Supabase JS v2, builder chains like .from(t).upsert(x)
+// are lazy — the HTTP request only fires when .then()/await is called.
+// All save/delete helpers below call .then() internally so callers can
+// fire-and-forget safely.
 (function () {
   EB.LAYOUT = {
     party: { x: 290, y: 490, gap: 110 },
@@ -36,6 +33,16 @@
   EB.globalPositions = {};
   EB.viewingGlobals = false;
 
+  function logErr(label) {
+    return function (res) {
+      if (res && res.error) console.error('[Eberoth] ' + label + ' error', res.error);
+      return res;
+    };
+  }
+  function logRej(label) {
+    return function (err) { console.error('[Eberoth] ' + label + ' failed', err); };
+  }
+
   EB.initLayout = function () {
     var b = EB.currentBucket();
     var myChar = EB.BUCKET_TO_CHARACTER[b];
@@ -50,8 +57,6 @@
       .forEach(function (pool) { pool.forEach(function (x) { EB.byId[x.id] = x; }); });
   };
 
-  // Fetch globals (everyone) + per-user positions (if signed in).
-  // Filtered server-side by LAYOUT_VERSION so older saves are ignored.
   EB.loadPositionsFromSupabase = function () {
     EB.customPositions = {};
     EB.globalPositions = {};
@@ -60,11 +65,12 @@
         .select('entity_id, x, y, layout_version')
         .eq('layout_version', EB.LAYOUT_VERSION)
         .then(function (res) {
-          if (!res || res.error || !Array.isArray(res.data)) return;
+          if (res && res.error) { console.error('[Eberoth] load global_positions error', res.error); return; }
+          if (!Array.isArray(res.data)) return;
           res.data.forEach(function (row) {
             EB.globalPositions[row.entity_id] = { x: row.x, y: row.y };
           });
-        })
+        }, logRej('load global_positions'))
     ];
     var uid = EB.currentUserId();
     var bucket = EB.currentBucket();
@@ -74,23 +80,26 @@
           .select('entity_id, x, y, layout_version')
           .eq('layout_version', EB.LAYOUT_VERSION)
           .then(function (res) {
-            if (!res || res.error || !Array.isArray(res.data)) return;
+            if (res && res.error) { console.error('[Eberoth] load node_positions error', res.error); return; }
+            if (!Array.isArray(res.data)) return;
             res.data.forEach(function (row) {
               EB.customPositions[row.entity_id] = { x: row.x, y: row.y };
             });
-          })
+          }, logRej('load node_positions'))
       );
     }
     return Promise.all(jobs);
   };
 
+  // Saves below all call .then() so the request fires immediately, even
+  // when the caller doesn't await. Errors land in the console.
   EB.savePositionForUser = function (entityId, pos) {
     var uid = EB.currentUserId();
     if (!uid) return Promise.resolve();
     return EB.sb.from('node_positions').upsert(
       { user_id: uid, entity_id: entityId, x: pos.x, y: pos.y, layout_version: EB.LAYOUT_VERSION },
       { onConflict: 'user_id,entity_id' }
-    );
+    ).then(logErr('savePositionForUser ' + entityId), logRej('savePositionForUser ' + entityId));
   };
   EB.deletePositionForUser = function (entityId) {
     var uid = EB.currentUserId();
@@ -98,13 +107,14 @@
     return EB.sb.from('node_positions')
       .delete()
       .eq('user_id', uid)
-      .eq('entity_id', entityId);
+      .eq('entity_id', entityId)
+      .then(logErr('deletePositionForUser ' + entityId), logRej('deletePositionForUser ' + entityId));
   };
   EB.saveGlobalPosition = function (entityId, pos) {
     return EB.sb.from('global_positions').upsert(
       { entity_id: entityId, x: pos.x, y: pos.y, layout_version: EB.LAYOUT_VERSION },
       { onConflict: 'entity_id' }
-    );
+    ).then(logErr('saveGlobalPosition ' + entityId), logRej('saveGlobalPosition ' + entityId));
   };
 
   EB.defaultLayout = function () {
@@ -139,7 +149,6 @@
     EB.BACKSTORY.forEach(function (b, i) {
       pos[b.id] = { x: L.party.x + (i % 2) * L.personalCardGapX, y: L.personalY + Math.floor(i / 2) * L.personalCardGapY };
     });
-    // Apply DM-authored globals over the spatial defaults.
     Object.keys(EB.globalPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.globalPositions[id];
     });
@@ -148,7 +157,7 @@
 
   EB.currentPositions = function () {
     var pos = EB.defaultLayout();
-    if (EB.viewingGlobals) return pos;  // DM in Move All mode
+    if (EB.viewingGlobals) return pos;
     Object.keys(EB.customPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.customPositions[id];
     });
