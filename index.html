@@ -12,11 +12,10 @@
 <body>
 
   <!-- ===== LOADING OVERLAY ===== -->
-  <!-- Visible immediately on page load. Dismissed by app.js once the
-       Supabase content fetch resolves. Swap .loading-glyph content for
-       a campaign logo image once it exists. -->
+  <!-- Visible immediately on page load. Dismissed by 17-boot.js once
+       EB.loadContent() + loadPositionsFromSupabase() resolve. -->
   <div id="loadingOverlay">
-    <div class="loading-glyph">?</div>
+    <img class="loading-glyph" src="eberoth logo.png" alt="Eberoth">
     <div class="loading-dots">
       <span></span><span></span><span></span>
     </div>
