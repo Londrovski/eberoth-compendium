@@ -1,14 +1,30 @@
 // Drawer notepad — tabs (click to switch, dblclick to rename, + to add)
 // plus a contenteditable body with @-mention support.
+// Persisted to Supabase user_notepad table (one row per user).
 (function () {
   EB.initNotes = function () {
     var notesTabs = document.getElementById('notesTabs');
     var noteBody = document.getElementById('noteBody');
     var dropdown = document.getElementById('mentionDropdown');
 
-    var notesState = EB.lsLoad('notes', null);
-    if (!notesState) notesState = { activeId: 1, tabs: [{ id: 1, label: 'Session', html: '' }] };
-    function save() { EB.lsSave('notes', notesState); }
+    var DEFAULT_STATE = { activeId: 1, tabs: [{ id: 1, label: 'Session', html: '' }] };
+    var notesState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    var saveTimer = null;
+
+    function getEmail() { return EB._userEmail || null; }
+
+    function save() {
+      var email = getEmail();
+      if (!email) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        EB.sb.from('user_notepad').upsert({
+          user_email: email,
+          notepad:    notesState,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_email' }).then(function () {});
+      }, 500);
+    }
 
     function renderTabs() {
       notesTabs.innerHTML = '';
@@ -20,7 +36,6 @@
           '<span class="close" title="Close tab">✕</span>';
         var labelEl = el.querySelector('.label');
 
-        // Defer single-click so a dblclick on label can pre-empt it.
         var clickTimer = null;
         el.addEventListener('click', function (e) {
           if (e.target.classList.contains('close')) return;
@@ -90,8 +105,24 @@
       if (active) { active.html = noteBody.innerHTML; save(); }
     }
 
+    // Load from Supabase on init, then render
+    (function load() {
+      var email = getEmail();
+      if (!email) { renderTabs(); loadActiveBody(); return; }
+      EB.sb.from('user_notepad')
+        .select('notepad')
+        .eq('user_email', email)
+        .maybeSingle()
+        .then(function (res) {
+          if (res.data && res.data.notepad && Array.isArray(res.data.notepad.tabs)) {
+            notesState = res.data.notepad;
+          }
+          renderTabs();
+          loadActiveBody();
+        })
+        .catch(function () { renderTabs(); loadActiveBody(); });
+    })();
+
     EB.attachMentions(noteBody, dropdown, persistBody);
-    renderTabs();
-    loadActiveBody();
   };
 })();
