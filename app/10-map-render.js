@@ -1,5 +1,8 @@
 // Renders the map nodes + cluster labels + Eberoth title.
 //
+// Reads EB.shiftedLayout() (not EB.LAYOUT directly) so cluster offsets
+// applied by the DM ripple through to labels, ref shadows, etc.
+//
 // Shadows:
 //   - For PLAYERS: their backstory cards that have been placed
 //     elsewhere render an extra shadow in the Personal column, AND
@@ -14,20 +17,22 @@
     var linesSvg = document.getElementById('lines');
     EB.canvas = canvas;
 
-    function addClusterLabel(text, x, y) {
+    function addClusterLabel(text, x, y, cluster) {
       var el = document.createElement('div');
       el.className = 'cluster-label';
       el.style.left = x + 'px';
       el.style.top = y + 'px';
       el.textContent = text;
+      if (cluster) el.dataset.cluster = cluster;
       canvas.appendChild(el);
     }
     function addEberothTitle() {
       var el = document.createElement('div');
       el.className = 'eberoth-title';
       el.textContent = 'Eberoth';
-      el.style.left = EB.LAYOUT.crown.x + 'px';
-      el.style.top = (EB.LAYOUT.titleY || 50) + 'px';
+      var L = EB.shiftedLayout();
+      el.style.left = L.crown.x + 'px';
+      el.style.top = (L.titleY || 50) + 'px';
       canvas.appendChild(el);
     }
     function makeNode(cls, p, id, html, onOpen) {
@@ -58,21 +63,21 @@
     EB.renderMap = function () {
       Array.prototype.forEach.call(canvas.querySelectorAll('.node, .cluster-label, .eberoth-title'), function (n) { n.remove(); });
       linesSvg.innerHTML = '';
-      var L = EB.LAYOUT;
+      var L = EB.shiftedLayout();
       var pos = EB.currentPositions();
       var bucket = EB.currentBucket();
       var isDM = bucket === 'dm';
 
       addEberothTitle();
-      addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset);
+      addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset, 'players');
       var refs = EB.getMyRefs();
       var hasPersonal = EB.BACKSTORY.length > 0 || (!isDM && refs.length > 0)
         || (isDM && Object.keys(EB.PERSONAL_REFS).some(function (k) { return (EB.PERSONAL_REFS[k] || []).length > 0; }));
       if (hasPersonal) {
-        addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset);
+        addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset, 'players');
       }
       if ((window.LORE || []).length > 0) {
-        addClusterLabel('Lore', L.special.x, L.loreGridY - L.headerOffset);
+        addClusterLabel('Lore', L.special.x, L.loreGridY - L.headerOffset, 'lore');
       }
 
       (window.PLAYERS || []).forEach(function (p) {
