@@ -13,6 +13,14 @@
 }
 .node.node-dragging .shape { box-shadow: 0 0 24px rgba(201, 169, 97, 0.6); }
 
+/* Block-mode drag: every cluster member gets a soft gold glow so
+   it's obvious the whole group is moving as one. Transition disabled
+   so the live drag tracks the cursor without lag. */
+.cluster-dragging {
+  transition: none !important;
+  filter: drop-shadow(0 0 8px rgba(201, 169, 97, 0.45));
+}
+
 .anchor {
   position: absolute;
   width: 12px;
