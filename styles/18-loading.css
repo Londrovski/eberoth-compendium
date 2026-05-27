@@ -1,0 +1,70 @@
+/* ===== LOADING OVERLAY =====
+   Shown immediately on page load, dismissed by app.js once
+   the Supabase content fetch resolves. Fades out smoothly.
+*/
+
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg, #0d0d0d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  transition: opacity 0.5s ease;
+}
+
+#loadingOverlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The big ? mark */
+.loading-glyph {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 96px;
+  font-weight: 700;
+  color: var(--gold, #c9a961);
+  line-height: 1;
+  opacity: 0.9;
+  animation: loading-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%,  100% { opacity: 0.9; transform: scale(1);    }
+  50%        { opacity: 0.5; transform: scale(0.97); }
+}
+
+/* Three dots */
+.loading-dots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.loading-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold-dim, #8a6f3a);
+  animation: loading-dot 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(1) { animation-delay: 0s;    }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s;  }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s;  }
+
+@keyframes loading-dot {
+  0%,  80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40%             { opacity: 1;    transform: scale(1.1);  }
+}
+
+/* "Loading…" text */
+.loading-text {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-dim, #555);
+  margin-top: -10px;
+}
