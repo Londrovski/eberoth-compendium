@@ -2,11 +2,16 @@
 //   - regular entity (NPC, faction, player, lore, backstory): portrait
 //     + h2 + sub + role + affiliation + body + per-entity notes
 //   - session: no portrait, rich content (summary box + parts/blocks)
-//     same as the main site's session log
 //
-// The session log list view (openSessionsList) also lives here so it
-// shares the panel's history + DOM.
+// Factions use their sigil as the portrait image and render
+// description + facts + members in place of the NPC body field.
+// Lore entries render their subtitle field.
+//
+// Missing-image fallback is always <span class="portrait-missing">?</span>
+// so the gold bold ? style applies consistently.
 (function () {
+  var MISSING = '<span class="portrait-missing">?</span>';
+
   EB.initDetail = function () {
     var detail = document.getElementById('detail');
     var detailInner = document.getElementById('detailInner');
@@ -39,8 +44,6 @@
     };
 
     // ---- Block / part rendering for session content ----
-    // Body text in blocks contains author-controlled HTML (e.g. <strong>);
-    // we render it raw. Labels and testimony names are escaped.
     function renderBlocks(blocks) {
       if (!Array.isArray(blocks)) return '';
       return blocks.map(function (b) {
@@ -64,7 +67,6 @@
       return s.parts.map(function (part) {
         var content = part.blocks
           ? renderBlocks(part.blocks)
-          // Legacy session schema fallback: part.events with bold/text.
           : '<ul class="session-block-testimonies">' +
               (part.events || []).map(function (e) {
                 return '<li><strong>' + (e.bold || '') + '</strong>' + (e.text || '') + '</li>';
@@ -74,28 +76,68 @@
       }).join('');
     }
 
+    // ---- Faction detail body ----
+    function renderFactionBody(item) {
+      var html = '';
+      if (item.description) {
+        html += '<div class="field"><div class="field-body">' + EB.escapeHtml(item.description) + '</div></div>';
+      }
+      if (Array.isArray(item.facts) && item.facts.length) {
+        html += '<div class="field"><div class="field-label">Known</div><ul class="detail-facts">' +
+          item.facts.map(function (f) {
+            return '<li>' + EB.escapeHtml(f) + '</li>';
+          }).join('') +
+        '</ul></div>';
+      }
+      if (Array.isArray(item.members) && item.members.length) {
+        html += '<div class="field"><div class="field-label">Members</div><ul class="detail-members">' +
+          item.members.map(function (m) {
+            return '<li><span class="detail-member-name">' + EB.escapeHtml(m.name) + '</span>' +
+              (m.role ? ' <span class="detail-member-role">' + EB.escapeHtml(m.role) + '</span>' : '') +
+              '</li>';
+          }).join('') +
+        '</ul></div>';
+      }
+      return html;
+    }
+
     function openEntityDetail(item, fromNav) {
       if (!fromNav) {
         if (currentDetailId && currentDetailId !== item.id) detailHistory.push(currentDetailId);
       }
       currentDetailId = item.id;
       var kind = item.kind;
-      var fallbackIcon = kind === 'faction'   ? '⚔'
-                       : kind === 'lore'      ? '◈'
-                       : kind === 'player'    ? '★'
-                       : kind === 'backstory' ? '✥'
-                       : '👤';
+
+      // Build portrait HTML: factions use sigil, others use image.
+      // Fallback is always the gold ? span.
+      var portraitHTML;
+      if (kind === 'faction') {
+        portraitHTML = item.sigil
+          ? '<img src="' + EB.escapeAttr(item.sigil) + '" alt="' + EB.escapeAttr(item.name) + '" onerror="this.parentElement.innerHTML=\'' + EB.escapeAttr(MISSING) + '\'" style="object-fit:contain;padding:16px;">'
+          : MISSING;
+      } else {
+        portraitHTML = EB.portraitHTML(item, MISSING);
+      }
+
       var faction = item.factionId ? (window.FACTIONS || []).find(function (f) { return f.id === item.factionId; }) : null;
-      var bodyHTML = item.body
-        ? '<div class="field"><div class="field-label">About</div><div class="field-body">' + item.body + '</div></div>'
-        : '';
+
+      // Subtitle: explicit sub field, or lore subtitle field.
+      var subtitle = item.sub || item.subtitle || '';
+
+      // Body content varies by kind.
+      var bodyHTML = '';
+      if (kind === 'faction') {
+        bodyHTML = renderFactionBody(item);
+      } else if (item.body) {
+        bodyHTML = '<div class="field"><div class="field-label">About</div><div class="field-body">' + item.body + '</div></div>';
+      }
 
       detailInner.innerHTML =
         '<button class="detail-back" title="Back">←</button>' +
         '<button class="detail-close" title="Close">✕</button>' +
-        '<div class="portrait">' + EB.portraitHTML(item, fallbackIcon) + '</div>' +
+        '<div class="portrait">' + portraitHTML + '</div>' +
         '<h2>' + EB.escapeHtml(item.name) + '</h2>' +
-        '<div class="subtitle">' + EB.escapeHtml(item.sub || '') + '</div>' +
+        (subtitle ? '<div class="subtitle">' + EB.escapeHtml(subtitle) + '</div>' : '') +
         (item.role ? '<div class="field"><div class="field-label">Role</div>' + EB.escapeHtml(item.role) + '</div>' : '') +
         (faction ? '<div class="field"><div class="field-label">Affiliation</div>' + EB.escapeHtml(faction.name) + '</div>' : '') +
         bodyHTML +
@@ -118,7 +160,6 @@
           '</div>'
         : '';
 
-      // No portrait for sessions — per request.
       detailInner.innerHTML =
         '<button class="detail-back" title="Back">←</button>' +
         '<button class="detail-close" title="Close">✕</button>' +
@@ -131,7 +172,6 @@
       detail.classList.add('open');
     }
 
-    // Shared bottom-of-panel notes block markup + wiring.
     function wireNotesBlock() {
       return '<div class="field entity-notes-wrap notes-after">' +
                '<div class="field-label">Your Notes</div>' +
@@ -157,12 +197,8 @@
       return openEntityDetail(item, fromNav);
     };
 
-    // Session log: list view rendered into the detail panel. Each row
-    // opens that session's normal detail (with back → list support).
     EB.openSessionsList = function (fromNav) {
-      if (!fromNav) {
-        detailHistory = [];
-      }
+      if (!fromNav) detailHistory = [];
       currentDetailId = '__sessions_list__';
       var sessions = ((window.SESSIONS || []).slice()).sort(function (a, b) { return a.number - b.number; });
       var rows = sessions.map(function (s) {
