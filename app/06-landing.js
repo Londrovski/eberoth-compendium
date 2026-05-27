@@ -235,10 +235,13 @@
     if (viewAsSelect) {
       viewAsSelect.addEventListener('change', function () {
         EB.setViewAs(viewAsSelect.value || null);
-        // Re-pull the viewed player's drawer content. boot() reloads
-        // entities/sessions/positions for the viewed bucket; the
-        // threads/notes modules don't auto-rerun on boot (initThreads is
-        // guarded by modulesInited), so we trigger their reload hooks.
+        // Order matters here. Flip the body class FIRST so any drawer
+        // re-render that lands before boot() finishes already shows the
+        // read-only state (no flash of writable UI for half a beat).
+        // Then fire boot + the drawer reloads — boot() doesn't auto-
+        // rerun initThreads/initNotes (guarded by modulesInited), so
+        // the reload hooks trigger them explicitly.
+        document.body.classList.toggle('viewing-as', EB.viewingAs ? EB.viewingAs() : false);
         if (EB.reloadThreads) EB.reloadThreads();
         if (EB.reloadNotes)   EB.reloadNotes();
         EB.boot();
