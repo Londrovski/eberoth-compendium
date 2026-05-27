@@ -4,11 +4,12 @@
 //   - EB.moveMode (everyone): per-node drag, snap to anchors, saves
 //     to node_positions (per-user override).
 //   - EB.blockMoveMode (DM only): grabbing any node moves the whole
-//     cluster (Players, Houses, Lore, or Title) together; on drop the
+//     cluster (Players, Houses, Lore, Title) together; on drop the
 //     cluster offset is saved globally via EB.saveClusterOffset.
 //
-// Elements tagged data-cluster="title" are block-mode-only — they
-// have no entity row, so per-node mode skips them entirely.
+// Elements tagged data-cluster="title" are special-cased: they
+// always save as a cluster_offsets row (never node_positions) and
+// can be dragged in EITHER mode for the DM.
 //
 // Snap behaviour (per-node mode only): prefers the nearest UNOCCUPIED
 // anchor (cards don't pile up). If no free anchor sits within ~2.5x
@@ -104,14 +105,17 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      // Title is block-mode-only.
-      if (isTitleEl && !EB.blockMoveMode) return;
+      // Title drags in EITHER mode (DM only).
+      var titleCanDrag = isTitleEl && (EB.moveMode || EB.blockMoveMode) && EB.actualBucket() === 'dm';
+      if (isTitleEl && !titleCanDrag) return;
       if (!dragging && !EB.moveMode && !EB.blockMoveMode) return;
 
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
-        if (EB.blockMoveMode && EB.actualBucket() === 'dm') {
+        // Title always uses cluster-drag mechanic (its position lives
+        // in cluster_offsets, not node_positions).
+        if (isTitleEl || (EB.blockMoveMode && EB.actualBucket() === 'dm')) {
           blockCluster = (el.dataset && el.dataset.cluster) || (EB.clusterOf ? EB.clusterOf(id) : null);
           if (blockCluster) {
             blockEls = collectClusterElements(blockCluster);
@@ -178,7 +182,7 @@
       }
 
       // Per-node mode drop: snap + per-user save. Skip for the title
-      // (no entity row, no useful node_positions write).
+      // (no entity row).
       if (isTitleEl) {
         if (EB.moveMode) {
           anchorEls.forEach(function (el) { el.classList.remove('anchor-near'); });
