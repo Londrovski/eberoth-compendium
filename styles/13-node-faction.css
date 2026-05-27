@@ -14,7 +14,6 @@
   overflow: hidden;
 }
 .node-faction .shape img {
-  /* Centred flex child — contain within 84% of circle diameter */
   display: block;
   max-width: 84%;
   max-height: 84%;
@@ -33,6 +32,13 @@
   color: var(--gold);
   line-height: 1;
 }
+
+/* Per-house background fills */
+.node-faction.crown   .shape { background: #091433; }
+.node-faction.corvath .shape { background: #040202; }
+.node-faction.voss    .shape { background: #1E0B04; }
+.node-faction.gorrund .shape { background: #080506; }
+.node-faction.halvorn .shape { background: #090509; }
 
 .node-faction .faction-label {
   position: absolute;
