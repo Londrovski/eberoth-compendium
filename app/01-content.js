@@ -10,8 +10,10 @@
 //   window.LORE      — kind = 'lore'
 //   window.SESSIONS  — assembled from sessions + child tables
 //
-// RLS handles visibility automatically: DM sees everything (all
-// statuses), authenticated players and guests see only status='visible'.
+// RLS handles visibility for real players/guests at the DB level.
+// When the DM uses view-as, they're still authenticated as DM so RLS
+// gives them everything — client-side filtering below mirrors what a
+// player would see.
 //
 // Call: await EB.loadContent()
 // Returns nothing; populates globals as a side effect.
@@ -21,30 +23,21 @@
 
   // ------------------------------------------------------------------
   // ENTITIES
-  // Fetches all entities + their child facts and members in parallel,
-  // then distributes into the four typed globals.
   // ------------------------------------------------------------------
 
   async function fetchEntities() {
     var sb = EB.sb;
 
     var [entRes, factsRes, membersRes] = await Promise.all([
-      sb.from('entities')
-        .select('*')
-        .order('sort_order'),
-      sb.from('entity_facts')
-        .select('*')
-        .order('sort_order'),
-      sb.from('entity_members')
-        .select('*')
-        .order('sort_order'),
+      sb.from('entities').select('*').order('sort_order'),
+      sb.from('entity_facts').select('*').order('sort_order'),
+      sb.from('entity_members').select('*').order('sort_order'),
     ]);
 
     if (entRes.error)     throw new Error('[Eberoth] entities fetch failed: '      + entRes.error.message);
     if (factsRes.error)   throw new Error('[Eberoth] entity_facts fetch failed: '  + factsRes.error.message);
     if (membersRes.error) throw new Error('[Eberoth] entity_members fetch failed: ' + membersRes.error.message);
 
-    // Index facts and members by entity_id for O(1) lookup
     var factsMap   = {};
     var membersMap = {};
 
@@ -58,10 +51,16 @@
       });
     });
 
-    // Assemble entity objects that match the shape the app expects
     var factions = [], players = [], npcs = [], lore = [];
 
+    // When DM is using view-as, mirror what that bucket's RLS would return.
+    var effectiveBucket = EB.currentBucket ? EB.currentBucket() : null;
+    var isDM = effectiveBucket === 'dm';
+
     entRes.data.forEach(function (e) {
+      // Client-side status filter for view-as: non-DM buckets only see 'visible'.
+      if (!isDM && e.status !== 'visible') return;
+
       var obj = {
         id:          e.id,
         kind:        e.kind,
@@ -75,8 +74,7 @@
         body:        e.body        || undefined,
         sort_order:  e.sort_order,
         status:      e.status,
-        // faction extras
-        description: e.body        || undefined,   // factions use description in detail
+        description: e.body        || undefined,
         facts:       factsMap[e.id]   || undefined,
         members:     membersMap[e.id] || undefined,
       };
@@ -96,32 +94,17 @@
 
   // ------------------------------------------------------------------
   // SESSIONS
-  // Fetches sessions + summary lines + parts + blocks + testimonies,
-  // then assembles the nested structure the app expects:
-  //
-  //   session.summary  — string[]
-  //   session.parts    — [{ label, blocks: [{ type, text?, items? }] }]
   // ------------------------------------------------------------------
 
   async function fetchSessions() {
     var sb = EB.sb;
 
     var [sessRes, summaryRes, partsRes, blocksRes, testimRes] = await Promise.all([
-      sb.from('sessions')
-        .select('*')
-        .order('number'),
-      sb.from('session_summary_lines')
-        .select('*')
-        .order('sort_order'),
-      sb.from('session_parts')
-        .select('*')
-        .order('sort_order'),
-      sb.from('session_blocks')
-        .select('*')
-        .order('sort_order'),
-      sb.from('session_testimonies')
-        .select('*')
-        .order('sort_order'),
+      sb.from('sessions').select('*').order('number'),
+      sb.from('session_summary_lines').select('*').order('sort_order'),
+      sb.from('session_parts').select('*').order('sort_order'),
+      sb.from('session_blocks').select('*').order('sort_order'),
+      sb.from('session_testimonies').select('*').order('sort_order'),
     ]);
 
     if (sessRes.error)    throw new Error('[Eberoth] sessions fetch failed: '            + sessRes.error.message);
@@ -130,24 +113,20 @@
     if (blocksRes.error)  throw new Error('[Eberoth] session_blocks fetch failed: '      + blocksRes.error.message);
     if (testimRes.error)  throw new Error('[Eberoth] session_testimonies fetch failed: ' + testimRes.error.message);
 
-    // Index by parent id
-    var summaryMap   = {};   // session_id  → string[]
-    var partsMap     = {};   // session_id  → part[]
-    var blocksMap    = {};   // part_id     → block[]
-    var testimonyMap = {};   // block_id    → testimony[]
+    var summaryMap   = {};
+    var partsMap     = {};
+    var blocksMap    = {};
+    var testimonyMap = {};
 
     summaryRes.data.forEach(function (l) {
       (summaryMap[l.session_id] = summaryMap[l.session_id] || []).push(l.line);
     });
-
     partsRes.data.forEach(function (p) {
       (partsMap[p.session_id] = partsMap[p.session_id] || []).push(p);
     });
-
     blocksRes.data.forEach(function (b) {
       (blocksMap[b.part_id] = blocksMap[b.part_id] || []).push(b);
     });
-
     testimRes.data.forEach(function (t) {
       (testimonyMap[t.block_id] = testimonyMap[t.block_id] || []).push({
         name: t.name,
@@ -155,7 +134,14 @@
       });
     });
 
-    var sessions = sessRes.data.map(function (s) {
+    var effectiveBucket = EB.currentBucket ? EB.currentBucket() : null;
+    var isDM = effectiveBucket === 'dm';
+
+    var sessions = [];
+    sessRes.data.forEach(function (s) {
+      // Same status filter for sessions under view-as.
+      if (!isDM && s.status !== 'visible') return;
+
       var parts = (partsMap[s.id] || []).map(function (p) {
         var blocks = (blocksMap[p.id] || []).map(function (b) {
           var block = { type: b.type };
@@ -169,7 +155,7 @@
         return { label: p.label, blocks: blocks };
       });
 
-      return {
+      sessions.push({
         id:         s.id,
         number:     s.number,
         title:      s.title,
@@ -177,8 +163,7 @@
         status:     s.status,
         summary:    summaryMap[s.id] || [],
         parts:      parts,
-        // data.js derivations (kind, name, sub, body) are applied after
-      };
+      });
     });
 
     window.SESSIONS = sessions;
@@ -187,7 +172,6 @@
 
   // ------------------------------------------------------------------
   // PUBLIC: EB.loadContent()
-  // Fetches everything in parallel, populates all globals.
   // ------------------------------------------------------------------
 
   EB.loadContent = async function () {
