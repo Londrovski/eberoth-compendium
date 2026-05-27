@@ -6,6 +6,11 @@
 // are lazy — the HTTP request only fires when .then()/await is called.
 // All save/delete helpers below call .then() internally so callers can
 // fire-and-forget safely.
+//
+// Backstory cards live in vertical stacks DIRECTLY under their owner's
+// player card — not in a shared grid. This keeps DM and player views
+// aligned by default: same entity has the same (column, stack-row)
+// regardless of how many other cards are visible to the viewer.
 (function () {
   EB.LAYOUT = {
     party: { x: 290, y: 490, gap: 110 },
@@ -19,7 +24,6 @@
     houseGridGapX: 130,
     houseGridGapY: 150,
     personalY: 690,
-    personalCardGapX: 110,
     personalCardGapY: 145,
     loreGridY: 440,
     loreGridGapX: 110,
@@ -99,11 +103,6 @@
     ).then(logErr('savePositionForUser ' + entityId), logRej('savePositionForUser ' + entityId));
   };
 
-  // Bulk-upsert DM's current customs into global_positions, then wipe
-  // ALL node_positions rows so every player's personal overrides go
-  // away (RLS policy node_positions_delete_dm permits this for DM).
-  // The delete uses .gte('layout_version', 0) as a "match all" filter
-  // because Supabase requires a filter on delete.
   EB.pushToAll = function () {
     if (EB.currentBucket() !== 'dm') return Promise.reject(new Error('Only DM can push'));
     var customs = EB.customPositions || {};
@@ -130,9 +129,6 @@
         .then(logErr('pushToAll: delete node_positions'), logRej('pushToAll: delete node_positions'))
     );
     return Promise.all(jobs).then(function () {
-      // DM's own customs were promoted to globals AND wiped from
-      // node_positions — reset local state and reload from DB so the
-      // map renders from the new authoritative baseline.
       EB.customPositions = {};
       return EB.loadPositionsFromSupabase();
     });
@@ -140,7 +136,8 @@
 
   EB.defaultLayout = function () {
     var L = EB.LAYOUT, pos = {};
-    (window.PLAYERS || []).forEach(function (p, i) {
+    var PLAYERS = window.PLAYERS || [];
+    PLAYERS.forEach(function (p, i) {
       pos[p.id] = { x: L.party.x + i * L.party.gap, y: L.party.y };
     });
     (window.LORE || []).forEach(function (l, i) {
@@ -167,8 +164,19 @@
         };
       });
     });
-    EB.BACKSTORY.forEach(function (b, i) {
-      pos[b.id] = { x: L.party.x + (i % 2) * L.personalCardGapX, y: L.personalY + Math.floor(i / 2) * L.personalCardGapY };
+    // Backstory: vertical stack under the owner's player card. Owner
+    // index in PLAYERS sets the column; stack index within the owner's
+    // visible backstory sets the row. Identical positions whether DM
+    // sees the full set or a player sees only their own.
+    EB.BACKSTORY.forEach(function (b) {
+      var ownerIdx = PLAYERS.findIndex(function (p) { return p.id === b.ownerId; });
+      if (ownerIdx < 0) return;
+      var siblings = EB.BACKSTORY.filter(function (x) { return x.ownerId === b.ownerId; });
+      var stackIdx = siblings.findIndex(function (x) { return x.id === b.id; });
+      pos[b.id] = {
+        x: L.party.x + ownerIdx * L.party.gap,
+        y: L.personalY + stackIdx * L.personalCardGapY
+      };
     });
     Object.keys(EB.globalPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.globalPositions[id];
@@ -198,8 +206,17 @@
       var a = (Math.PI * 2 * i) / L.crownRingPoints - Math.PI / 2;
       anchors.push({ x: cp.x + Math.cos(a) * L.crownRingRadius, y: cp.y + Math.sin(a) * L.crownRingRadius });
     }
+    // Personal anchors: vertical stack (5 deep) directly under each player.
+    (window.PLAYERS || []).forEach(function (p, ownerIdx) {
+      for (var s = 0; s < 5; s++) {
+        anchors.push({
+          x: L.party.x + ownerIdx * L.party.gap,
+          y: L.personalY + s * L.personalCardGapY
+        });
+      }
+    });
+    // Lore anchors (unchanged 2x4 grid)
     for (var r = 0; r < 4; r++) for (var c = 0; c < 2; c++) {
-      anchors.push({ x: L.party.x + c * L.personalCardGapX, y: L.personalY + r * L.personalCardGapY });
       anchors.push({ x: L.special.x + c * L.loreGridGapX, y: L.loreGridY + r * L.loreGridGapY });
     }
     var dedup = [];

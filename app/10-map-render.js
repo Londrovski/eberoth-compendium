@@ -17,8 +17,6 @@
       var el = document.createElement('div');
       el.className = 'eberoth-title';
       el.textContent = 'Eberoth';
-      // Centred horizontally above the Crown. Shifted up ~half the
-      // word's visual height to sit higher on the canvas.
       el.style.left = EB.LAYOUT.crown.x + 'px';
       el.style.top = '52px';
       canvas.appendChild(el);
@@ -43,8 +41,9 @@
 
       addEberothTitle();
       addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset);
+      // Personal label: centred over the middle player card, mirroring the Party label.
       if (EB.BACKSTORY.length > 0) {
-        addClusterLabel('Personal', L.party.x + L.personalCardGapX / 2, L.personalY - L.headerOffset);
+        addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset);
       }
       if ((window.LORE || []).length > 0) {
         addClusterLabel('Lore', L.special.x + L.loreGridGapX / 2, L.loreGridY - L.headerOffset);
@@ -61,7 +60,6 @@
           function () { EB.openDetail(l); });
       });
       (window.FACTIONS || []).forEach(function (f) {
-        // Faction node has the circle + a label rendered beneath it.
         makeNode('node-faction ' + f.id, pos[f.id], f.id,
           '<div class="shape">' + EB.factionSigilHTML(f) + '</div>' +
           '<div class="faction-label">' + EB.escapeHtml(f.name) + '</div>',
@@ -73,7 +71,6 @@
           function () { EB.openDetail(n); });
       });
       EB.BACKSTORY.forEach(function (b) {
-        // Backstory cards reuse the NPC frame visually.
         makeNode('node-npc', pos[b.id], b.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + EB.escapeHtml(b.name) + '</div></div>',
           function () { EB.openDetail(b); });

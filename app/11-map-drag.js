@@ -4,6 +4,10 @@
 // to node_positions (per-user override). To make the current layout
 // the baseline for all players, DM clicks the "Push to Players" button
 // (revealed in Move mode for DM only) — see EB.pushToAll.
+//
+// Snap behaviour: prefers the nearest UNOCCUPIED anchor (cards don't
+// pile up). If no free anchor sits within ~2.5x the normal snap range,
+// falls back to the absolute nearest so tight-pack stays possible.
 (function () {
   var DRAG_THRESHOLD = 5;
   var anchorEls = [];
@@ -25,28 +29,40 @@
     anchorEls = [];
   };
 
-  function highlightNearest(x, y) {
+  // Single source of truth for snap target. Returns { anchor, dist, idx }
+  // for the anchor that should be snapped to, given a drop point and the
+  // entity being moved (which is excluded from the "occupied" check).
+  function pickSnap(x, y, excludeId) {
     var anchors = EB.getAnchors();
-    var bestIdx = -1, bestDist = Infinity;
+    var positions = EB.currentPositions();
+    var occupied = [];
+    Object.keys(positions).forEach(function (id) {
+      if (id === excludeId) return;
+      occupied.push(positions[id]);
+    });
+    function isOccupied(ax, ay) {
+      // ~30px fuzzy match so near-coincident anchors count as occupied.
+      return occupied.some(function (p) { return Math.hypot(p.x - ax, p.y - ay) < 30; });
+    }
+    var best = null, bestFree = null;
     anchors.forEach(function (a, i) {
       var d = Math.hypot(a.x - x, a.y - y);
-      if (d < bestDist) { bestDist = d; bestIdx = i; }
+      if (!best || d < best.dist) best = { anchor: a, dist: d, idx: i };
+      if (!isOccupied(a.x, a.y)) {
+        if (!bestFree || d < bestFree.dist) bestFree = { anchor: a, dist: d, idx: i };
+      }
     });
-    anchorEls.forEach(function (el, i) {
-      el.classList.toggle('anchor-near', i === bestIdx && bestDist < EB.SNAP_DISTANCE);
-    });
-  }
-  function clearHighlights() {
-    anchorEls.forEach(function (el) { el.classList.remove('anchor-near'); });
-  }
-  function nearestAnchor(x, y) {
-    var anchors = EB.getAnchors();
-    var best = null;
-    anchors.forEach(function (a) {
-      var d = Math.hypot(a.x - x, a.y - y);
-      if (!best || d < best.dist) best = { anchor: a, dist: d };
-    });
+    // Free anchor wins if within reasonable range; else fall back to nearest.
+    if (bestFree && bestFree.dist < EB.SNAP_DISTANCE * 2.5) return bestFree;
     return best;
+  }
+
+  function highlightSnap(x, y, excludeId) {
+    var pick = pickSnap(x, y, excludeId);
+    var hit = pick ? pick.idx : -1;
+    anchorEls.forEach(function (el, i) {
+      el.classList.toggle('anchor-near', i === hit && pick.dist < EB.SNAP_DISTANCE);
+    });
   }
 
   EB.attachNodeInteraction = function (el, id, onOpen) {
@@ -79,7 +95,7 @@
       var newY = nodeStartY + dy / EB.scale;
       el.style.left = newX + 'px';
       el.style.top  = newY + 'px';
-      highlightNearest(newX, newY);
+      highlightSnap(newX, newY, id);
     });
 
     function finish(e) {
@@ -97,7 +113,7 @@
       el.classList.remove('node-dragging');
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
-      var snap = nearestAnchor(x, y);
+      var snap = pickSnap(x, y, id);
       var final = { x: x, y: y };
       if (snap && snap.dist < EB.SNAP_DISTANCE) {
         final = { x: snap.anchor.x, y: snap.anchor.y };
@@ -106,8 +122,11 @@
       }
       EB.customPositions[id] = final;
       EB.savePositionForUser(id, final);
-      if (EB.moveMode) clearHighlights();
-      else EB.hideAnchors();
+      if (EB.moveMode) {
+        anchorEls.forEach(function (el) { el.classList.remove('anchor-near'); });
+      } else {
+        EB.hideAnchors();
+      }
       if (EB.applyHouseTints) EB.applyHouseTints();
     }
 
