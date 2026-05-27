@@ -1,6 +1,6 @@
 /* ===== LOADING OVERLAY =====
    Injected by 17-boot.js after auth succeeds.
-   Sits centred over the app while content + positions load.
+   Full-screen solid cover so nothing else is visible while loading.
    Fades out once map is ready.
 */
 
@@ -8,36 +8,38 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
+  background: var(--bg, #0d0d0d);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  pointer-events: none;
+  gap: 24px;
+  pointer-events: all;
   transition: opacity 0.5s ease;
 }
 
 #loadingOverlay.fade-out {
   opacity: 0;
+  pointer-events: none;
 }
 
 /* Circle container for the logo */
 .loading-circle {
-  width: 140px;
-  height: 140px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: var(--bg, #0d0d0d);
   border: 1px solid var(--gold-dim, #8a6f3a);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  box-shadow: 0 0 60px rgba(0,0,0,0.6);
 }
 
 /* Campaign logo inside the circle — static, no animation */
 .loading-glyph {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
 }
 
@@ -70,5 +72,5 @@
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--text-dim, #555);
-  margin-top: -8px;
+  margin-top: -12px;
 }
