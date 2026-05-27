@@ -1,12 +1,28 @@
 // Drawer threads list — ordered, drag-reorderable, inline-editable.
+// Persisted to Supabase user_threads table (one row per user).
+// Falls back to empty list if the fetch fails.
 (function () {
   EB.initThreads = function () {
     var threadsList = document.getElementById('threadsList');
     var addBtn = document.getElementById('addThread');
-    var threads = EB.lsLoad('threads', null) || [];
+    var threads = [];
     var dragSrcIndex = null;
+    var saveTimer = null;
 
-    function save() { EB.lsSave('threads', threads); }
+    function getEmail() { return EB._userEmail || null; }
+
+    // Debounced save — coalesce rapid edits into one upsert
+    function save() {
+      if (!getEmail()) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        EB.sb.from('user_threads').upsert({
+          user_email: getEmail(),
+          threads:    threads,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_email' }).then(function () {});
+      }, 500);
+    }
 
     function render() {
       threadsList.innerHTML = '';
@@ -73,10 +89,27 @@
         threadsList.appendChild(el);
       });
     }
+
     addBtn.onclick = function () {
       threads.push({ id: Date.now(), text: 'New thread' });
       save(); render();
     };
-    render();
+
+    // Load from Supabase on init
+    (function load() {
+      var email = getEmail();
+      if (!email) { render(); return; }
+      EB.sb.from('user_threads')
+        .select('threads')
+        .eq('user_email', email)
+        .maybeSingle()
+        .then(function (res) {
+          if (res.data && Array.isArray(res.data.threads)) {
+            threads = res.data.threads;
+          }
+          render();
+        })
+        .catch(function () { render(); });
+    })();
   };
 })();
