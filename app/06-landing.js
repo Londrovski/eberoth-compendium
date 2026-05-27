@@ -2,6 +2,7 @@
 // time, which boot calls once on startup.
 (function () {
   EB.moveMode = false;
+  EB.blockMoveMode = false;
 
   EB.initLanding = function () {
     var landing       = document.getElementById('landing');
@@ -17,16 +18,20 @@
     var navSessions   = document.getElementById('navSessions');
     var navParty      = document.getElementById('navParty');
     var navMoveMode   = document.getElementById('navMoveMode');
+    var navBlockMode  = document.getElementById('navBlockMode');
     var navPushToAll  = document.getElementById('navPushToAll');
     var viewAsSelect  = document.getElementById('viewAsSelect');
 
     function updateModeButtonVisibility() {
       var realBucket = EB.actualBucket();
       var inViewAs = !!EB._viewAsBucket;
-      // Move + Push hidden while previewing as another bucket
-      if (navMoveMode) navMoveMode.style.display = inViewAs ? 'none' : '';
+      // Move + Block + Push hidden while previewing as another bucket
+      if (navMoveMode)  navMoveMode.style.display  = inViewAs ? 'none' : '';
+      // Block Move is DM-only.
+      if (navBlockMode) navBlockMode.style.display = (!inViewAs && realBucket === 'dm') ? '' : 'none';
+      // Push button shows when DM is in EITHER move mode.
       if (navPushToAll) {
-        navPushToAll.style.display = (!inViewAs && realBucket === 'dm' && EB.moveMode) ? '' : 'none';
+        navPushToAll.style.display = (!inViewAs && realBucket === 'dm' && (EB.moveMode || EB.blockMoveMode)) ? '' : 'none';
       }
       if (viewAsSelect) {
         viewAsSelect.style.display = (realBucket === 'dm') ? '' : 'none';
@@ -108,9 +113,24 @@
     if (navMoveMode) {
       navMoveMode.addEventListener('click', function () {
         EB.moveMode = !EB.moveMode;
+        if (EB.moveMode) EB.blockMoveMode = false; // mutually exclusive
         navMoveMode.classList.toggle('on', EB.moveMode);
-        if (EB.moveMode) { if (EB.showAnchors) EB.showAnchors(); }
-        else             { if (EB.hideAnchors) EB.hideAnchors(); }
+        if (navBlockMode) navBlockMode.classList.toggle('on', EB.blockMoveMode);
+        if (EB.moveMode || EB.blockMoveMode) { if (EB.showAnchors) EB.showAnchors(); }
+        else                                  { if (EB.hideAnchors) EB.hideAnchors(); }
+        updateModeButtonVisibility();
+      });
+    }
+
+    if (navBlockMode) {
+      navBlockMode.addEventListener('click', function () {
+        if (EB.actualBucket() !== 'dm') return;
+        EB.blockMoveMode = !EB.blockMoveMode;
+        if (EB.blockMoveMode) EB.moveMode = false; // mutually exclusive
+        navBlockMode.classList.toggle('on', EB.blockMoveMode);
+        if (navMoveMode) navMoveMode.classList.toggle('on', EB.moveMode);
+        // Block mode doesn't use snap anchors — clusters move freely.
+        if (EB.hideAnchors) EB.hideAnchors();
         updateModeButtonVisibility();
       });
     }
