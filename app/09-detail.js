@@ -17,8 +17,26 @@
 //
 // Entity notes: saved per user per entity to Supabase user_notes table.
 // Falls back gracefully if the table doesn't exist yet.
+//
+// Status values:
+//   visible      — all players + DM
+//   dm_only      — DM only
+//   hidden       — nobody (archived)
+//   baker_only   — Baker + DM
+//   butcher_only — Butcher + DM
+//   charlie_only — Charlie + DM
 (function () {
   var MISSING = '<span class="portrait-missing">?</span>';
+
+  // Status display config — label + CSS suffix
+  var STATUS_CONFIG = {
+    visible:      { label: '● Visible',       cls: 'visible' },
+    dm_only:      { label: '● DM Only',       cls: 'dm_only' },
+    hidden:       { label: '● Hidden',        cls: 'hidden' },
+    baker_only:   { label: '● Baker Only',    cls: 'baker_only' },
+    butcher_only: { label: '● Butcher Only',  cls: 'butcher_only' },
+    charlie_only: { label: '● Charlie Only',  cls: 'charlie_only' },
+  };
 
   // ---- Supabase note helpers ----
   // These are async; the UI optimistically writes without waiting.
@@ -169,9 +187,8 @@
       // Status badge (DM only)
       var statusHTML = '';
       if (EB.actualBucket && EB.actualBucket() === 'dm') {
-        var statusLabel = { visible: '● Visible', dm_only: '● DM Only', hidden: '● Hidden' }[item.status] || item.status;
-        var statusClass = 'detail-status detail-status--' + (item.status || 'dm_only');
-        statusHTML = '<div class="' + statusClass + '">' + statusLabel + '</div>';
+        var cfg = STATUS_CONFIG[item.status] || { label: item.status, cls: 'dm_only' };
+        statusHTML = '<div class="detail-status detail-status--' + cfg.cls + '">' + cfg.label + '</div>';
       }
 
       detailInner.innerHTML =
@@ -198,6 +215,20 @@
     // ================================================================
     // EDIT FORM
     // ================================================================
+
+    function buildStatusOptions(current) {
+      var options = [
+        { value: 'visible',      label: 'Visible — all players can see this' },
+        { value: 'dm_only',      label: 'DM Only — hidden from all players' },
+        { value: 'hidden',       label: 'Hidden — archived, nobody sees it' },
+        { value: 'baker_only',   label: 'Baker Only — visible to Baker + DM' },
+        { value: 'butcher_only', label: 'Butcher Only — visible to Butcher + DM' },
+        { value: 'charlie_only', label: 'Charlie Only — visible to Charlie + DM' },
+      ];
+      return options.map(function (o) {
+        return '<option value="' + o.value + '"' + (current === o.value ? ' selected' : '') + '>' + o.label + '</option>';
+      }).join('');
+    }
 
     function openEditForm(item) {
       var isFaction = item.kind === 'faction';
@@ -233,9 +264,7 @@
           '<div class="edit-field">' +
             '<label class="edit-label">Visibility</label>' +
             '<select class="edit-select" id="ef-status">' +
-              '<option value="dm_only"'  + (item.status === 'dm_only'  ? ' selected' : '') + '>DM Only — hidden from players</option>' +
-              '<option value="visible"'  + (item.status === 'visible'  ? ' selected' : '') + '>Visible — players can see this</option>' +
-              '<option value="hidden"'   + (item.status === 'hidden'   ? ' selected' : '') + '>Hidden — archived, nobody sees it</option>' +
+              buildStatusOptions(item.status) +
             '</select>' +
           '</div>' +
 
