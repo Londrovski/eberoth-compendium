@@ -1,11 +1,17 @@
-/* Big map title — same family + glow as the main site's header h1.
-   Positioned above the Crown by JS (10-map-render.js). Pointer events
-   are enabled so DM block-mode drag works — the title sits above the
-   Crown ring with no nodes beneath it, so it doesn't shadow clicks. */
+/* Eberoth title — rendered as a .node.node-title so it inherits the
+   standard drag mechanic. The .shape wrapper is transparent (no card
+   border/background) and .title-text gives the giant Cinzel + gold
+   glow look. */
 
-.eberoth-title {
-  position: absolute;
-  transform: translate(-50%, -50%);
+.node-title .shape {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  display: inline-block;
+}
+
+.node-title .title-text {
   font-family: 'Cinzel Decorative', 'Cinzel', 'Georgia', serif;
   font-weight: 700;
   font-size: 96px;
@@ -16,14 +22,11 @@
     0 0 80px rgba(201, 169, 97, 0.4),
     0 2px 16px rgba(0,0,0,1),
     0 4px 32px rgba(0,0,0,0.9);
-  pointer-events: auto;
   white-space: nowrap;
   user-select: none;
   -webkit-user-select: none;
-  cursor: default;
-  touch-action: none;
+  pointer-events: none; /* clicks land on .shape (the drag target) */
 }
 
-/* Show a grab cursor when block mode is on (so DM knows it's draggable). */
-body:has(#navBlockMode.on) .eberoth-title { cursor: grab; }
-.eberoth-title.node-dragging { cursor: grabbing; }
+/* The title hover-scale fights the giant text. Disable it. */
+.node.node-title:hover { transform: translate(-50%, -50%); }
