@@ -36,6 +36,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Same fix as faction sigils — don't let card images steal pointer
+     events or kick off native HTML5 drag. The drag handler lives on the
+     parent .node and uses setPointerCapture. */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 .node-npc .name {
   padding: 4px 4px 5px;
