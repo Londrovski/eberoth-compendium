@@ -4,6 +4,19 @@
 (function () {
   var modulesInited = false;
 
+  function showLoader() {
+    if (document.getElementById('loadingOverlay')) return;
+    var el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.innerHTML =
+      '<div class="loading-circle">' +
+        '<img class="loading-glyph" src="eberoth logo.png" alt="Eberoth">' +
+      '</div>' +
+      '<div class="loading-dots"><span></span><span></span><span></span></div>' +
+      '<div class="loading-text">Loading</div>';
+    document.body.appendChild(el);
+  }
+
   function dismissLoader() {
     var overlay = document.getElementById('loadingOverlay');
     if (!overlay) return;
@@ -20,7 +33,11 @@
 
   EB.boot = function () {
     var realBucket = EB.actualBucket();
-    if (!realBucket) { dismissLoader(); EB.showLanding(); return; }
+    if (!realBucket) { EB.showLanding(); return; }
+
+    // Show the loading overlay now — user has authed, map is incoming.
+    showLoader();
+
     EB.showApp();
     EB.initLayout();
     if (!modulesInited) {
@@ -32,7 +49,7 @@
       EB.initThreads();
       EB.initNotes();
     }
-    // Load content first (needs auth JWT), then positions, then render.
+    // Load content (needs auth JWT), then positions, then render.
     EB.loadContent()
       .then(function () {
         // Normalise kind fields and sort sessions after fresh fetch.
@@ -55,9 +72,9 @@
         return EB.loadPositionsFromSupabase();
       })
       .then(function () {
-        dismissLoader();
         EB.renderMap();
         EB.centerInitial();
+        dismissLoader();
       })
       .catch(function (err) {
         console.error('[Eberoth] Boot failed', err);
