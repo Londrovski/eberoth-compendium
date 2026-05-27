@@ -1,15 +1,17 @@
 /* Eberoth title — rendered as a .node.node-title so it inherits the
-   standard drag mechanic. The .shape wrapper is transparent (no card
-   border/background) and .title-text gives the giant Cinzel + gold
-   glow look. */
+   standard drag mechanic. .shape is a transparent wrapper with a
+   little padding so the hit area is forgiving; .title-text holds the
+   giant Cinzel + gold glow look. */
 
 .node-title .shape {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 0;
+  padding: 16px 24px;
   display: inline-block;
+  cursor: grab;
 }
+.node-title.node-dragging .shape { cursor: grabbing; }
 
 .node-title .title-text {
   font-family: 'Cinzel Decorative', 'Cinzel', 'Georgia', serif;
@@ -25,7 +27,7 @@
   white-space: nowrap;
   user-select: none;
   -webkit-user-select: none;
-  pointer-events: none; /* clicks land on .shape (the drag target) */
+  pointer-events: auto;
 }
 
 /* The title hover-scale fights the giant text. Disable it. */
