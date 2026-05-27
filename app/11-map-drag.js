@@ -1,13 +1,18 @@
 // Node drag + snap (Pointer Events + setPointerCapture).
 //
-// Drag is opt-in via EB.moveMode. While in Move mode, each drop saves
-// to node_positions (per-user override). To make the current layout
-// the baseline for all players, DM clicks the "Push to Players" button
-// (revealed in Move mode for DM only) — see EB.pushToAll.
+// Two move modes:
+//   - EB.moveMode (everyone): per-node drag, snap to anchors, saves
+//     to node_positions (per-user override).
+//   - EB.blockMoveMode (DM only): grabbing any node moves the whole
+//     cluster (Players, Houses, or Lore) together; on drop the
+//     cluster offset is saved globally via EB.saveClusterOffset,
+//     which also wipes per-user customs + globals for the affected
+//     entities so the shift is the new baseline for everyone.
 //
-// Snap behaviour: prefers the nearest UNOCCUPIED anchor (cards don't
-// pile up). If no free anchor sits within ~2.5x the normal snap range,
-// falls back to the absolute nearest so tight-pack stays possible.
+// Snap behaviour (per-node mode only): prefers the nearest UNOCCUPIED
+// anchor (cards don't pile up). If no free anchor sits within ~2.5x
+// the normal snap range, falls back to the absolute nearest so
+// tight-pack stays possible.
 (function () {
   var DRAG_THRESHOLD = 5;
   var anchorEls = [];
@@ -29,9 +34,6 @@
     anchorEls = [];
   };
 
-  // Single source of truth for snap target. Returns { anchor, dist, idx }
-  // for the anchor that should be snapped to, given a drop point and the
-  // entity being moved (which is excluded from the "occupied" check).
   function pickSnap(x, y, excludeId) {
     var anchors = EB.getAnchors();
     var positions = EB.currentPositions();
@@ -41,7 +43,6 @@
       occupied.push(positions[id]);
     });
     function isOccupied(ax, ay) {
-      // ~30px fuzzy match so near-coincident anchors count as occupied.
       return occupied.some(function (p) { return Math.hypot(p.x - ax, p.y - ay) < 30; });
     }
     var best = null, bestFree = null;
@@ -52,7 +53,6 @@
         if (!bestFree || d < bestFree.dist) bestFree = { anchor: a, dist: d, idx: i };
       }
     });
-    // Free anchor wins if within reasonable range; else fall back to nearest.
     if (bestFree && bestFree.dist < EB.SNAP_DISTANCE * 2.5) return bestFree;
     return best;
   }
@@ -65,9 +65,43 @@
     });
   }
 
+  // ---- Block-mode helpers -------------------------------------------------
+
+  // Collect every DOM .node belonging to the given cluster, plus the
+  // cluster-label elements tagged with data-cluster=<cluster>. Each
+  // entry remembers its starting style.left/top so we can move them
+  // in lockstep during the drag.
+  function collectClusterElements(cluster) {
+    if (!cluster || !EB.canvas) return [];
+    var clusterIds = {};
+    EB.entitiesInCluster(cluster).forEach(function (id) { clusterIds[id] = true; });
+
+    var out = [];
+    // Nodes (including shadows whose dataset.id is "<id>-suffix").
+    var nodes = EB.canvas.querySelectorAll('.node');
+    Array.prototype.forEach.call(nodes, function (el) {
+      var id = el.dataset && el.dataset.id;
+      if (!id) return;
+      var baseId = id.split('-shadow')[0].split('-ref')[0];
+      if (clusterIds[baseId] || clusterIds[id]) {
+        out.push({ el: el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top) });
+      }
+    });
+    // Cluster labels tagged with data-cluster.
+    var labels = EB.canvas.querySelectorAll('.cluster-label[data-cluster="' + cluster + '"]');
+    Array.prototype.forEach.call(labels, function (el) {
+      out.push({ el: el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top) });
+    });
+    return out;
+  }
+
+  // ---- Drag handler -------------------------------------------------------
+
   EB.attachNodeInteraction = function (el, id, onOpen) {
     var startX = 0, startY = 0, nodeStartX = 0, nodeStartY = 0;
     var dragging = false, armed = false, activePointer = null;
+    var blockCluster = null;   // cluster being dragged, when in block mode
+    var blockEls = null;       // [{el, x0, y0}] in block-mode drag
 
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
@@ -77,6 +111,8 @@
       startX = e.clientX; startY = e.clientY;
       nodeStartX = parseFloat(el.style.left);
       nodeStartY = parseFloat(el.style.top);
+      blockCluster = null;
+      blockEls = null;
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
     });
 
@@ -85,17 +121,38 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      if (!dragging && !EB.moveMode) return;
+      // Neither mode? Don't initiate a drag.
+      if (!dragging && !EB.moveMode && !EB.blockMoveMode) return;
+
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
-        EB.showAnchors();
+        if (EB.blockMoveMode && EB.actualBucket() === 'dm') {
+          blockCluster = EB.clusterOf(id);
+          if (blockCluster) {
+            blockEls = collectClusterElements(blockCluster);
+            blockEls.forEach(function (b) { b.el.classList.add('cluster-dragging'); });
+          }
+        } else {
+          // Per-node mode shows anchors for snap feedback.
+          EB.showAnchors();
+        }
       }
-      var newX = nodeStartX + dx / EB.scale;
-      var newY = nodeStartY + dy / EB.scale;
-      el.style.left = newX + 'px';
-      el.style.top  = newY + 'px';
-      highlightSnap(newX, newY, id);
+
+      if (blockCluster && blockEls) {
+        // Move every element in the cluster by the same scaled delta.
+        var ddx = dx / EB.scale, ddy = dy / EB.scale;
+        blockEls.forEach(function (b) {
+          b.el.style.left = (b.x0 + ddx) + 'px';
+          b.el.style.top  = (b.y0 + ddy) + 'px';
+        });
+      } else {
+        var newX = nodeStartX + dx / EB.scale;
+        var newY = nodeStartY + dy / EB.scale;
+        el.style.left = newX + 'px';
+        el.style.top  = newY + 'px';
+        highlightSnap(newX, newY, id);
+      }
     });
 
     function finish(e) {
@@ -107,10 +164,39 @@
         var movedX = (e && e.clientX != null) ? Math.abs(e.clientX - startX) : 0;
         var movedY = (e && e.clientY != null) ? Math.abs(e.clientY - startY) : 0;
         if (Math.hypot(movedX, movedY) < DRAG_THRESHOLD) onOpen();
+        blockCluster = null; blockEls = null;
         return;
       }
       dragging = false;
       el.classList.remove('node-dragging');
+
+      if (blockCluster && blockEls) {
+        // ---- Block-mode drop: save new cluster offset ----
+        var endX = parseFloat(el.style.left);
+        var endY = parseFloat(el.style.top);
+        var ddx = endX - nodeStartX;
+        var ddy = endY - nodeStartY;
+        blockEls.forEach(function (b) { b.el.classList.remove('cluster-dragging'); });
+        blockEls = null;
+        var cluster = blockCluster;
+        blockCluster = null;
+        var cur = (EB.clusterOffsets && EB.clusterOffsets[cluster]) || {dx:0, dy:0};
+        var newDx = cur.dx + ddx;
+        var newDy = cur.dy + ddy;
+        if (EB.saveClusterOffset) {
+          EB.saveClusterOffset(cluster, newDx, newDy).then(function () {
+            if (EB.renderMap) EB.renderMap();
+          }, function (err) {
+            console.error('[Eberoth] saveClusterOffset failed', err);
+            if (EB.renderMap) EB.renderMap();
+          });
+        } else {
+          if (EB.renderMap) EB.renderMap();
+        }
+        return;
+      }
+
+      // ---- Per-node mode drop: snap + per-user save ----
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
       var snap = pickSnap(x, y, id);
