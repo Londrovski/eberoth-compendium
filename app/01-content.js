@@ -15,21 +15,23 @@
 // no longer filters by entities.status — that column is legacy and will
 // be dropped in Phase E.
 //
-// Each entity is decorated with two new fields drawn from the per-player
-// tables:
+// Each entity is decorated with three new fields drawn from the
+// per-player tables:
 //
-//   entity.viewerBody  — string. The viewer's "Just for you" body
-//                        section, or null if none authored. DM sees
-//                        their own DM-section here; per-player bodies
-//                        for DM are loaded separately for the detail
-//                        panel's collapsed dropdowns (Phase D).
-//   entity.tagged      — boolean. True if the current viewer is tagged
-//                        on this entity (drives the glow in Phase D).
-//   entity.allBodies   — DM only. Object of { viewer: body } across all
-//                        viewers, for the detail panel's collapsed
-//                        dropdowns. Empty {} for non-DM.
+//   entity.viewerBody  — string. The effective viewer's "Just for you"
+//                        body section, or null if none authored.
+//   entity.tagged      — boolean. True if the viewer is tagged on this
+//                        entity (drives the glow in Phase D).
+//   entity.allBodies   — DM only. Object of { viewer: body } for the
+//                        OTHER buckets (excludes the DM's own row, which
+//                        is in viewerBody already). Empty {} for non-DM.
 //
 // Sessions are decorated with the same fields.
+//
+// Soft-fail policy: the three new tables (entity_visibility,
+// entity_player_tag, entity_player_body) degrade to empty data if their
+// fetch errors. The map still renders. The four legacy tables (entities,
+// entity_facts, entity_members, sessions + children) remain hard errors.
 //
 // Call: await EB.loadContent()
 
@@ -40,13 +42,11 @@
   // ------------------------------------------------------------------
   // Buckets: 'dm' | 'baker' | 'butcher' | 'charlie' | 'guest' | null
   //
-  // RLS keys off the JWT email, so DM under View-As still reads as DM —
-  // i.e. RLS returns every entity. We mirror the View-As bucket
-  // client-side so DM sees what the player would see.
+  // RLS keys off the JWT email. DM under View-As still reads as DM —
+  // we mirror the View-As bucket client-side so DM sees the player view.
   //
-  // effectiveViewer()  — bucket used for body/tag attaches.
-  // actualViewer()     — bucket the JWT actually represents (drives the
-  //                      decision to apply client-side visibility filter).
+  // viewerKeyFor(v) — bucket allowlist for body/tag lookups. Guest /
+  // null collapse to null (no rows exist for those).
 
   function effectiveViewer() {
     return EB.currentBucket ? EB.currentBucket() : null;
@@ -54,15 +54,28 @@
   function actualViewer() {
     return EB.actualBucket ? EB.actualBucket() : null;
   }
+  function viewerKeyFor(v) {
+    return (v === 'dm' || v === 'baker' || v === 'butcher' || v === 'charlie') ? v : null;
+  }
 
-  // Client-side mirror of entity_visibility: returns true if the
-  // (effective) viewer can see an entity given its visibility rows.
-  // Only used when DM is in View-As mode — RLS handles real players.
-  function isVisibleTo(visMap, entityId, viewer) {
-    var rows = visMap[entityId];
+  // Client-side mirror of *_visibility: returns true if the viewer can
+  // see a row given its visibility map. Only used when DM is in
+  // View-As — RLS handles real players.
+  function isVisibleTo(visMap, rowId, viewer) {
+    var rows = visMap[rowId];
     if (!rows) return false;
     if (rows['*']) return true;
     return !!rows[viewer];
+  }
+
+  // Soft-fail wrapper for the new-table fetches. Logs the error and
+  // returns an empty data array so the loader keeps going.
+  function softFail(label, res) {
+    if (res && res.error) {
+      console.error('[Eberoth] ' + label + ' (soft-fail, continuing):', res.error);
+      return { data: [], error: null };
+    }
+    return res;
   }
 
   // ------------------------------------------------------------------
@@ -71,33 +84,32 @@
 
   async function fetchEntities() {
     var sb = EB.sb;
-    var viewer     = effectiveViewer();
-    var actual     = actualViewer();
-    var isDM       = viewer === 'dm';
+    var viewer    = effectiveViewer();
+    var actual    = actualViewer();
+    var viewerKey = viewerKeyFor(viewer);
+    var isDM      = viewer === 'dm';
     // DM under View-As: RLS returns every entity (JWT is DM's), but we
     // want to render only what the View-As bucket would see.
     var clientFilter = (actual === 'dm') && viewer && viewer !== 'dm';
 
-    // Fan out: RLS filters entities/sessions by visibility for real
-    // players; the *_body / *_tag / *_visibility tables are world-read
-    // or own-only so we just fetch them.
-    var jobs = [
+    var [entRes, factsRes, membersRes, tagsRaw, bodiesRaw, visRaw] = await Promise.all([
       sb.from('entities').select('*').order('sort_order'),
       sb.from('entity_facts').select('*').order('sort_order'),
       sb.from('entity_members').select('*').order('sort_order'),
       sb.from('entity_player_tag').select('entity_id, viewer'),
       sb.from('entity_player_body').select('entity_id, viewer, body'),
       sb.from('entity_visibility').select('entity_id, viewer'),
-    ];
+    ]);
 
-    var [entRes, factsRes, membersRes, tagsRes, bodiesRes, visRes] = await Promise.all(jobs);
-
-    if (entRes.error)     throw new Error('[Eberoth] entities fetch failed: '      + entRes.error.message);
-    if (factsRes.error)   throw new Error('[Eberoth] entity_facts fetch failed: '  + factsRes.error.message);
+    // Hard errors on the legacy tables.
+    if (entRes.error)     throw new Error('[Eberoth] entities fetch failed: '     + entRes.error.message);
+    if (factsRes.error)   throw new Error('[Eberoth] entity_facts fetch failed: ' + factsRes.error.message);
     if (membersRes.error) throw new Error('[Eberoth] entity_members fetch failed: '+ membersRes.error.message);
-    if (tagsRes.error)    throw new Error('[Eberoth] entity_player_tag fetch failed: ' + tagsRes.error.message);
-    if (bodiesRes.error)  throw new Error('[Eberoth] entity_player_body fetch failed: ' + bodiesRes.error.message);
-    if (visRes.error)     throw new Error('[Eberoth] entity_visibility fetch failed: ' + visRes.error.message);
+
+    // Soft errors on the new tables — log and continue with empty data.
+    var tagsRes   = softFail('entity_player_tag fetch failed',   tagsRaw);
+    var bodiesRes = softFail('entity_player_body fetch failed',  bodiesRaw);
+    var visRes    = softFail('entity_visibility fetch failed',   visRaw);
 
     var factsMap   = {};
     var membersMap = {};
@@ -128,10 +140,19 @@
     entRes.data.forEach(function (e) {
       // DM under View-As: mirror the player's visibility client-side.
       if (clientFilter && !isVisibleTo(visMap, e.id, viewer)) return;
-      var entTags    = tagMap[e.id] || {};
-      var entBodies  = bodyMap[e.id] || {};
-      var viewerKey  = (viewer === 'dm' || viewer === 'baker' ||
-                        viewer === 'butcher' || viewer === 'charlie') ? viewer : null;
+
+      var entTags   = tagMap[e.id]  || {};
+      var entBodies = bodyMap[e.id] || {};
+
+      // DM's allBodies excludes the DM's own row — that's what
+      // viewerBody already holds. The detail panel renders the
+      // OTHER per-player sections as collapsed dropdowns.
+      var otherBodies = {};
+      if (isDM) {
+        Object.keys(entBodies).forEach(function (k) {
+          if (k !== 'dm') otherBodies[k] = entBodies[k];
+        });
+      }
 
       var obj = {
         id:          e.id,
@@ -153,10 +174,7 @@
         // New visibility-model fields:
         tagged:      viewerKey ? !!entTags[viewerKey] : false,
         viewerBody:  viewerKey ? (entBodies[viewerKey] || null) : null,
-        // DM sees every per-player body via the detail panel dropdowns.
-        // Non-DM viewers get an empty object — RLS on entity_player_body
-        // would have returned only their own row anyway.
-        allBodies:   isDM ? entBodies : {},
+        allBodies:   otherBodies,
       };
 
       if      (e.kind === 'faction') factions.push(obj);
@@ -178,12 +196,13 @@
 
   async function fetchSessions() {
     var sb = EB.sb;
-    var viewer = effectiveViewer();
-    var actual = actualViewer();
-    var isDM   = viewer === 'dm';
+    var viewer    = effectiveViewer();
+    var actual    = actualViewer();
+    var viewerKey = viewerKeyFor(viewer);
+    var isDM      = viewer === 'dm';
     var clientFilter = (actual === 'dm') && viewer && viewer !== 'dm';
 
-    var [sessRes, summaryRes, partsRes, blocksRes, testimRes, sTagsRes, sBodiesRes, sVisRes] = await Promise.all([
+    var [sessRes, summaryRes, partsRes, blocksRes, testimRes, sTagsRaw, sBodiesRaw, sVisRaw] = await Promise.all([
       sb.from('sessions').select('*').order('number'),
       sb.from('session_summary_lines').select('*').order('sort_order'),
       sb.from('session_parts').select('*').order('sort_order'),
@@ -199,9 +218,10 @@
     if (partsRes.error)   throw new Error('[Eberoth] session_parts fetch failed: '       + partsRes.error.message);
     if (blocksRes.error)  throw new Error('[Eberoth] session_blocks fetch failed: '      + blocksRes.error.message);
     if (testimRes.error)  throw new Error('[Eberoth] session_testimonies fetch failed: ' + testimRes.error.message);
-    if (sTagsRes.error)   throw new Error('[Eberoth] session_player_tag fetch failed: '  + sTagsRes.error.message);
-    if (sBodiesRes.error) throw new Error('[Eberoth] session_player_body fetch failed: ' + sBodiesRes.error.message);
-    if (sVisRes.error)    throw new Error('[Eberoth] session_visibility fetch failed: '  + sVisRes.error.message);
+
+    var sTagsRes   = softFail('session_player_tag fetch failed',  sTagsRaw);
+    var sBodiesRes = softFail('session_player_body fetch failed', sBodiesRaw);
+    var sVisRes    = softFail('session_visibility fetch failed',  sVisRaw);
 
     var summaryMap   = {};
     var partsMap     = {};
@@ -239,10 +259,16 @@
     sessRes.data.forEach(function (s) {
       // DM under View-As: mirror the player's visibility client-side.
       if (clientFilter && !isVisibleTo(sVisMap, s.id, viewer)) return;
-      var sTags    = sTagMap[s.id] || {};
-      var sBodies  = sBodyMap[s.id] || {};
-      var viewerKey = (viewer === 'dm' || viewer === 'baker' ||
-                       viewer === 'butcher' || viewer === 'charlie') ? viewer : null;
+
+      var sTags   = sTagMap[s.id]  || {};
+      var sBodies = sBodyMap[s.id] || {};
+
+      var otherBodies = {};
+      if (isDM) {
+        Object.keys(sBodies).forEach(function (k) {
+          if (k !== 'dm') otherBodies[k] = sBodies[k];
+        });
+      }
 
       var parts = (partsMap[s.id] || []).map(function (p) {
         var blocks = (blocksMap[p.id] || []).map(function (b) {
@@ -269,7 +295,7 @@
         // New visibility-model fields:
         tagged:     viewerKey ? !!sTags[viewerKey] : false,
         viewerBody: viewerKey ? (sBodies[viewerKey] || null) : null,
-        allBodies:  isDM ? sBodies : {},
+        allBodies:  otherBodies,
       });
     });
 
@@ -286,10 +312,10 @@
       fetchEntities(),
       fetchSessions(),
     ]);
-    // BACKSTORY is no longer populated from the DB — those rows are now
-    // normal entities decorated with visibility/tag/body. The old
-    // window.BACKSTORY array stays initialised to [] in data.js so any
-    // legacy renderer code that iterates it becomes a no-op.
+    // window.BACKSTORY is no longer populated from the DB — those rows
+    // are now normal entities decorated with visibility/tag/body. The
+    // array stays initialised to [] in data.js so any legacy renderer
+    // loops over it become no-ops.
   };
 
 })();
