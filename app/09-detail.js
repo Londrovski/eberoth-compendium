@@ -9,6 +9,11 @@
 //
 // Missing-image fallback is always <span class="portrait-missing">?</span>
 // so the gold bold ? style applies consistently.
+//
+// DM inline editor: Edit button (DM-only) swaps panel into a form.
+// Editable fields: name, sub, body/description, status, facts[], members[].
+// Save writes to Supabase (entities + entity_facts + entity_members) and
+// updates the in-memory globals so the map re-renders immediately.
 (function () {
   var MISSING = '<span class="portrait-missing">?</span>';
 
@@ -17,6 +22,7 @@
     var detailInner = document.getElementById('detailInner');
     var detailHistory = [];
     var currentDetailId = null;
+    var currentItem = null;   // kept so Edit can reference it
 
     detailInner.addEventListener('click', function (e) {
       if (e.target.closest('.detail-close')) {
@@ -101,15 +107,21 @@
       return html;
     }
 
+    // ---- Edit button (DM only) ----
+    function dmEditButton(item) {
+      if (!EB.actualBucket || EB.actualBucket() !== 'dm') return '';
+      if (item.kind === 'session') return '';
+      return '<button class="detail-edit-btn" title="Edit">✎ Edit</button>';
+    }
+
     function openEntityDetail(item, fromNav) {
       if (!fromNav) {
         if (currentDetailId && currentDetailId !== item.id) detailHistory.push(currentDetailId);
       }
       currentDetailId = item.id;
+      currentItem = item;
       var kind = item.kind;
 
-      // Build portrait HTML: factions use sigil, others use image.
-      // Fallback is always the gold ? span.
       var portraitHTML;
       if (kind === 'faction') {
         portraitHTML = item.sigil
@@ -120,11 +132,8 @@
       }
 
       var faction = item.factionId ? (window.FACTIONS || []).find(function (f) { return f.id === item.factionId; }) : null;
-
-      // Subtitle: explicit sub field, or lore subtitle field.
       var subtitle = item.sub || item.subtitle || '';
 
-      // Body content varies by kind.
       var bodyHTML = '';
       if (kind === 'faction') {
         bodyHTML = renderFactionBody(item);
@@ -132,18 +141,257 @@
         bodyHTML = '<div class="field"><div class="field-label">About</div><div class="field-body">' + item.body + '</div></div>';
       }
 
+      // Status badge (DM only)
+      var statusHTML = '';
+      if (EB.actualBucket && EB.actualBucket() === 'dm') {
+        var statusLabel = { visible: '● Visible', dm_only: '● DM Only', hidden: '● Hidden' }[item.status] || item.status;
+        var statusClass = 'detail-status detail-status--' + (item.status || 'dm_only');
+        statusHTML = '<div class="' + statusClass + '">' + statusLabel + '</div>';
+      }
+
       detailInner.innerHTML =
         '<button class="detail-back" title="Back">←</button>' +
         '<button class="detail-close" title="Close">✕</button>' +
+        dmEditButton(item) +
         '<div class="portrait">' + portraitHTML + '</div>' +
         '<h2>' + EB.escapeHtml(item.name) + '</h2>' +
+        statusHTML +
         (subtitle ? '<div class="subtitle">' + EB.escapeHtml(subtitle) + '</div>' : '') +
         (item.role ? '<div class="field"><div class="field-label">Role</div>' + EB.escapeHtml(item.role) + '</div>' : '') +
         (faction ? '<div class="field"><div class="field-label">Affiliation</div>' + EB.escapeHtml(faction.name) + '</div>' : '') +
         bodyHTML +
         wireNotesBlock();
       mountNotes(item.id);
+
+      // Wire edit button
+      var editBtn = detailInner.querySelector('.detail-edit-btn');
+      if (editBtn) editBtn.addEventListener('click', function () { openEditForm(item); });
+
       detail.classList.add('open');
+    }
+
+    // ================================================================
+    // EDIT FORM
+    // ================================================================
+
+    function openEditForm(item) {
+      var isFaction = item.kind === 'faction';
+
+      // Build facts rows HTML
+      var factsHTML = '';
+      var factsList = Array.isArray(item.facts) ? item.facts : [];
+      factsList.forEach(function (f, i) {
+        factsHTML += editFactRow(f, i);
+      });
+
+      // Build members rows HTML
+      var membersHTML = '';
+      var membersList = Array.isArray(item.members) ? item.members : [];
+      membersList.forEach(function (m, i) {
+        membersHTML += editMemberRow(m.name, m.role, i);
+      });
+
+      detailInner.innerHTML =
+        '<button class="detail-back" title="Back">←</button>' +
+        '<button class="detail-close" title="Close">✕</button>' +
+        '<div class="edit-form">' +
+
+          '<div class="edit-field">' +
+            '<label class="edit-label">Name</label>' +
+            '<input class="edit-input" id="ef-name" type="text" value="' + EB.escapeAttr(item.name || '') + '">' +
+          '</div>' +
+
+          '<div class="edit-field">' +
+            '<label class="edit-label">Subtitle / Role line</label>' +
+            '<input class="edit-input" id="ef-sub" type="text" value="' + EB.escapeAttr(item.sub || item.subtitle || '') + '">' +
+          '</div>' +
+
+          '<div class="edit-field">' +
+            '<label class="edit-label">' + (isFaction ? 'Description' : 'Body') + '</label>' +
+            '<textarea class="edit-textarea" id="ef-body" rows="6">' + EB.escapeHtml(item.body || item.description || '') + '</textarea>' +
+          '</div>' +
+
+          '<div class="edit-field">' +
+            '<label class="edit-label">Visibility</label>' +
+            '<select class="edit-select" id="ef-status">' +
+              '<option value="dm_only"'  + (item.status === 'dm_only'  ? ' selected' : '') + '>DM Only — hidden from players</option>' +
+              '<option value="visible"'  + (item.status === 'visible'  ? ' selected' : '') + '>Visible — players can see this</option>' +
+              '<option value="hidden"'   + (item.status === 'hidden'   ? ' selected' : '') + '>Hidden — archived, nobody sees it</option>' +
+            '</select>' +
+          '</div>' +
+
+          '<div class="edit-field" id="ef-facts-wrap">' +
+            '<label class="edit-label">Facts <button class="edit-add-btn" id="ef-facts-add" type="button">+ Add</button></label>' +
+            '<div class="edit-list" id="ef-facts-list">' + factsHTML + '</div>' +
+          '</div>' +
+
+          '<div class="edit-field" id="ef-members-wrap">' +
+            '<label class="edit-label">Members <button class="edit-add-btn" id="ef-members-add" type="button">+ Add</button></label>' +
+            '<div class="edit-list" id="ef-members-list">' + membersHTML + '</div>' +
+          '</div>' +
+
+          '<div class="edit-actions">' +
+            '<button class="edit-save-btn" id="ef-save">Save</button>' +
+            '<button class="edit-cancel-btn" id="ef-cancel">Cancel</button>' +
+            '<span class="edit-saving" id="ef-saving" style="display:none">Saving…</span>' +
+            '<span class="edit-error" id="ef-error"></span>' +
+          '</div>' +
+
+        '</div>';
+
+      // Wire add buttons
+      detailInner.querySelector('#ef-facts-add').addEventListener('click', function () {
+        var list = detailInner.querySelector('#ef-facts-list');
+        var idx = list.querySelectorAll('.edit-fact-row').length;
+        list.insertAdjacentHTML('beforeend', editFactRow('', idx));
+        wireRemoveButtons();
+      });
+      detailInner.querySelector('#ef-members-add').addEventListener('click', function () {
+        var list = detailInner.querySelector('#ef-members-list');
+        var idx = list.querySelectorAll('.edit-member-row').length;
+        list.insertAdjacentHTML('beforeend', editMemberRow('', '', idx));
+        wireRemoveButtons();
+      });
+
+      wireRemoveButtons();
+
+      detailInner.querySelector('#ef-cancel').addEventListener('click', function () {
+        openEntityDetail(item, true);
+      });
+      detailInner.querySelector('#ef-save').addEventListener('click', function () {
+        saveEntity(item);
+      });
+
+      detail.classList.add('open');
+    }
+
+    function editFactRow(value, idx) {
+      return '<div class="edit-fact-row" data-idx="' + idx + '">' +
+        '<input class="edit-input edit-fact-input" type="text" value="' + EB.escapeAttr(value) + '" placeholder="Fact…">' +
+        '<button class="edit-remove-btn" type="button" title="Remove">✕</button>' +
+      '</div>';
+    }
+
+    function editMemberRow(name, role, idx) {
+      return '<div class="edit-member-row" data-idx="' + idx + '">' +
+        '<input class="edit-input edit-member-name" type="text" value="' + EB.escapeAttr(name) + '" placeholder="Name…">' +
+        '<input class="edit-input edit-member-role" type="text" value="' + EB.escapeAttr(role || '') + '" placeholder="Role…">' +
+        '<button class="edit-remove-btn" type="button" title="Remove">✕</button>' +
+      '</div>';
+    }
+
+    function wireRemoveButtons() {
+      var btns = detailInner.querySelectorAll('.edit-remove-btn');
+      Array.prototype.forEach.call(btns, function (btn) {
+        btn.onclick = function () { btn.closest('[class*="-row"]').remove(); };
+      });
+    }
+
+    // ---- Read form values ----
+    function readFormValues() {
+      var facts = [];
+      Array.prototype.forEach.call(
+        detailInner.querySelectorAll('.edit-fact-input'),
+        function (inp) {
+          var v = inp.value.trim();
+          if (v) facts.push(v);
+        }
+      );
+      var members = [];
+      Array.prototype.forEach.call(
+        detailInner.querySelectorAll('.edit-member-row'),
+        function (row) {
+          var name = row.querySelector('.edit-member-name').value.trim();
+          var role = row.querySelector('.edit-member-role').value.trim();
+          if (name) members.push({ name: name, role: role });
+        }
+      );
+      return {
+        name:    detailInner.querySelector('#ef-name').value.trim(),
+        sub:     detailInner.querySelector('#ef-sub').value.trim(),
+        body:    detailInner.querySelector('#ef-body').value.trim(),
+        status:  detailInner.querySelector('#ef-status').value,
+        facts:   facts,
+        members: members,
+      };
+    }
+
+    // ---- Save to Supabase + update in-memory ----
+    async function saveEntity(item) {
+      var savingEl = detailInner.querySelector('#ef-saving');
+      var errorEl  = detailInner.querySelector('#ef-error');
+      var saveBtn  = detailInner.querySelector('#ef-save');
+      savingEl.style.display = '';
+      saveBtn.disabled = true;
+      errorEl.textContent = '';
+
+      var vals = readFormValues();
+
+      try {
+        // 1. Update entity row
+        var { error: entErr } = await EB.sb
+          .from('entities')
+          .update({
+            name:       vals.name,
+            sub:        vals.sub   || null,
+            body:       vals.body  || null,
+            status:     vals.status,
+          })
+          .eq('id', item.id);
+        if (entErr) throw entErr;
+
+        // 2. Replace facts
+        await EB.sb.from('entity_facts').delete().eq('entity_id', item.id);
+        if (vals.facts.length) {
+          var factRows = vals.facts.map(function (f, i) {
+            return { entity_id: item.id, fact: f, sort_order: i };
+          });
+          var { error: factsErr } = await EB.sb.from('entity_facts').insert(factRows);
+          if (factsErr) throw factsErr;
+        }
+
+        // 3. Replace members
+        await EB.sb.from('entity_members').delete().eq('entity_id', item.id);
+        if (vals.members.length) {
+          var memberRows = vals.members.map(function (m, i) {
+            return { entity_id: item.id, name: m.name, role: m.role || null, sort_order: i };
+          });
+          var { error: membersErr } = await EB.sb.from('entity_members').insert(memberRows);
+          if (membersErr) throw membersErr;
+        }
+
+        // 4. Update in-memory object (all arrays that could reference this id)
+        var lists = [window.FACTIONS, window.NPCS, window.PLAYERS, window.LORE];
+        lists.forEach(function (arr) {
+          if (!Array.isArray(arr)) return;
+          var idx = arr.findIndex(function (e) { return e.id === item.id; });
+          if (idx < 0) return;
+          arr[idx].name        = vals.name;
+          arr[idx].sub         = vals.sub   || undefined;
+          arr[idx].body        = vals.body  || undefined;
+          arr[idx].description = vals.body  || undefined;  // faction alias
+          arr[idx].status      = vals.status;
+          arr[idx].facts       = vals.facts.length   ? vals.facts   : undefined;
+          arr[idx].members     = vals.members.length ? vals.members : undefined;
+          item = arr[idx];  // re-point so we re-open the updated object
+        });
+
+        // Also update EB.byId cache if present
+        if (EB.byId && EB.byId[item.id]) {
+          Object.assign(EB.byId[item.id], item);
+        }
+
+        // 5. Re-render map card name if changed
+        if (EB.renderMap) EB.renderMap();
+
+        // 6. Re-open read view with updated data
+        openEntityDetail(item, true);
+
+      } catch (err) {
+        savingEl.style.display = 'none';
+        saveBtn.disabled = false;
+        errorEl.textContent = 'Save failed: ' + ((err && err.message) || String(err));
+      }
     }
 
     function openSessionDetail(s, fromNav) {
@@ -151,6 +399,7 @@
         if (currentDetailId && currentDetailId !== s.id) detailHistory.push(currentDetailId);
       }
       currentDetailId = s.id;
+      currentItem = s;
       var summaryHTML = (Array.isArray(s.summary) && s.summary.length)
         ? '<div class="session-summary-box">' +
             '<div class="session-summary-label">Summary</div>' +
