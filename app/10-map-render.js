@@ -1,12 +1,13 @@
 // Renders the map nodes + cluster labels + Eberoth title.
 //
-// For players (not DM):
-//   - any of THEIR backstory cards that have been pushed elsewhere by
-//     DM get a semi-transparent shadow rendered at the Personal column
-//     default position;
-//   - any entities in their EB.PERSONAL_REFS list (NPCs they're tied
-//     to that live elsewhere on the map) ALSO get a shadow rendered
-//     in the Personal column, stacked below the backstory cards.
+// Shadows:
+//   - For PLAYERS: their backstory cards that have been placed
+//     elsewhere render an extra shadow in the Personal column, AND
+//     their personal refs (entities they're tied to that live
+//     elsewhere) render as shadows below the backstory.
+//   - For DM: per-owner backstory columns get personal-ref shadows
+//     beneath each player's backstory, so DM can see what each
+//     player's Personal section will end up looking like.
 (function () {
   EB.initMapRender = function () {
     var canvas = document.getElementById('canvas');
@@ -26,7 +27,7 @@
       el.className = 'eberoth-title';
       el.textContent = 'Eberoth';
       el.style.left = EB.LAYOUT.crown.x + 'px';
-      el.style.top = '52px';
+      el.style.top = (EB.LAYOUT.titleY || 50) + 'px';
       canvas.appendChild(el);
     }
     function makeNode(cls, p, id, html, onOpen) {
@@ -65,7 +66,8 @@
       addEberothTitle();
       addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset);
       var refs = EB.getMyRefs();
-      var hasPersonal = EB.BACKSTORY.length > 0 || (!isDM && refs.length > 0);
+      var hasPersonal = EB.BACKSTORY.length > 0 || (!isDM && refs.length > 0)
+        || (isDM && Object.keys(EB.PERSONAL_REFS).some(function (k) { return (EB.PERSONAL_REFS[k] || []).length > 0; }));
       if (hasPersonal) {
         addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset);
       }
@@ -100,9 +102,9 @@
           function () { EB.openDetail(b); });
       });
 
-      // ---- Player-only shadow duplicates in the Personal column ----
+      // ---- Shadow duplicates ----
       if (!isDM) {
-        // Backstory shadows: card's real position is far from its Personal default.
+        // Player view: backstory shadows + ref shadows in middle column.
         EB.BACKSTORY.forEach(function (b) {
           var actual = pos[b.id];
           var defPos = EB.getBackstoryDefaultPos(b);
@@ -111,8 +113,6 @@
             makeShadow(b, defPos, '-shadow');
           }
         });
-        // Personal refs: NPCs/factions the player has personal ties to.
-        // Stack below the backstory cards in the middle column.
         var stackIdx = EB.BACKSTORY.length;
         refs.forEach(function (refId) {
           var entity = EB.byId[refId];
@@ -123,6 +123,29 @@
           };
           makeShadow(entity, p, '-ref');
           stackIdx++;
+        });
+      } else {
+        // DM view: each player's column gets their refs as shadows
+        // beneath that player's backstory cards.
+        ['baker', 'butcher', 'charlie'].forEach(function (bkt) {
+          var bktRefs = EB.PERSONAL_REFS[bkt] || [];
+          if (bktRefs.length === 0) return;
+          var charId = EB.BUCKET_TO_CHARACTER[bkt];
+          var ownerIdx = (window.PLAYERS || []).findIndex(function (p) { return p.id === charId; });
+          if (ownerIdx < 0) return;
+          var ownerBackstoryCount = (window.BACKSTORY || [])
+            .filter(function (b) { return b.ownerId === charId; }).length;
+          var s = ownerBackstoryCount;
+          bktRefs.forEach(function (refId) {
+            var entity = EB.byId[refId];
+            if (!entity) return;
+            var p = {
+              x: L.party.x + ownerIdx * L.party.gap,
+              y: L.personalY + s * L.personalCardGapY
+            };
+            makeShadow(entity, p, '-ref-' + bkt);
+            s++;
+          });
         });
       }
 

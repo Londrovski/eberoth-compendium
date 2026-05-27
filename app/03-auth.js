@@ -1,10 +1,8 @@
-// Auth — backed by real Supabase sessions.
-//
-// The four buckets (dm / baker / butcher / charlie) map to four
-// Supabase auth users (dm@compendium.local etc.) whose passwords are
-// the campaign passcodes. Sign-in is straight signInWithPassword.
-// Guest is special: no Supabase session, the front-end still runs but
-// reads/writes are gated by RLS (so guest never reaches per-user data).
+// Auth — Supabase session backed. Adds view-as support: DM can
+// preview the map as another bucket without changing the auth session.
+//   EB.actualBucket()  → the bucket of the signed-in user (DM only
+//                        ever has a non-DM view-as set).
+//   EB.currentBucket() → view-as bucket if set, else actual.
 (function () {
   EB.PASSCODES = {
     'MAREN':   'baker',
@@ -22,17 +20,20 @@
     return String(s).replace(/[^a-zA-Z]/g, '').toUpperCase();
   };
 
-  // Bucket is derived from the Supabase session's email (local-part).
-  // Cached in EB._bucket so synchronous callers don't have to await.
   EB._bucket = null;
   EB._userId = null;
-  EB.currentBucket = function () { return EB._bucket; };
+  EB._viewAsBucket = null;
+
+  EB.actualBucket  = function () { return EB._bucket; };
+  EB.currentBucket = function () { return EB._viewAsBucket || EB._bucket; };
   EB.currentUserId = function () { return EB._userId; };
   EB._setBucket = function (b, uid) { EB._bucket = b || null; EB._userId = uid || null; };
 
-  // Sign in with a bucket name + passcode. Returns the Supabase response
-  // promise so the caller can handle errors. Guest is a synchronous
-  // bypass (no real session).
+  EB.setViewAs = function (bucket) {
+    if (EB._bucket !== 'dm') return;     // only DM can switch view
+    EB._viewAsBucket = bucket || null;
+  };
+
   EB.signIn = function (bucket, passcode) {
     if (bucket === 'guest') {
       EB._setBucket('guest', null);
@@ -51,12 +52,11 @@
   EB.signOut = function () {
     var wasGuest = EB._bucket === 'guest';
     EB._setBucket(null, null);
+    EB._viewAsBucket = null;
     if (wasGuest) return Promise.resolve();
     return EB.sb.auth.signOut();
   };
 
-  // Check for an existing persisted session. Sets the bucket cache if
-  // found. Called once at boot.
   EB.checkSession = function () {
     return EB.sb.auth.getSession().then(function (res) {
       var session = res && res.data && res.data.session;

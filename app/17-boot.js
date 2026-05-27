@@ -1,10 +1,6 @@
-// Orchestrator. Two phases:
-//   init  — sync wiring of landing + topbar + an async session check.
-//   boot  — once a bucket is known, show app, init modules, fetch
-//           positions from Supabase, then render.
-//
-// boot() may run more than once (e.g. after sign-in) so module init
-// is guarded by a flag.
+// Orchestrator. boot() may run more than once — e.g. after sign-in, or
+// after DM toggles view-as. initLayout + loadPositions + render are
+// run every time; one-off module wiring is guarded.
 (function () {
   var modulesInited = false;
 
@@ -14,10 +10,10 @@
   };
 
   EB.boot = function () {
-    var b = EB.currentBucket();
-    if (!b) { EB.showLanding(); return; }
+    var realBucket = EB.actualBucket();
+    if (!realBucket) { EB.showLanding(); return; }
     EB.showApp();
-    EB.initLayout();  // safe to call repeatedly; reads current bucket
+    EB.initLayout();
     if (!modulesInited) {
       modulesInited = true;
       EB.initDetail();
@@ -27,7 +23,6 @@
       EB.initThreads();
       EB.initNotes();
     }
-    // Async — fetch globals + per-user positions, then render.
     EB.loadPositionsFromSupabase().then(function () {
       EB.renderMap();
       EB.centerInitial();

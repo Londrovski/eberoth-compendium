@@ -1,42 +1,34 @@
-// Map layout: positions, anchors, saved-state. Positions sourced from
-// Supabase — global_positions (DM-authored, world-readable) and
-// node_positions (per-user override, RLS-scoped).
+// Map layout. Positions sourced from Supabase — global_positions
+// (DM-authored baseline) + node_positions (per-user overrides).
 //
-// Personal cluster:
-//   - Backstory cards (EB.BACKSTORY) sit in vertical stacks. DM sees
-//     per-owner columns; players see all in the middle column.
-//   - Personal refs (EB.PERSONAL_REFS) are entities the player has a
-//     personal relationship with that live elsewhere on the map
-//     (e.g. Kalvorn knows Aldus Corvath, who's still an NPC under the
-//     Corvath house). Rendered as semi-transparent shadow duplicates
-//     in the player's Personal column — see 10-map-render.js.
+// Spatial defaults are arranged so the centroid of Crown + Voss +
+// Gorrund nodes lands at canvas centre (1425, 950) on a 2850×1900
+// canvas. Image fills the canvas exactly.
 (function () {
   EB.LAYOUT = {
-    party: { x: 242, y: 490, gap: 110 },
-    special: { x: 1610, y: 240 },
-    crown: { x: 1000, y: 400 },
+    titleY: 50,            // Eberoth title fixed near top of canvas
+    party: { x: 667, y: 773, gap: 110 },
+    special: { x: 2035, y: 523 },
+    crown: { x: 1425, y: 683 },
     crownRingRadius: 220,
     crownRingPoints: 6,
-    housesY: 800,
-    housesXs: { corvath: 640, voss: 880, gorrund: 1120, halvorn: 1360 },
-    houseGridY: 1080,
+    housesY: 1083,
+    housesXs: { corvath: 1065, voss: 1305, gorrund: 1545, halvorn: 1785 },
+    houseGridY: 1363,
     houseGridGapX: 130,
     houseGridGapY: 150,
-    personalY: 690,
+    personalY: 973,
     personalCardGapY: 145,
-    loreGridY: 440,
+    loreGridY: 723,
     loreGridGapY: 145,
     headerOffset: 84
   };
-  EB.LAYOUT_VERSION = 11;
+  EB.LAYOUT_VERSION = 12;  // bumped: full shift to centre on canvas
   EB.SNAP_DISTANCE = 60;
 
   EB.customPositions = {};
   EB.globalPositions = {};
 
-  // Per-bucket list of entity ids the player has "personal context" with.
-  // Shown as shadow duplicates in their Personal column (below backstory).
-  // The actual entity still renders wherever its real position is.
   EB.PERSONAL_REFS = {
     baker:   ['aldus-corvath', 'byren-holt'],
     butcher: [],
@@ -88,8 +80,11 @@
         }, logRej('load global_positions'))
     ];
     var uid = EB.currentUserId();
-    var bucket = EB.currentBucket();
-    if (uid && bucket && bucket !== 'guest') {
+    var actual = EB.actualBucket();
+    var viewing = EB._viewAsBucket;
+    // Skip personal customs while view-as is on — they're DM's customs
+    // and don't represent the previewed player.
+    if (uid && actual && actual !== 'guest' && !viewing) {
       jobs.push(
         EB.sb.from('node_positions')
           .select('entity_id, x, y, layout_version')
@@ -115,8 +110,18 @@
     ).then(logErr('savePositionForUser ' + entityId), logRej('savePositionForUser ' + entityId));
   };
 
+  // Reset to baseline — wipe this user's personal overrides everywhere.
+  EB.deleteAllPositionsForUser = function () {
+    var uid = EB.currentUserId();
+    if (!uid) return Promise.resolve();
+    return EB.sb.from('node_positions')
+      .delete()
+      .eq('user_id', uid)
+      .then(logErr('deleteAllPositionsForUser'), logRej('deleteAllPositionsForUser'));
+  };
+
   EB.pushToAll = function () {
-    if (EB.currentBucket() !== 'dm') return Promise.reject(new Error('Only DM can push'));
+    if (EB.actualBucket() !== 'dm') return Promise.reject(new Error('Only DM can push'));
     var customs = EB.customPositions || {};
     var rows = Object.keys(customs).map(function (id) {
       return {

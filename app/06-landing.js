@@ -1,7 +1,6 @@
 // Landing page + topbar wiring. DOM refs grabbed at initLanding()
 // time, which boot calls once on startup.
 (function () {
-  // Move mode is ephemeral — every reload starts safe.
   EB.moveMode = false;
 
   EB.initLanding = function () {
@@ -12,17 +11,26 @@
     var landingError  = document.getElementById('landingError');
     var appEl         = document.getElementById('app');
     var roleBadge     = document.getElementById('roleBadge');
+    var roleTag       = document.querySelector('.role-tag');
     var logoutBtn     = document.getElementById('logout');
     var navHome       = document.getElementById('navHome');
     var navSessions   = document.getElementById('navSessions');
     var navParty      = document.getElementById('navParty');
     var navMoveMode   = document.getElementById('navMoveMode');
     var navPushToAll  = document.getElementById('navPushToAll');
+    var viewAsSelect  = document.getElementById('viewAsSelect');
 
-    function updatePushButtonVisibility() {
-      if (!navPushToAll) return;
-      var isDM = EB.currentBucket() === 'dm';
-      navPushToAll.style.display = (EB.moveMode && isDM) ? '' : 'none';
+    function updateModeButtonVisibility() {
+      var realBucket = EB.actualBucket();
+      var inViewAs = !!EB._viewAsBucket;
+      // Move + Push hidden while previewing as another bucket
+      if (navMoveMode) navMoveMode.style.display = inViewAs ? 'none' : '';
+      if (navPushToAll) {
+        navPushToAll.style.display = (!inViewAs && realBucket === 'dm' && EB.moveMode) ? '' : 'none';
+      }
+      if (viewAsSelect) {
+        viewAsSelect.style.display = (realBucket === 'dm') ? '' : 'none';
+      }
     }
 
     EB.showLanding = function () {
@@ -33,17 +41,28 @@
     EB.showApp = function () {
       landing.style.display = 'none';
       appEl.style.display = 'flex';
-      var b = EB.currentBucket();
+      var bucket = EB.currentBucket();
+      var inViewAs = !!EB._viewAsBucket;
       var label;
-      if (b === 'dm') label = 'DM';
-      else if (b === 'guest' || !b) label = 'GUEST';
-      else {
-        var charId = EB.BUCKET_TO_CHARACTER[b];
-        var char = (window.PLAYERS || []).find(function (p) { return p.id === charId; });
-        label = char ? char.name : b.toUpperCase();
+      if (inViewAs) {
+        if (bucket === 'guest') label = 'AS GUEST';
+        else {
+          var charId = EB.BUCKET_TO_CHARACTER[bucket];
+          var char = (window.PLAYERS || []).find(function (p) { return p.id === charId; });
+          label = 'AS ' + (char ? char.name : (bucket || '').toUpperCase());
+        }
+      } else {
+        if (bucket === 'dm') label = 'DM';
+        else if (bucket === 'guest' || !bucket) label = 'GUEST';
+        else {
+          var charId2 = EB.BUCKET_TO_CHARACTER[bucket];
+          var char2 = (window.PLAYERS || []).find(function (p) { return p.id === charId2; });
+          label = char2 ? char2.name : bucket.toUpperCase();
+        }
       }
       roleBadge.textContent = label;
-      updatePushButtonVisibility();
+      if (roleTag) roleTag.classList.toggle('viewing', inViewAs);
+      updateModeButtonVisibility();
     };
 
     function tryLogin() {
@@ -86,22 +105,19 @@
     if (navSessions) navSessions.addEventListener('click', function () { if (EB.openSessionsList) EB.openSessionsList(); });
     if (navParty)    navParty.addEventListener('click', function () { if (EB.zoomToParty) EB.zoomToParty(); });
 
-    // Move toggle. When DM has it on, also reveal the Push button.
     if (navMoveMode) {
       navMoveMode.addEventListener('click', function () {
         EB.moveMode = !EB.moveMode;
         navMoveMode.classList.toggle('on', EB.moveMode);
         if (EB.moveMode) { if (EB.showAnchors) EB.showAnchors(); }
         else             { if (EB.hideAnchors) EB.hideAnchors(); }
-        updatePushButtonVisibility();
+        updateModeButtonVisibility();
       });
     }
 
-    // Push to Players — DM only. Confirm, then publish + wipe player
-    // overrides via EB.pushToAll().
     if (navPushToAll) {
       navPushToAll.addEventListener('click', function () {
-        if (EB.currentBucket() !== 'dm') return;
+        if (EB.actualBucket() !== 'dm') return;
         var ok = confirm('This will overwrite ALL players\' personal positions with your current layout.\n\nContinue?');
         if (!ok) return;
         navPushToAll.disabled = true;
@@ -117,6 +133,15 @@
           navPushToAll.textContent = prevText;
           alert('Push failed. Check the browser console for details.');
         });
+      });
+    }
+
+    if (viewAsSelect) {
+      viewAsSelect.addEventListener('change', function () {
+        EB.setViewAs(viewAsSelect.value || null);
+        // Re-boot to apply: re-init layout, reload positions for the new
+        // (or restored) effective bucket, re-render.
+        EB.boot();
       });
     }
   };

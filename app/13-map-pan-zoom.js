@@ -1,36 +1,29 @@
 // Pan / zoom for the map.
 //
-// The viewport is a real scrollable container (overflow:auto). Pan is
-// the viewport's own scroll position; nothing in JS needs to track tx/ty.
-// Trackpad/wheel pans natively; drag on empty area pans via
-// scrollLeft/Top updates. Zoom is buttons only (no wheel-zoom).
+// Viewport is a real scrollable container (overflow:auto). Pan = the
+// viewport's own scrollLeft/Top. Trackpad/wheel pans natively; drag on
+// empty area pans via scrollLeft/Top updates. Zoom is buttons only.
 //
-// EB.scale is still exposed for the drag handler so screen-space deltas
-// translate to canvas-space cleanly.
+// Reset button (↺) wipes the current user's personal overrides (both
+// local + Supabase) so they revert to the DM baseline.
 (function () {
   EB.scale = 0.6;
   var canvas, canvasWrap, viewport;
-  // Natural canvas dimensions (must match .map-canvas-wrap / .map-canvas
-  // CSS values). Kept in sync with the image bounds.
-  var CANVAS_W = 2700, CANVAS_H = 1800;
+  var CANVAS_W = 2850, CANVAS_H = 1900;
 
   function setScale(s) {
     EB.scale = s;
     canvas.style.transform = 'scale(' + s + ')';
-    // Grow/shrink the wrap so the scrollable area matches current zoom.
     canvasWrap.style.width  = (CANVAS_W * s) + 'px';
     canvasWrap.style.height = (CANVAS_H * s) + 'px';
   }
 
-  // Scroll the viewport so canvas-coords (cx, cy) sit at the viewport
-  // centre at the current scale. Browser clamps to the scrollable area.
   function scrollToCanvasPoint(cx, cy) {
     var s = EB.scale;
     viewport.scrollLeft = cx * s - viewport.clientWidth  / 2;
     viewport.scrollTop  = cy * s - viewport.clientHeight / 2;
   }
 
-  // Home / reset view: 0.6 scale, centred on the Crown.
   EB.centerInitial = function () {
     setScale(0.6);
     scrollToCanvasPoint(EB.LAYOUT.crown.x, EB.LAYOUT.crown.y);
@@ -51,11 +44,8 @@
     canvasWrap = document.getElementById('canvasWrap');
     viewport = document.getElementById('viewport');
 
-    // Initial sizing so the wrap reflects the boot scale.
     setScale(EB.scale);
 
-    // Drag-to-pan on empty viewport area. Updates scrollLeft/Top so it
-    // co-operates with native scroll instead of fighting it.
     var isPanning = false;
     var startScrollX = 0, startScrollY = 0, startMouseX = 0, startMouseY = 0;
     viewport.addEventListener('mousedown', function (e) {
@@ -82,13 +72,18 @@
     document.getElementById('zoomReset').onclick = function () {
       EB.centerInitial();
     };
+
+    // Reset ↺: revert to baseline (delete this user's customs).
     document.getElementById('layoutReset').onclick = function () {
-      if (Object.keys(EB.customPositions).length === 0) return;
-      if (confirm('Reset all node positions to default?')) {
-        EB.customPositions = {};
-        EB.savePositions && EB.savePositions();
-        EB.renderMap();
-      }
+      if (!confirm('Reset your layout to the DM\'s baseline? This clears any rearrangements you\'ve made.')) return;
+      EB.customPositions = {};
+      var p = EB.deleteAllPositionsForUser ? EB.deleteAllPositionsForUser() : Promise.resolve();
+      p.then(function () {
+        if (EB.renderMap) EB.renderMap();
+      }, function (err) {
+        console.error('[Eberoth] layout reset failed', err);
+        if (EB.renderMap) EB.renderMap();
+      });
     };
   };
 })();

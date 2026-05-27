@@ -50,6 +50,14 @@
       <button id="navMoveMode" class="move-mode-toggle" title="Toggle move mode">Move</button>
       <button id="navPushToAll" class="push-to-all" style="display:none" title="DM-only: push your current layout to all players (overwrites theirs)">Push to Players</button>
       <div class="role-tag"><span id="roleBadge">…</span></div>
+      <!-- DM-only quick-switch. Frontend-only preview. -->
+      <select id="viewAsSelect" class="view-as-select" style="display:none" title="DM-only: preview the map as another player">
+        <option value="">View as DM</option>
+        <option value="baker">View as Baker (Kalvorn)</option>
+        <option value="butcher">View as Butcher (Azrael)</option>
+        <option value="charlie">View as Charlie (Dirk)</option>
+        <option value="guest">View as Guest</option>
+      </select>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>
     </div>
 
@@ -75,20 +83,23 @@
 
       <main class="main">
         <div class="map-wrap">
-          <div class="map-viewport" id="viewport">
-            <!-- Wrap exists so the scrollable area can grow with zoom
-                 (its width/height = canvas size * scale, set by JS).
-                 Canvas itself stays at its natural pixel size. -->
-            <div class="map-canvas-wrap" id="canvasWrap">
-              <div class="map-canvas" id="canvas">
-                <svg id="lines"></svg>
+          <!-- map-stage wraps the scrolling viewport AND the controls so
+               controls can be position:absolute relative to the stage
+               (anchored to top-right of the visible map area) without
+               being part of the scrollable content. -->
+          <div class="map-stage">
+            <div class="map-viewport" id="viewport">
+              <div class="map-canvas-wrap" id="canvasWrap">
+                <div class="map-canvas" id="canvas">
+                  <svg id="lines"></svg>
+                </div>
               </div>
             </div>
             <div class="map-controls">
               <button id="zoomIn" title="Zoom in">+</button>
               <button id="zoomOut" title="Zoom out">−</button>
               <button id="zoomReset" title="Home">⌂</button>
-              <button id="layoutReset" title="Reset layout">↺</button>
+              <button id="layoutReset" title="Reset to baseline">↺</button>
             </div>
           </div>
 
