@@ -1,9 +1,9 @@
 // Landing page + topbar wiring. DOM refs grabbed at initLanding()
 // time, which boot calls once on startup.
 (function () {
-  // Move mode is OFF by default. Ephemeral: every reload starts safe.
-  // Phase 3 could choose to persist this per-bucket if useful.
+  // Movement modes. Both ephemeral — every reload starts safe.
   EB.moveMode = false;
+  EB.moveAllMode = false;
 
   EB.initLanding = function () {
     var landing       = document.getElementById('landing');
@@ -18,6 +18,7 @@
     var navSessions   = document.getElementById('navSessions');
     var navParty      = document.getElementById('navParty');
     var navMoveMode   = document.getElementById('navMoveMode');
+    var navMoveAll    = document.getElementById('navMoveAll');
 
     EB.showLanding = function () {
       landing.style.display = 'flex';
@@ -37,6 +38,8 @@
         label = char ? char.name : b.toUpperCase();
       }
       roleBadge.textContent = label;
+      // DM-only visibility for Move All.
+      if (navMoveAll) navMoveAll.style.display = (b === 'dm') ? '' : 'none';
     };
 
     function tryLogin() {
@@ -50,28 +53,67 @@
         return;
       }
       landingError.textContent = '';
-      EB.setBucket(bucket);
-      EB.boot();
+      landingSubmit.disabled = true;
+      EB.signIn(bucket, code).then(function (res) {
+        landingSubmit.disabled = false;
+        if (res && res.error) {
+          landingError.textContent = res.error.message || 'Sign-in failed.';
+          landingInput.classList.add('shake');
+          setTimeout(function () { landingInput.classList.remove('shake'); }, 500);
+          return;
+        }
+        EB.boot();
+      }).catch(function (err) {
+        landingSubmit.disabled = false;
+        landingError.textContent = (err && err.message) || 'Sign-in failed.';
+      });
     }
 
     landingSubmit.addEventListener('click', tryLogin);
     landingInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
-    landingGuest.addEventListener('click', function () { EB.setBucket('guest'); EB.boot(); });
-    logoutBtn.addEventListener('click', function () { EB.setBucket(null); location.reload(); });
+    landingGuest.addEventListener('click', function () {
+      EB.signIn('guest').then(function () { EB.boot(); });
+    });
+    logoutBtn.addEventListener('click', function () {
+      EB.signOut().then(function () { location.reload(); }, function () { location.reload(); });
+    });
 
-    // Topbar nav. Each is a one-shot action; no persistent active state.
+    // Topbar nav.
     if (navHome)     navHome.addEventListener('click', function () { if (EB.centerInitial) EB.centerInitial(); });
     if (navSessions) navSessions.addEventListener('click', function () { if (EB.openSessionsList) EB.openSessionsList(); });
     if (navParty)    navParty.addEventListener('click', function () { if (EB.zoomToParty) EB.zoomToParty(); });
 
-    // Move-mode toggle — ephemeral, resets on reload. Anchors shown the
-    // whole time move mode is on, hidden again when turned off.
+    // Move mode — mutually exclusive with Move All.
     if (navMoveMode) {
       navMoveMode.addEventListener('click', function () {
+        if (EB.moveAllMode) {
+          EB.moveAllMode = false;
+          EB.viewingGlobals = false;
+          if (navMoveAll) navMoveAll.classList.remove('on');
+        }
         EB.moveMode = !EB.moveMode;
         navMoveMode.classList.toggle('on', EB.moveMode);
         if (EB.moveMode) { if (EB.showAnchors) EB.showAnchors(); }
         else             { if (EB.hideAnchors) EB.hideAnchors(); }
+        if (EB.renderMap) EB.renderMap();
+      });
+    }
+
+    // Move All — DM only. Drag writes to the global_positions table,
+    // visible to all players. While on, the personal-overrides overlay
+    // is hidden so DM sees what other players will see.
+    if (navMoveAll) {
+      navMoveAll.addEventListener('click', function () {
+        if (EB.moveMode) {
+          EB.moveMode = false;
+          navMoveMode.classList.remove('on');
+        }
+        EB.moveAllMode = !EB.moveAllMode;
+        EB.viewingGlobals = EB.moveAllMode;
+        navMoveAll.classList.toggle('on', EB.moveAllMode);
+        if (EB.moveAllMode) { if (EB.showAnchors) EB.showAnchors(); }
+        else                { if (EB.hideAnchors) EB.hideAnchors(); }
+        if (EB.renderMap) EB.renderMap();
       });
     }
   };

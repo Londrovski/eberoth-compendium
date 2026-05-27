@@ -1,16 +1,10 @@
 // Manifest for app/
 // Order = load order. Each module attaches functions/state to window.EB.
-// Boot module is last; it orchestrates the rest.
-//
-// Dependency chain (informal):
-//   namespace -> util / auth / storage -> portraits / landing
-//                  -> layout (reads data globals + auth)
-//                  -> mentions / detail (cross-reference at call time)
-//                  -> map-render / map-drag / map-tints / map-pan-zoom
-//                  -> drawer / threads / notes
-//                  -> boot (calls everyone's init)
+// 00-supabase initialises the client and must load first so other
+// modules can rely on EB.sb at boot time.
 
 window.MANIFEST = [
+  '00-supabase',
   '01-namespace',
   '02-util',
   '03-auth',

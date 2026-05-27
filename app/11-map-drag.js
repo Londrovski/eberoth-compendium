@@ -1,24 +1,15 @@
-// Node drag + snap, using Pointer Events with setPointerCapture.
+// Node drag + snap (Pointer Events + setPointerCapture).
 //
-// Drag is opt-in via EB.moveMode (toggled by the "Move" button in the
-// topbar). When move mode is OFF:
-//   - press + release without moving → opens that node's detail panel
-//   - press + move past the threshold → nothing (drag won't start, and
-//     the release is NOT treated as a click — prevents accidental
-//     detail-panel opens while a player is trying to scroll past)
-// When move mode is ON: same as above but past-threshold movement
-// activates a drag and the release snaps to the nearest anchor.
-// Anchor dots are visible the whole time move mode is on (shown when
-// the toggle is enabled; hidden when it is disabled).
-//
-// Move mode is ephemeral — every reload starts in the safe (off)
-// state so players can't accidentally rearrange the world.
+// Drag is opt-in. Two modes:
+//   Move      → saves to node_positions (per-user override)
+//   Move All  → saves to global_positions (DM-only baseline). Also
+//                clears the user's own override for the same entity so
+//                the new global takes effect immediately.
+// Both modes are mutually exclusive and ephemeral (reload resets).
 (function () {
-  var DRAG_THRESHOLD = 5;     // px in screen space before drag activates
+  var DRAG_THRESHOLD = 5;
   var anchorEls = [];
 
-  // Exposed: called by both the drag start AND the topbar Move toggle.
-  // Idempotent — if anchors are already shown, this is a no-op.
   EB.showAnchors = function () {
     if (anchorEls.length > 0) return;
     EB.getAnchors().forEach(function (a, i) {
@@ -60,6 +51,21 @@
     return best;
   }
 
+  function commitDrag(id, final) {
+    if (EB.moveAllMode) {
+      EB.globalPositions[id] = final;
+      EB.saveGlobalPosition(id, final);
+      // Clear personal override so the new global is what the DM sees.
+      if (EB.customPositions[id]) {
+        delete EB.customPositions[id];
+        EB.deletePositionForUser(id);
+      }
+    } else {
+      EB.customPositions[id] = final;
+      EB.savePositionForUser(id, final);
+    }
+  }
+
   EB.attachNodeInteraction = function (el, id, onOpen) {
     var startX = 0, startY = 0, nodeStartX = 0, nodeStartY = 0;
     var dragging = false, armed = false, activePointer = null;
@@ -80,12 +86,11 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      // Past threshold — only enter drag state when move mode is on.
-      if (!dragging && !EB.moveMode) return;
+      if (!dragging && !EB.moveMode && !EB.moveAllMode) return;
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
-        EB.showAnchors();   // idempotent
+        EB.showAnchors();
       }
       var newX = nodeStartX + dx / EB.scale;
       var newY = nodeStartY + dy / EB.scale;
@@ -100,7 +105,6 @@
       try { el.releasePointerCapture(activePointer); } catch (err) {}
       activePointer = null;
       if (!dragging) {
-        // No drag activated. Open detail only if the press was clean.
         var movedX = (e && e.clientX != null) ? Math.abs(e.clientX - startX) : 0;
         var movedY = (e && e.clientY != null) ? Math.abs(e.clientY - startY) : 0;
         if (Math.hypot(movedX, movedY) < DRAG_THRESHOLD) onOpen();
@@ -117,11 +121,8 @@
         el.style.left = final.x + 'px';
         el.style.top  = final.y + 'px';
       }
-      EB.customPositions[id] = final;
-      EB.savePositions();
-      // Keep anchors up if move mode is still on; clear the highlight
-      // so the just-snapped target doesn't stay glowing.
-      if (EB.moveMode) clearHighlights();
+      commitDrag(id, final);
+      if (EB.moveMode || EB.moveAllMode) clearHighlights();
       else EB.hideAnchors();
       if (EB.applyHouseTints) EB.applyHouseTints();
     }

@@ -47,9 +47,9 @@
         <button id="navSessions">Sessions</button>
         <button id="navParty">Party</button>
       </nav>
-      <!-- Move toggle: when ON, nodes can be dragged. Ephemeral —
-           every reload starts in the safe (read-only) state. -->
       <button id="navMoveMode" class="move-mode-toggle" title="Toggle move mode">Move</button>
+      <!-- DM-only: writes to the global default layout that all players see. -->
+      <button id="navMoveAll" class="move-all-toggle" style="display:none" title="DM-only: set the default layout for all players">Move All</button>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <button id="logout" class="logout-btn" title="Sign out">Lock</button>
     </div>
@@ -98,6 +98,9 @@
     </div>
   </div>
 
+  <!-- Supabase JS client (UMD) loaded before the loader so app modules
+       can rely on window.supabase being available. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="loader.js"></script>
 </body>
 </html>

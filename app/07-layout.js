@@ -1,6 +1,14 @@
-// Map layout: positions, anchors, saved-state. Party + Personal shifted
-// right + down vs the prototype to free top space for the Eberoth title.
-// House order (left → right): Corvath, Voss, Gorrund, Halvorn.
+// Map layout: positions, anchors, saved-state. Positions are sourced
+// from Supabase now — two tables:
+//   global_positions   — DM-authored baseline, read by all
+//   node_positions     — per-user overrides, RLS-scoped
+//
+// defaultLayout() = computed spatial layout + globals on top
+// currentPositions() = defaultLayout() + per-user customs on top
+//                      (skipped when EB.viewingGlobals is true, so DM
+//                      in Move All mode sees what other players see)
+//
+// House order (L → R): Corvath, Voss, Gorrund, Halvorn.
 (function () {
   EB.LAYOUT = {
     party: { x: 290, y: 490, gap: 110 },
@@ -9,7 +17,6 @@
     crownRingRadius: 220,
     crownRingPoints: 6,
     housesY: 800,
-    // L → R: Corvath, Voss, Gorrund, Halvorn.
     housesXs: { corvath: 640, voss: 880, gorrund: 1120, halvorn: 1360 },
     houseGridY: 1080,
     houseGridGapX: 130,
@@ -22,11 +29,14 @@
     loreGridGapY: 145,
     headerOffset: 84
   };
-  EB.LAYOUT_VERSION = 10;  // bumped: houses reordered, saved positions now stale
+  EB.LAYOUT_VERSION = 10;
   EB.SNAP_DISTANCE = 60;
 
+  EB.customPositions = {};
+  EB.globalPositions = {};
+  EB.viewingGlobals = false;
+
   EB.initLayout = function () {
-    // Backstory filter: DM sees all, players see their own only, guest none.
     var b = EB.currentBucket();
     var myChar = EB.BUCKET_TO_CHARACTER[b];
     var isDM = b === 'dm';
@@ -34,21 +44,67 @@
       ? (window.BACKSTORY || []).slice()
       : (window.BACKSTORY || []).filter(function (x) { return x.ownerId === myChar; });
 
-    // byId index across visible entities, for tag-click resolution.
     EB.byId = {};
     [window.PLAYERS || [], window.FACTIONS || [], window.NPCS || [],
      window.LORE || [], window.SESSIONS || [], EB.BACKSTORY]
       .forEach(function (pool) { pool.forEach(function (x) { EB.byId[x.id] = x; }); });
-
-    // Load saved drag positions (versioned to invalidate stale ones).
-    try {
-      var raw = EB.lsLoad('positions', null);
-      EB.customPositions = (raw && raw.__v === EB.LAYOUT_VERSION) ? (raw.positions || {}) : {};
-    } catch (e) { EB.customPositions = {}; }
   };
 
-  EB.savePositions = function () {
-    EB.lsSave('positions', { __v: EB.LAYOUT_VERSION, positions: EB.customPositions });
+  // Fetch globals (everyone) + per-user positions (if signed in).
+  // Filtered server-side by LAYOUT_VERSION so older saves are ignored.
+  EB.loadPositionsFromSupabase = function () {
+    EB.customPositions = {};
+    EB.globalPositions = {};
+    var jobs = [
+      EB.sb.from('global_positions')
+        .select('entity_id, x, y, layout_version')
+        .eq('layout_version', EB.LAYOUT_VERSION)
+        .then(function (res) {
+          if (!res || res.error || !Array.isArray(res.data)) return;
+          res.data.forEach(function (row) {
+            EB.globalPositions[row.entity_id] = { x: row.x, y: row.y };
+          });
+        })
+    ];
+    var uid = EB.currentUserId();
+    var bucket = EB.currentBucket();
+    if (uid && bucket && bucket !== 'guest') {
+      jobs.push(
+        EB.sb.from('node_positions')
+          .select('entity_id, x, y, layout_version')
+          .eq('layout_version', EB.LAYOUT_VERSION)
+          .then(function (res) {
+            if (!res || res.error || !Array.isArray(res.data)) return;
+            res.data.forEach(function (row) {
+              EB.customPositions[row.entity_id] = { x: row.x, y: row.y };
+            });
+          })
+      );
+    }
+    return Promise.all(jobs);
+  };
+
+  EB.savePositionForUser = function (entityId, pos) {
+    var uid = EB.currentUserId();
+    if (!uid) return Promise.resolve();
+    return EB.sb.from('node_positions').upsert(
+      { user_id: uid, entity_id: entityId, x: pos.x, y: pos.y, layout_version: EB.LAYOUT_VERSION },
+      { onConflict: 'user_id,entity_id' }
+    );
+  };
+  EB.deletePositionForUser = function (entityId) {
+    var uid = EB.currentUserId();
+    if (!uid) return Promise.resolve();
+    return EB.sb.from('node_positions')
+      .delete()
+      .eq('user_id', uid)
+      .eq('entity_id', entityId);
+  };
+  EB.saveGlobalPosition = function (entityId, pos) {
+    return EB.sb.from('global_positions').upsert(
+      { entity_id: entityId, x: pos.x, y: pos.y, layout_version: EB.LAYOUT_VERSION },
+      { onConflict: 'entity_id' }
+    );
   };
 
   EB.defaultLayout = function () {
@@ -83,12 +139,17 @@
     EB.BACKSTORY.forEach(function (b, i) {
       pos[b.id] = { x: L.party.x + (i % 2) * L.personalCardGapX, y: L.personalY + Math.floor(i / 2) * L.personalCardGapY };
     });
+    // Apply DM-authored globals over the spatial defaults.
+    Object.keys(EB.globalPositions || {}).forEach(function (id) {
+      if (pos[id]) pos[id] = EB.globalPositions[id];
+    });
     return pos;
   };
 
   EB.currentPositions = function () {
     var pos = EB.defaultLayout();
-    Object.keys(EB.customPositions).forEach(function (id) {
+    if (EB.viewingGlobals) return pos;  // DM in Move All mode
+    Object.keys(EB.customPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.customPositions[id];
     });
     return pos;
