@@ -6,7 +6,6 @@
   position: relative;
   width: 210px; height: 210px;
   border: 2px solid currentColor;
-  background: var(--bg-panel-2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -20,10 +19,14 @@
   width: auto;
   height: auto;
   object-fit: contain;
+  /* shift down 7.5% of the circle height (210px * 7.5% = ~15.75px) */
+  transform: translateY(7.5%);
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
 }
+/* Crown circle is 255px — 7.5% = ~19px, same rule applies */
+
 /* Missing-image fallback inside a faction circle */
 .node-faction .shape .portrait-missing {
   font-family: 'Cinzel', 'Georgia', serif;
