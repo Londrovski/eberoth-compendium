@@ -1,6 +1,6 @@
 /* ===== LOADING OVERLAY =====
-   Shown immediately on page load, dismissed by app.js once
-   the Supabase content fetch resolves. Fades out smoothly.
+   Shown immediately on page load, dismissed by 17-boot.js once
+   loadContent() + loadPositionsFromSupabase() resolve. Fades out smoothly.
 */
 
 #loadingOverlay {
@@ -21,13 +21,10 @@
   pointer-events: none;
 }
 
-/* The big ? mark */
+/* Campaign logo */
 .loading-glyph {
-  font-family: 'Cinzel', 'Georgia', serif;
-  font-size: 96px;
-  font-weight: 700;
-  color: var(--gold, #c9a961);
-  line-height: 1;
+  max-width: 220px;
+  width: 60%;
   opacity: 0.9;
   animation: loading-pulse 2.4s ease-in-out infinite;
 }
