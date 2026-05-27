@@ -67,30 +67,19 @@
 
   // ---- Block-mode helpers -------------------------------------------------
 
-  // Collect every DOM .node belonging to the given cluster, plus the
-  // cluster-label elements tagged with data-cluster=<cluster>. Each
-  // entry remembers its starting style.left/top so we can move them
-  // in lockstep during the drag.
+  // Collect every element on the canvas tagged data-cluster=<cluster>
+  // (nodes, shadows, cluster labels, the Eberoth title). Each entry
+  // records its starting style.left/top so the drag can move them all
+  // by the same delta.
   function collectClusterElements(cluster) {
     if (!cluster || !EB.canvas) return [];
-    var clusterIds = {};
-    EB.entitiesInCluster(cluster).forEach(function (id) { clusterIds[id] = true; });
-
+    var els = EB.canvas.querySelectorAll('[data-cluster="' + cluster + '"]');
     var out = [];
-    // Nodes (including shadows whose dataset.id is "<id>-suffix").
-    var nodes = EB.canvas.querySelectorAll('.node');
-    Array.prototype.forEach.call(nodes, function (el) {
-      var id = el.dataset && el.dataset.id;
-      if (!id) return;
-      var baseId = id.split('-shadow')[0].split('-ref')[0];
-      if (clusterIds[baseId] || clusterIds[id]) {
-        out.push({ el: el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top) });
-      }
-    });
-    // Cluster labels tagged with data-cluster.
-    var labels = EB.canvas.querySelectorAll('.cluster-label[data-cluster="' + cluster + '"]');
-    Array.prototype.forEach.call(labels, function (el) {
-      out.push({ el: el, x0: parseFloat(el.style.left), y0: parseFloat(el.style.top) });
+    Array.prototype.forEach.call(els, function (el) {
+      var x0 = parseFloat(el.style.left);
+      var y0 = parseFloat(el.style.top);
+      if (isNaN(x0) || isNaN(y0)) return;
+      out.push({ el: el, x0: x0, y0: y0 });
     });
     return out;
   }
@@ -128,7 +117,7 @@
         dragging = true;
         el.classList.add('node-dragging');
         if (EB.blockMoveMode && EB.actualBucket() === 'dm') {
-          blockCluster = EB.clusterOf(id);
+          blockCluster = (el.dataset && el.dataset.cluster) || (EB.clusterOf ? EB.clusterOf(id) : null);
           if (blockCluster) {
             blockEls = collectClusterElements(blockCluster);
             blockEls.forEach(function (b) { b.el.classList.add('cluster-dragging'); });
