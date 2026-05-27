@@ -26,6 +26,30 @@
     }, 550);
   }
 
+  // Wait for all img elements in the map canvas to finish loading,
+  // then call the callback. Gives up after 5s so we never hang forever.
+  function waitForImages(callback) {
+    var canvas = document.getElementById('canvas');
+    var imgs = canvas ? Array.prototype.slice.call(canvas.querySelectorAll('img')) : [];
+    var pending = imgs.filter(function (img) { return !img.complete; });
+    if (!pending.length) { callback(); return; }
+
+    var settled = 0;
+    var timeout = setTimeout(callback, 5000); // safety bail-out
+
+    pending.forEach(function (img) {
+      function done() {
+        settled++;
+        if (settled >= pending.length) {
+          clearTimeout(timeout);
+          callback();
+        }
+      }
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    });
+  }
+
   EB.init = function () {
     EB.initLanding();
     EB.checkSession().then(function () { EB.boot(); });
@@ -74,7 +98,8 @@
       .then(function () {
         EB.renderMap();
         EB.centerInitial();
-        dismissLoader();
+        // Wait for card images to actually paint before dismissing.
+        waitForImages(dismissLoader);
       })
       .catch(function (err) {
         console.error('[Eberoth] Boot failed', err);
