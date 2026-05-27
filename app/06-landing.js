@@ -1,8 +1,26 @@
 // Landing page + topbar wiring. DOM refs grabbed at initLanding()
 // time, which boot calls once on startup.
+//
+// DM font size adjuster: A− / A+ buttons (DM-only) set a CSS custom
+// property --card-name-size on <body>, which the card .name rule uses.
+// Persisted to localStorage under 'eb-card-font-scale'.
+// Steps: 9, 10, 11 (default), 12, 13, 14 px.
 (function () {
   EB.moveMode = false;
   EB.blockMoveMode = false;
+
+  var FONT_STEPS = [9, 10, 11, 12, 13, 14];
+  var FONT_DEFAULT = 11;
+  var FONT_LS_KEY = 'eb-card-font-size';
+
+  function loadCardFontSize() {
+    var stored = localStorage.getItem(FONT_LS_KEY);
+    return stored ? parseInt(stored, 10) : FONT_DEFAULT;
+  }
+  function applyCardFontSize(px) {
+    document.body.style.setProperty('--card-name-size', px + 'px');
+    localStorage.setItem(FONT_LS_KEY, px);
+  }
 
   EB.initLanding = function () {
     var landing       = document.getElementById('landing');
@@ -21,7 +39,12 @@
     var navBlockMode  = document.getElementById('navBlockMode');
     var navPushToAll  = document.getElementById('navPushToAll');
     var navSetHome    = document.getElementById('navSetHome');
+    var navFontDown   = document.getElementById('navFontDown');
+    var navFontUp     = document.getElementById('navFontUp');
     var viewAsSelect  = document.getElementById('viewAsSelect');
+
+    // Apply persisted font size immediately on load.
+    applyCardFontSize(loadCardFontSize());
 
     function updateModeButtonVisibility() {
       var realBucket = EB.actualBucket();
@@ -31,10 +54,11 @@
       if (navPushToAll) {
         navPushToAll.style.display = (!inViewAs && realBucket === 'dm' && (EB.moveMode || EB.blockMoveMode)) ? '' : 'none';
       }
-      // Set Home: DM-only, always visible (can set Home from any view).
       if (navSetHome) {
         navSetHome.style.display = (!inViewAs && realBucket === 'dm') ? '' : 'none';
       }
+      if (navFontDown) navFontDown.style.display = (!inViewAs && realBucket === 'dm') ? '' : 'none';
+      if (navFontUp)   navFontUp.style.display   = (!inViewAs && realBucket === 'dm') ? '' : 'none';
       if (viewAsSelect) {
         viewAsSelect.style.display = (realBucket === 'dm') ? '' : 'none';
       }
@@ -115,7 +139,7 @@
     if (navMoveMode) {
       navMoveMode.addEventListener('click', function () {
         EB.moveMode = !EB.moveMode;
-        if (EB.moveMode) EB.blockMoveMode = false; // mutually exclusive
+        if (EB.moveMode) EB.blockMoveMode = false;
         navMoveMode.classList.toggle('on', EB.moveMode);
         if (navBlockMode) navBlockMode.classList.toggle('on', EB.blockMoveMode);
         if (EB.moveMode || EB.blockMoveMode) { if (EB.showAnchors) EB.showAnchors(); }
@@ -128,7 +152,7 @@
       navBlockMode.addEventListener('click', function () {
         if (EB.actualBucket() !== 'dm') return;
         EB.blockMoveMode = !EB.blockMoveMode;
-        if (EB.blockMoveMode) EB.moveMode = false; // mutually exclusive
+        if (EB.blockMoveMode) EB.moveMode = false;
         navBlockMode.classList.toggle('on', EB.blockMoveMode);
         if (navMoveMode) navMoveMode.classList.toggle('on', EB.moveMode);
         if (EB.hideAnchors) EB.hideAnchors();
@@ -175,6 +199,27 @@
           navSetHome.textContent = prevText;
           alert('Set Home failed. Check the browser console for details.');
         });
+      });
+    }
+
+    if (navFontDown) {
+      navFontDown.addEventListener('click', function () {
+        if (EB.actualBucket() !== 'dm') return;
+        var current = loadCardFontSize();
+        var idx = FONT_STEPS.indexOf(current);
+        if (idx < 0) idx = FONT_STEPS.indexOf(FONT_DEFAULT);
+        var next = FONT_STEPS[Math.max(0, idx - 1)];
+        applyCardFontSize(next);
+      });
+    }
+    if (navFontUp) {
+      navFontUp.addEventListener('click', function () {
+        if (EB.actualBucket() !== 'dm') return;
+        var current = loadCardFontSize();
+        var idx = FONT_STEPS.indexOf(current);
+        if (idx < 0) idx = FONT_STEPS.indexOf(FONT_DEFAULT);
+        var next = FONT_STEPS[Math.min(FONT_STEPS.length - 1, idx + 1)];
+        applyCardFontSize(next);
       });
     }
 

@@ -1,4 +1,4 @@
-/* Faction circles: sigil sits ~91% of circle size (1 : 1.1 image-to-circle),
+/* Faction circles: sigil sits inside the circle with contain + buffer,
    name labelled beneath. Position-based house tinting also here. */
 
 .node-faction .shape {
@@ -18,16 +18,19 @@
 }
 .node-faction .shape img {
   position: absolute;
-  inset: 4.5%;          /* image is 91% of circle → 1:1.1 ratio */
-  object-fit: cover;
-  border-radius: 50%;   /* keep the image itself circular */
-  opacity: 0.9;
-  /* Stop the img from intercepting pointer events or starting an HTML5
-     drag — events should always reach the parent .node where our
-     pointer-capture drag handler is wired. */
+  inset: 8%;            /* breathing room around the circular sigil */
+  object-fit: contain;  /* never crop — show the whole sigil */
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
+}
+/* Missing-image fallback inside a faction circle */
+.node-faction .shape .portrait-missing {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
 }
 
 .node-faction .faction-label {

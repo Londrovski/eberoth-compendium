@@ -51,6 +51,9 @@
       <button id="navBlockMode" class="move-mode-toggle" style="display:none" title="DM-only: drag a whole cluster (Party/Personal, Crown & Houses, Lore, Title) as one. Saves as the new baseline for everyone.">Block Move</button>
       <button id="navPushToAll" class="push-to-all" style="display:none" title="DM-only: push your current layout to all players (overwrites theirs)">Push to Players</button>
       <button id="navSetHome" class="push-to-all" style="display:none" title="DM-only: save the current view as Home for everyone">Set Home</button>
+      <!-- DM-only card label font size adjuster -->
+      <button id="navFontDown" class="font-adj" style="display:none" title="Decrease map card label size">A−</button>
+      <button id="navFontUp"   class="font-adj" style="display:none" title="Increase map card label size">A+</button>
       <div class="role-tag"><span id="roleBadge">…</span></div>
       <!-- DM-only quick-switch. Frontend-only preview. -->
       <select id="viewAsSelect" class="view-as-select" style="display:none" title="DM-only: preview the map as another player">
@@ -85,10 +88,6 @@
 
       <main class="main">
         <div class="map-wrap">
-          <!-- map-stage wraps the scrolling viewport AND the controls so
-               controls can be position:absolute relative to the stage
-               (anchored to top-right of the visible map area) without
-               being part of the scrollable content. -->
           <div class="map-stage">
             <div class="map-viewport" id="viewport">
               <div class="map-canvas-wrap" id="canvasWrap">

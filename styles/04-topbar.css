@@ -1,112 +1,80 @@
-/* Full-width topbar: title, nav, mode toggle, push button, view-as,
-   role badge, logout. */
+/* Topbar: logo + nav + mode buttons + role badge + DM controls */
 
 .topbar {
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 8px;
+  padding: 0 16px;
+  height: 48px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  z-index: 10;
 }
 .topbar h1 {
-  font-size: 22px;
+  font-family: 'Cinzel Decorative', 'Cinzel', 'Georgia', serif;
+  font-size: 15px;
   color: var(--gold);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-weight: normal;
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin-right: 4px;
 }
-.nav { display: flex; gap: 18px; margin-left: 12px; }
-.nav button {
+.nav { display: flex; gap: 4px; }
+.nav button,
+.topbar button {
   background: transparent;
-  border: none;
+  border: 1px solid var(--border);
   color: var(--text-dim);
-  font-family: inherit;
-  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 12px;
   letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  padding: 4px 0;
-  border-bottom: 1px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
-.nav button:hover { color: var(--text); }
-.nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+.nav button:hover,
+.topbar button:hover { color: var(--gold); border-color: var(--gold-dim); }
 
-.move-mode-toggle {
-  background: transparent;
-  border: 1px solid var(--gold-dim);
-  color: var(--gold-dim);
-  padding: 4px 12px;
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 3px;
-  margin-left: 4px;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.move-mode-toggle:hover { color: var(--gold); border-color: var(--gold); }
 .move-mode-toggle.on {
-  background: var(--gold);
-  color: var(--bg);
+  color: var(--gold-bright);
   border-color: var(--gold);
+  background: rgba(201, 169, 97, 0.1);
 }
-.move-mode-toggle.on:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
-
 .push-to-all {
-  background: transparent;
-  border: 1px solid var(--red);
-  color: var(--red);
-  padding: 4px 12px;
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 3px;
-  margin-left: 4px;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  color: var(--text-dim);
 }
-.push-to-all:hover { background: var(--red); color: var(--text); }
-.push-to-all:disabled { opacity: 0.6; cursor: wait; }
+
+/* A− / A+ font adjuster — compact, visually distinct from mode buttons */
+.font-adj {
+  padding: 4px 7px !important;
+  font-size: 11px !important;
+  letter-spacing: 0 !important;
+  opacity: 0.7;
+}
+.font-adj:hover { opacity: 1; }
 
 .role-tag {
   margin-left: auto;
   font-size: 11px;
   letter-spacing: 2px;
+  color: var(--text-dim);
   text-transform: uppercase;
-  color: var(--gold-dim);
-  border: 1px solid var(--gold-dim);
-  padding: 4px 10px;
-  border-radius: 3px;
 }
-.role-tag.viewing { border-color: var(--gold); color: var(--gold); }
+.role-tag.viewing { color: var(--gold-dim); }
 
 .view-as-select {
   background: var(--bg-panel-2);
-  border: 1px solid var(--gold-dim);
-  color: var(--gold);
-  padding: 4px 8px;
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.logout-btn {
-  background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 4px 10px;
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
+  padding: 3px 6px;
   border-radius: 3px;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 11px;
+  cursor: pointer;
 }
-.logout-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+.view-as-select:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+.logout-btn { margin-left: 4px; }

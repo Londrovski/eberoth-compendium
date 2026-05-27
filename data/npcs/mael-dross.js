@@ -1,6 +1,7 @@
 (window.NPCS = window.NPCS || []).push({
   id: 'mael-dross',
   name: 'High Inquisitor Mael Dross',
+  shortName: 'Mael Dross',
   kind: 'npc',
   factionId: 'crown',
   sub: 'High Inquisitor of the Crown.',

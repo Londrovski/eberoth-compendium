@@ -11,6 +11,9 @@
 // a real .node (.node-title) tagged data-cluster="title" so it
 // inherits the standard drag mechanic.
 //
+// shortName: if an entity has a shortName field it is used on the map
+// card label; the full name is still used in the detail panel h2.
+//
 // Shadows:
 //   - For PLAYERS: their backstory cards that have been placed
 //     elsewhere render an extra shadow in the Personal column, AND
@@ -24,6 +27,10 @@
     var canvas = document.getElementById('canvas');
     var linesSvg = document.getElementById('lines');
     EB.canvas = canvas;
+
+    function cardLabel(entity) {
+      return EB.escapeHtml(entity.shortName || entity.name);
+    }
 
     function addClusterLabel(text, x, y, cluster) {
       var el = document.createElement('div');
@@ -69,7 +76,7 @@
       el.style.top = p.y + 'px';
       el.innerHTML =
         '<div class="shape"><div class="portrait">' + EB.portraitHTML(entity) + '</div>' +
-        '<div class="name">' + EB.escapeHtml(entity.name) + '</div></div>';
+        '<div class="name">' + cardLabel(entity) + '</div></div>';
       el.addEventListener('click', function () { EB.openDetail(entity); });
       canvas.appendChild(el);
     }
@@ -100,12 +107,12 @@
 
       (window.PLAYERS || []).forEach(function (p) {
         makeNode('node-player', pos[p.id], p.id,
-          '<div class="shape"><div class="portrait">' + EB.portraitHTML(p) + '</div><div class="name">' + EB.escapeHtml(p.name) + '</div></div>',
+          '<div class="shape"><div class="portrait">' + EB.portraitHTML(p) + '</div><div class="name">' + cardLabel(p) + '</div></div>',
           function () { EB.openDetail(p); }, 'players');
       });
       (window.LORE || []).forEach(function (l) {
         makeNode('node-special', pos[l.id], l.id,
-          '<div class="shape"><div class="portrait">' + EB.portraitHTML(l, '◈') + '</div><div class="name">' + EB.escapeHtml(l.name) + '</div></div>',
+          '<div class="shape"><div class="portrait">' + EB.portraitHTML(l) + '</div><div class="name">' + cardLabel(l) + '</div></div>',
           function () { EB.openDetail(l); }, 'lore');
       });
       (window.FACTIONS || []).forEach(function (f) {
@@ -116,12 +123,12 @@
       });
       (window.NPCS || []).forEach(function (n) {
         makeNode('node-npc', pos[n.id], n.id,
-          '<div class="shape"><div class="portrait">' + EB.portraitHTML(n) + '</div><div class="name">' + EB.escapeHtml(n.name) + '</div></div>',
+          '<div class="shape"><div class="portrait">' + EB.portraitHTML(n) + '</div><div class="name">' + cardLabel(n) + '</div></div>',
           function () { EB.openDetail(n); }, clusterForEntity(n.id));
       });
       EB.BACKSTORY.forEach(function (b) {
         makeNode('node-npc', pos[b.id], b.id,
-          '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + EB.escapeHtml(b.name) + '</div></div>',
+          '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + cardLabel(b) + '</div></div>',
           function () { EB.openDetail(b); }, 'players');
       });
 

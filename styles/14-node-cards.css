@@ -1,7 +1,10 @@
 /* Card-shaped nodes: NPCs, players, lore. House tints applied by
    position via the .in-{house} classes (set in JS). Tint glows match
    the recoloured palette (corvath red / voss green / gorrund yellow /
-   halvorn purple). */
+   halvorn purple).
+
+   --card-name-size: set by the DM font adjuster (A− / A+ in topbar);
+   defaults to 11px. Only affects map card labels. */
 
 .node-npc .shape {
   width: 96px;
@@ -25,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gold-dim);
+  color: var(--gold);
   font-size: 32px;
   font-weight: bold;
   overflow: hidden;
@@ -36,13 +39,24 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
 }
+/* Missing-image fallback: bold gold ? */
+.node-npc .portrait .portrait-missing,
+.node-player .portrait .portrait-missing,
+.node-special .portrait .portrait-missing {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
 .node-npc .name {
   padding: 4px 4px 5px;
-  font-size: 11px;
+  font-size: var(--card-name-size, 11px);
   color: var(--text);
   background: var(--bg-panel);
   border-top: 1px solid var(--border);
@@ -50,9 +64,7 @@
   text-align: center;
 }
 
-/* Shadow duplicates of player backstory cards (rendered in their
-   Personal column when the real card has been placed elsewhere on
-   the grid). Click to open detail; not draggable. */
+/* Shadow duplicates */
 .node-npc.shadow .shape {
   border-style: dashed;
   border-color: var(--gold-dim);
@@ -85,7 +97,7 @@
 }
 .node-player .name {
   padding: 4px 4px 5px;
-  font-size: 11px;
+  font-size: var(--card-name-size, 11px);
   color: var(--gold-bright);
   background: var(--bg-panel);
   border-top: 1px solid var(--gold-dim);
@@ -110,13 +122,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gold-dim);
+  color: var(--gold);
   font-size: 28px;
   overflow: hidden;
 }
 .node-special .name {
   padding: 4px 4px 5px;
-  font-size: 11px;
+  font-size: var(--card-name-size, 11px);
   color: var(--text);
   background: var(--bg-panel);
   border-top: 1px solid var(--border);
