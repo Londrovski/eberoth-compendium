@@ -5,6 +5,13 @@
 // property --card-name-size on <body>, which the card .name rule uses.
 // Persisted to localStorage under 'eb-card-font-scale'.
 // Steps: 9, 10, 11 (default), 12, 13, 14 px.
+//
+// View-As dropdown: DM can preview the site as another bucket. The
+// change handler triggers EB.boot() (re-pulls entities / sessions /
+// positions for the viewed bucket) AND calls the reload hooks on the
+// drawer modules so threads + notes also swap to that user's content.
+// Body gets a `viewing-as` class which CSS uses to grey out the drawer
+// and signal the read-only state.
 (function () {
   EB.moveMode = false;
   EB.blockMoveMode = false;
@@ -93,6 +100,8 @@
       }
       roleBadge.textContent = label;
       if (roleTag) roleTag.classList.toggle('viewing', inViewAs);
+      // Body-level flag for the drawer's read-only styling.
+      document.body.classList.toggle('viewing-as', EB.viewingAs ? EB.viewingAs() : false);
       updateModeButtonVisibility();
     };
 
@@ -226,6 +235,12 @@
     if (viewAsSelect) {
       viewAsSelect.addEventListener('change', function () {
         EB.setViewAs(viewAsSelect.value || null);
+        // Re-pull the viewed player's drawer content. boot() reloads
+        // entities/sessions/positions for the viewed bucket; the
+        // threads/notes modules don't auto-rerun on boot (initThreads is
+        // guarded by modulesInited), so we trigger their reload hooks.
+        if (EB.reloadThreads) EB.reloadThreads();
+        if (EB.reloadNotes)   EB.reloadNotes();
         EB.boot();
       });
     }
