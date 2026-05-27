@@ -7,8 +7,9 @@
 // the DM block-move drag can collect "everything in this cluster" via
 // a single DOM query. Ref shadows always belong to the players
 // cluster (they live in the Personal column) regardless of where the
-// underlying entity normally lives. The Eberoth title is its own
-// cluster ('title') so DM can position it independently of houses.
+// underlying entity normally lives. The Eberoth title is rendered as
+// a real .node (.node-title) tagged data-cluster="title" so it
+// inherits the standard drag mechanic.
 //
 // Shadows:
 //   - For PLAYERS: their backstory cards that have been placed
@@ -33,20 +34,6 @@
       if (cluster) el.dataset.cluster = cluster;
       canvas.appendChild(el);
     }
-    function addEberothTitle() {
-      var el = document.createElement('div');
-      el.className = 'eberoth-title';
-      el.textContent = 'Eberoth';
-      var L = EB.shiftedLayout();
-      el.style.left = L.titleX + 'px';
-      el.style.top = ((L.titleY || 50) + (L.titleDy || 0)) + 'px';
-      el.dataset.cluster = 'title';
-      el.dataset.id = EB.TITLE_ID || 'eberoth-title';
-      // Attach drag interaction so block mode can grab the title.
-      // onOpen is a no-op — clicking the title does nothing.
-      EB.attachNodeInteraction(el, el.dataset.id, function () {});
-      canvas.appendChild(el);
-    }
     function makeNode(cls, p, id, html, onOpen, cluster) {
       if (!p) return;
       var el = document.createElement('div');
@@ -58,6 +45,19 @@
       el.innerHTML = html;
       EB.attachNodeInteraction(el, id, onOpen);
       canvas.appendChild(el);
+    }
+    function addEberothTitle() {
+      var L = EB.shiftedLayout();
+      var id = EB.TITLE_ID || 'eberoth-title';
+      var p = { x: L.titleX, y: (L.titleY || 50) + (L.titleDy || 0) };
+      makeNode(
+        'node-title',
+        p,
+        id,
+        '<div class="shape"><div class="title-text">Eberoth</div></div>',
+        function () {},
+        'title'
+      );
     }
     function makeShadow(entity, p, suffix, cluster) {
       if (!p) return;
