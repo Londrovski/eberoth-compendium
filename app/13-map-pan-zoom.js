@@ -24,20 +24,55 @@
     viewport.scrollTop  = cy * s - viewport.clientHeight / 2;
   }
 
-  // Home: fit the entire canvas inside the viewport, then centre on
-  // the canvas centroid (which equals the Crown/Voss/Gorrund centroid
-  // after the recent layout shift).
+  // Measure the bounding box of every rendered .node on the canvas,
+  // in canvas (unscaled) coordinates. Returns null if nothing's there.
+  function contentBBox() {
+    if (!canvas) return null;
+    var nodes = canvas.querySelectorAll('.node');
+    if (!nodes.length) return null;
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      // offsetLeft/Top are in canvas (pre-transform) coords because
+      // the transform is on .canvas itself, not its children.
+      var x = n.offsetLeft, y = n.offsetTop;
+      var w = n.offsetWidth, h = n.offsetHeight;
+      if (!w || !h) continue;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x + w > maxX) maxX = x + w;
+      if (y + h > maxY) maxY = y + h;
+    }
+    if (!isFinite(minX)) return null;
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+
+  // Home: fit all rendered cards into the viewport with a margin and
+  // centre on the content bbox. Falls back to canvas centre if no
+  // nodes are rendered yet.
   EB.centerInitial = function () {
     var vw = viewport.clientWidth, vh = viewport.clientHeight;
-    if (vw > 0 && vh > 0) {
-      var fitX = vw / CANVAS_W;
-      var fitY = vh / CANVAS_H;
-      var fit = Math.min(fitX, fitY) * 0.98; // small margin
-      setScale(Math.max(0.3, Math.min(2, fit)));
+    var bbox = contentBBox();
+    var pad = 60; // canvas units of breathing room around content
+    var cx, cy, contentW, contentH;
+    if (bbox) {
+      contentW = bbox.w + pad * 2;
+      contentH = bbox.h + pad * 2;
+      cx = bbox.x + bbox.w / 2;
+      cy = bbox.y + bbox.h / 2;
+    } else {
+      contentW = CANVAS_W;
+      contentH = CANVAS_H;
+      cx = CANVAS_W / 2;
+      cy = CANVAS_H / 2;
+    }
+    if (vw > 0 && vh > 0 && contentW > 0 && contentH > 0) {
+      var fit = Math.min(vw / contentW, vh / contentH);
+      setScale(Math.max(0.2, Math.min(2, fit)));
     } else {
       setScale(0.6);
     }
-    scrollToCanvasPoint(CANVAS_W / 2, CANVAS_H / 2);
+    scrollToCanvasPoint(cx, cy);
   };
 
   EB.zoomToPoint = function (cx, cy, scale) {
@@ -78,7 +113,7 @@
       setScale(Math.min(2, EB.scale * 1.1));
     };
     document.getElementById('zoomOut').onclick = function () {
-      setScale(Math.max(0.3, EB.scale / 1.1));
+      setScale(Math.max(0.2, EB.scale / 1.1));
     };
     document.getElementById('zoomReset').onclick = function () {
       EB.centerInitial();
