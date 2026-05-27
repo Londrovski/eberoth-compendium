@@ -1,6 +1,11 @@
 // Map layout. Positions sourced from Supabase — global_positions
 // (DM-authored baseline) + node_positions (per-user overrides).
 //
+// Cluster offsets (cluster_offsets table, DM-only writes) shift entire
+// clusters as a unit: players (party + personal), houses (crown ring +
+// 4 houses + house grids), lore. Cluster offsets are applied to every
+// anchor *before* per-entity customs override on top.
+//
 // Spatial defaults are arranged so the centroid of Crown + Voss +
 // Gorrund nodes lands at canvas centre (1425, 950) on a 2850×1900
 // canvas. Image fills the canvas exactly.
@@ -28,6 +33,38 @@
 
   EB.customPositions = {};
   EB.globalPositions = {};
+  EB.clusterOffsets = { players: {dx:0,dy:0}, houses: {dx:0,dy:0}, lore: {dx:0,dy:0} };
+
+  EB.CLUSTERS = ['players', 'houses', 'lore'];
+
+  // Resolve which cluster an entity belongs to. Used by render to apply
+  // offsets and by drag to know what to move together.
+  EB.clusterOf = function (entityId) {
+    if (!entityId) return null;
+    var byId = EB.byId || {};
+    // Players + their backstory cards + personal refs → players cluster.
+    var PLAYERS = window.PLAYERS || [];
+    if (PLAYERS.some(function (p) { return p.id === entityId; })) return 'players';
+    var ent = byId[entityId];
+    if (ent && ent.ownerId && PLAYERS.some(function (p) { return p.id === ent.ownerId; })) return 'players';
+    // Lore cards → lore cluster.
+    if ((window.LORE || []).some(function (l) { return l.id === entityId; })) return 'lore';
+    // Houses (factions) + their NPCs + Crown faction + crown NPCs → houses cluster.
+    var HOUSE_IDS = ['corvath', 'voss', 'gorrund', 'halvorn', 'crown'];
+    if (HOUSE_IDS.indexOf(entityId) >= 0) return 'houses';
+    if (ent && ent.factionId && HOUSE_IDS.indexOf(ent.factionId) >= 0) return 'houses';
+    return null;
+  };
+
+  // List of entity ids that belong to a cluster (for bulk move + bulk wipe).
+  EB.entitiesInCluster = function (cluster) {
+    var ids = [];
+    var byId = EB.byId || {};
+    Object.keys(byId).forEach(function (id) {
+      if (EB.clusterOf(id) === cluster) ids.push(id);
+    });
+    return ids;
+  };
 
   EB.PERSONAL_REFS = {
     baker:   ['aldus-corvath', 'byren-holt'],
@@ -64,9 +101,44 @@
       .forEach(function (pool) { pool.forEach(function (x) { EB.byId[x.id] = x; }); });
   };
 
+  // Cluster-aware accessor for LAYOUT anchors. Returns a shallow clone
+  // of LAYOUT with party/personal/crown/houses/lore points pre-shifted
+  // by their cluster offsets so callers don't have to track which
+  // anchor belongs to which cluster.
+  EB.shiftedLayout = function () {
+    var L = EB.LAYOUT;
+    var co = EB.clusterOffsets || {};
+    var pl = co.players || {dx:0,dy:0};
+    var hs = co.houses  || {dx:0,dy:0};
+    var lr = co.lore    || {dx:0,dy:0};
+    return {
+      titleY: L.titleY,
+      party: { x: L.party.x + pl.dx, y: L.party.y + pl.dy, gap: L.party.gap },
+      personalY: L.personalY + pl.dy,
+      personalCardGapY: L.personalCardGapY,
+
+      crown: { x: L.crown.x + hs.dx, y: L.crown.y + hs.dy },
+      crownRingRadius: L.crownRingRadius,
+      crownRingPoints: L.crownRingPoints,
+      housesY: L.housesY + hs.dy,
+      housesXs: Object.keys(L.housesXs).reduce(function (acc, k) {
+        acc[k] = L.housesXs[k] + hs.dx; return acc;
+      }, {}),
+      houseGridY: L.houseGridY + hs.dy,
+      houseGridGapX: L.houseGridGapX,
+      houseGridGapY: L.houseGridGapY,
+
+      special: { x: L.special.x + lr.dx, y: L.special.y + lr.dy },
+      loreGridY: L.loreGridY + lr.dy,
+      loreGridGapY: L.loreGridGapY,
+      headerOffset: L.headerOffset
+    };
+  };
+
   EB.loadPositionsFromSupabase = function () {
     EB.customPositions = {};
     EB.globalPositions = {};
+    EB.clusterOffsets = { players: {dx:0,dy:0}, houses: {dx:0,dy:0}, lore: {dx:0,dy:0} };
     var jobs = [
       EB.sb.from('global_positions')
         .select('entity_id, x, y, layout_version')
@@ -77,7 +149,17 @@
           res.data.forEach(function (row) {
             EB.globalPositions[row.entity_id] = { x: row.x, y: row.y };
           });
-        }, logRej('load global_positions'))
+        }, logRej('load global_positions')),
+      EB.sb.from('cluster_offsets')
+        .select('cluster_id, dx, dy, layout_version')
+        .eq('layout_version', EB.LAYOUT_VERSION)
+        .then(function (res) {
+          if (res && res.error) { console.error('[Eberoth] load cluster_offsets error', res.error); return; }
+          if (!Array.isArray(res.data)) return;
+          res.data.forEach(function (row) {
+            EB.clusterOffsets[row.cluster_id] = { dx: row.dx, dy: row.dy };
+          });
+        }, logRej('load cluster_offsets'))
     ];
     var uid = EB.currentUserId();
     var actual = EB.actualBucket();
@@ -120,6 +202,42 @@
       .then(logErr('deleteAllPositionsForUser'), logRej('deleteAllPositionsForUser'));
   };
 
+  // DM-only: shift an entire cluster by (dx,dy). Saves to cluster_offsets
+  // and wipes every user's per-node customs for entities in that cluster
+  // so the shift is the new baseline for everyone.
+  EB.saveClusterOffset = function (cluster, dx, dy) {
+    if (EB.actualBucket() !== 'dm') return Promise.reject(new Error('Only DM can move clusters'));
+    if (!cluster) return Promise.reject(new Error('No cluster id'));
+    EB.clusterOffsets[cluster] = { dx: dx, dy: dy };
+    var entityIds = EB.entitiesInCluster(cluster);
+    var jobs = [
+      EB.sb.from('cluster_offsets').upsert(
+        { cluster_id: cluster, dx: dx, dy: dy, layout_version: EB.LAYOUT_VERSION, updated_at: new Date().toISOString() },
+        { onConflict: 'cluster_id,layout_version' }
+      ).then(logErr('saveClusterOffset upsert ' + cluster), logRej('saveClusterOffset upsert ' + cluster))
+    ];
+    // Wipe per-user customs + DM's globals for entities in this cluster
+    // so the cluster offset is the sole truth for layout of these nodes.
+    if (entityIds.length > 0) {
+      jobs.push(
+        EB.sb.from('node_positions').delete()
+          .in('entity_id', entityIds)
+          .then(logErr('saveClusterOffset wipe node_positions'), logRej('saveClusterOffset wipe node_positions'))
+      );
+      jobs.push(
+        EB.sb.from('global_positions').delete()
+          .in('entity_id', entityIds)
+          .then(logErr('saveClusterOffset wipe global_positions'), logRej('saveClusterOffset wipe global_positions'))
+      );
+      // Strip from in-memory state too so re-render sees the shifted defaults.
+      entityIds.forEach(function (id) {
+        delete EB.customPositions[id];
+        delete EB.globalPositions[id];
+      });
+    }
+    return Promise.all(jobs);
+  };
+
   EB.pushToAll = function () {
     if (EB.actualBucket() !== 'dm') return Promise.reject(new Error('Only DM can push'));
     var customs = EB.customPositions || {};
@@ -152,7 +270,7 @@
   };
 
   EB.getBackstoryDefaultPos = function (b) {
-    var L = EB.LAYOUT;
+    var L = EB.shiftedLayout();
     var PLAYERS = window.PLAYERS || [];
     var ownerIdx = PLAYERS.findIndex(function (p) { return p.id === b.ownerId; });
     if (ownerIdx < 0) return null;
@@ -169,7 +287,7 @@
   };
 
   EB.defaultLayout = function () {
-    var L = EB.LAYOUT, pos = {};
+    var L = EB.shiftedLayout(), pos = {};
     var PLAYERS = window.PLAYERS || [];
     PLAYERS.forEach(function (p, i) {
       pos[p.id] = { x: L.party.x + i * L.party.gap, y: L.party.y };
@@ -217,7 +335,7 @@
   };
 
   EB.getAnchors = function () {
-    var L = EB.LAYOUT, def = EB.defaultLayout(), anchors = [];
+    var L = EB.shiftedLayout(), def = EB.defaultLayout(), anchors = [];
     Object.keys(def).forEach(function (k) { anchors.push({ x: def[k].x, y: def[k].y }); });
     ['corvath', 'voss', 'gorrund', 'halvorn'].forEach(function (hid) {
       var base = def[hid];
