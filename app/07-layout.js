@@ -31,7 +31,6 @@
 
   EB.customPositions = {};
   EB.globalPositions = {};
-  EB.viewingGlobals = false;
 
   function logErr(label) {
     return function (res) {
@@ -91,8 +90,6 @@
     return Promise.all(jobs);
   };
 
-  // Saves below all call .then() so the request fires immediately, even
-  // when the caller doesn't await. Errors land in the console.
   EB.savePositionForUser = function (entityId, pos) {
     var uid = EB.currentUserId();
     if (!uid) return Promise.resolve();
@@ -101,20 +98,44 @@
       { onConflict: 'user_id,entity_id' }
     ).then(logErr('savePositionForUser ' + entityId), logRej('savePositionForUser ' + entityId));
   };
-  EB.deletePositionForUser = function (entityId) {
-    var uid = EB.currentUserId();
-    if (!uid) return Promise.resolve();
-    return EB.sb.from('node_positions')
-      .delete()
-      .eq('user_id', uid)
-      .eq('entity_id', entityId)
-      .then(logErr('deletePositionForUser ' + entityId), logRej('deletePositionForUser ' + entityId));
-  };
-  EB.saveGlobalPosition = function (entityId, pos) {
-    return EB.sb.from('global_positions').upsert(
-      { entity_id: entityId, x: pos.x, y: pos.y, layout_version: EB.LAYOUT_VERSION },
-      { onConflict: 'entity_id' }
-    ).then(logErr('saveGlobalPosition ' + entityId), logRej('saveGlobalPosition ' + entityId));
+
+  // Bulk-upsert DM's current customs into global_positions, then wipe
+  // ALL node_positions rows so every player's personal overrides go
+  // away (RLS policy node_positions_delete_dm permits this for DM).
+  // The delete uses .gte('layout_version', 0) as a "match all" filter
+  // because Supabase requires a filter on delete.
+  EB.pushToAll = function () {
+    if (EB.currentBucket() !== 'dm') return Promise.reject(new Error('Only DM can push'));
+    var customs = EB.customPositions || {};
+    var rows = Object.keys(customs).map(function (id) {
+      return {
+        entity_id: id,
+        x: customs[id].x,
+        y: customs[id].y,
+        layout_version: EB.LAYOUT_VERSION
+      };
+    });
+    var jobs = [];
+    if (rows.length > 0) {
+      jobs.push(
+        EB.sb.from('global_positions')
+          .upsert(rows, { onConflict: 'entity_id' })
+          .then(logErr('pushToAll: upsert global_positions'), logRej('pushToAll: upsert global_positions'))
+      );
+    }
+    jobs.push(
+      EB.sb.from('node_positions')
+        .delete()
+        .gte('layout_version', 0)
+        .then(logErr('pushToAll: delete node_positions'), logRej('pushToAll: delete node_positions'))
+    );
+    return Promise.all(jobs).then(function () {
+      // DM's own customs were promoted to globals AND wiped from
+      // node_positions — reset local state and reload from DB so the
+      // map renders from the new authoritative baseline.
+      EB.customPositions = {};
+      return EB.loadPositionsFromSupabase();
+    });
   };
 
   EB.defaultLayout = function () {
@@ -157,7 +178,6 @@
 
   EB.currentPositions = function () {
     var pos = EB.defaultLayout();
-    if (EB.viewingGlobals) return pos;
     Object.keys(EB.customPositions || {}).forEach(function (id) {
       if (pos[id]) pos[id] = EB.customPositions[id];
     });

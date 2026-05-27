@@ -1,4 +1,4 @@
-/* Full-width topbar: title, nav, mode toggles, role badge, logout. */
+/* Full-width topbar: title, nav, mode toggle, push button, role badge, logout. */
 
 .topbar {
   padding: 14px 24px;
@@ -32,8 +32,7 @@
 .nav button:hover { color: var(--text); }
 .nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-/* Move toggle — outlined when off, gold-filled when on so the mode
-   state is unambiguous at a glance. */
+/* Move toggle — outlined when off, gold-filled when on. */
 .move-mode-toggle {
   background: transparent;
   border: 1px solid var(--gold-dim);
@@ -56,10 +55,9 @@
 }
 .move-mode-toggle.on:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
 
-/* Move All toggle (DM only) — same shape as Move, but with a red
-   tint to signal a destructive-for-everyone action. When on, fills red
-   so the DM cannot forget they're editing the global layout. */
-.move-all-toggle {
+/* Push to Players (DM only, revealed inside Move mode) — destructive
+   action for everyone, so red-accent that fills red on hover. */
+.push-to-all {
   background: transparent;
   border: 1px solid var(--red);
   color: var(--red);
@@ -73,13 +71,14 @@
   margin-left: 4px;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.move-all-toggle:hover { color: var(--gold-bright); border-color: var(--gold-bright); }
-.move-all-toggle.on {
+.push-to-all:hover {
   background: var(--red);
   color: var(--text);
-  border-color: var(--red);
 }
-.move-all-toggle.on:hover { background: #a14545; border-color: #a14545; }
+.push-to-all:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
 
 .role-tag {
   margin-left: auto;

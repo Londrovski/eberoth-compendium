@@ -1,11 +1,9 @@
 // Node drag + snap (Pointer Events + setPointerCapture).
 //
-// Drag is opt-in. Two modes:
-//   Move      → saves to node_positions (per-user override)
-//   Move All  → saves to global_positions (DM-only baseline). Also
-//                clears the user's own override for the same entity so
-//                the new global takes effect immediately.
-// Both modes are mutually exclusive and ephemeral (reload resets).
+// Drag is opt-in via EB.moveMode. While in Move mode, each drop saves
+// to node_positions (per-user override). To make the current layout
+// the baseline for all players, DM clicks the "Push to Players" button
+// (revealed in Move mode for DM only) — see EB.pushToAll.
 (function () {
   var DRAG_THRESHOLD = 5;
   var anchorEls = [];
@@ -51,21 +49,6 @@
     return best;
   }
 
-  function commitDrag(id, final) {
-    if (EB.moveAllMode) {
-      EB.globalPositions[id] = final;
-      EB.saveGlobalPosition(id, final);
-      // Clear personal override so the new global is what the DM sees.
-      if (EB.customPositions[id]) {
-        delete EB.customPositions[id];
-        EB.deletePositionForUser(id);
-      }
-    } else {
-      EB.customPositions[id] = final;
-      EB.savePositionForUser(id, final);
-    }
-  }
-
   EB.attachNodeInteraction = function (el, id, onOpen) {
     var startX = 0, startY = 0, nodeStartX = 0, nodeStartY = 0;
     var dragging = false, armed = false, activePointer = null;
@@ -86,7 +69,7 @@
       var dx = e.clientX - startX;
       var dy = e.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      if (!dragging && !EB.moveMode && !EB.moveAllMode) return;
+      if (!dragging && !EB.moveMode) return;
       if (!dragging) {
         dragging = true;
         el.classList.add('node-dragging');
@@ -121,8 +104,9 @@
         el.style.left = final.x + 'px';
         el.style.top  = final.y + 'px';
       }
-      commitDrag(id, final);
-      if (EB.moveMode || EB.moveAllMode) clearHighlights();
+      EB.customPositions[id] = final;
+      EB.savePositionForUser(id, final);
+      if (EB.moveMode) clearHighlights();
       else EB.hideAnchors();
       if (EB.applyHouseTints) EB.applyHouseTints();
     }
