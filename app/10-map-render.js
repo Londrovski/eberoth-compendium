@@ -7,7 +7,8 @@
 // the DM block-move drag can collect "everything in this cluster" via
 // a single DOM query. Ref shadows always belong to the players
 // cluster (they live in the Personal column) regardless of where the
-// underlying entity normally lives.
+// underlying entity normally lives. The Eberoth title is its own
+// cluster ('title') so DM can position it independently of houses.
 //
 // Shadows:
 //   - For PLAYERS: their backstory cards that have been placed
@@ -37,10 +38,13 @@
       el.className = 'eberoth-title';
       el.textContent = 'Eberoth';
       var L = EB.shiftedLayout();
-      el.style.left = L.crown.x + 'px';
-      el.style.top = (L.titleY || 50) + 'px';
-      // Title rides with the houses cluster (Crown anchors it).
-      el.dataset.cluster = 'houses';
+      el.style.left = L.titleX + 'px';
+      el.style.top = ((L.titleY || 50) + (L.titleDy || 0)) + 'px';
+      el.dataset.cluster = 'title';
+      el.dataset.id = EB.TITLE_ID || 'eberoth-title';
+      // Attach drag interaction so block mode can grab the title.
+      // onOpen is a no-op — clicking the title does nothing.
+      EB.attachNodeInteraction(el, el.dataset.id, function () {});
       canvas.appendChild(el);
     }
     function makeNode(cls, p, id, html, onOpen, cluster) {
@@ -122,11 +126,7 @@
       });
 
       // ---- Shadow duplicates ----
-      // All ref/backstory shadows live in the Personal column, so they
-      // belong to the players cluster regardless of the underlying
-      // entity's home faction.
       if (!isDM) {
-        // Player view: backstory shadows + ref shadows in middle column.
         EB.BACKSTORY.forEach(function (b) {
           var actual = pos[b.id];
           var defPos = EB.getBackstoryDefaultPos(b);
@@ -147,8 +147,6 @@
           stackIdx++;
         });
       } else {
-        // DM view: each player's column gets their refs as shadows
-        // beneath that player's backstory cards.
         ['baker', 'butcher', 'charlie'].forEach(function (bkt) {
           var bktRefs = EB.PERSONAL_REFS[bkt] || [];
           if (bktRefs.length === 0) return;
