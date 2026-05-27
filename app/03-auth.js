@@ -1,10 +1,18 @@
-// Auth — Supabase session backed. Adds view-as support: DM can
-// preview the map as another bucket without changing the auth session.
-//   EB.actualBucket()  → the bucket of the signed-in user (DM only
-//                        ever has a non-DM view-as set).
-//   EB.currentBucket() → view-as bucket if set, else actual.
-//   EB._userEmail      → full email (e.g. dm@compendium.local) used
-//                        as the key in user_notes, user_threads, user_notepad.
+// Auth — Supabase session backed. Adds view-as support: DM can preview
+// the map as another bucket without changing the auth session.
+//
+//   EB.actualBucket()    → the bucket of the signed-in user.
+//   EB.currentBucket()   → view-as bucket if set, else actual.
+//   EB.viewingAs()       → true when DM is impersonating another bucket.
+//   EB._userEmail        → full email of the signed-in user (JWT email).
+//   EB.effectiveEmail()  → email of the *viewed* user. Equal to
+//                          _userEmail when not in View-As; otherwise
+//                          '<bucket>@compendium.local'. This is the key
+//                          drawer / threads / notes modules should use
+//                          for SELECT — RLS lets DM read any user_* row,
+//                          but writes are still locked to the JWT owner.
+//                          The frontend goes read-only in View-As to
+//                          avoid attempted writes that would fail RLS.
 (function () {
   EB.PASSCODES = {
     'MAREN':   'baker',
@@ -30,6 +38,22 @@
   EB.actualBucket  = function () { return EB._bucket; };
   EB.currentBucket = function () { return EB._viewAsBucket || EB._bucket; };
   EB.currentUserId = function () { return EB._userId; };
+
+  EB.viewingAs = function () {
+    return EB._bucket === 'dm' && !!EB._viewAsBucket && EB._viewAsBucket !== 'dm';
+  };
+
+  // Email of the viewed user. Used as the lookup key in drawer / threads /
+  // notes. Writes still go through the JWT (so cannot land in another
+  // player's bucket) — frontend goes read-only in View-As to prevent the
+  // attempt.
+  EB.effectiveEmail = function () {
+    if (EB.viewingAs()) {
+      if (EB._viewAsBucket === 'guest') return null;
+      return EB._viewAsBucket + '@compendium.local';
+    }
+    return EB._userEmail || null;
+  };
 
   EB._setBucket = function (b, uid, email) {
     EB._bucket    = b     || null;
