@@ -4,7 +4,11 @@
 // viewport's own scrollLeft/Top. Trackpad/wheel pans natively; drag on
 // empty area pans via scrollLeft/Top updates. Zoom is buttons only.
 //
-// Reset button (↺) wipes the current user's personal overrides (both
+// Home (⌂ / topbar): if the DM has set a Home view (saved in the
+// home_view table), use that. Otherwise fit all rendered cards into
+// the viewport centred on the content bounding box.
+//
+// Reset (↺): wipes the current user's personal overrides (both
 // local + Supabase) so they revert to the DM baseline.
 (function () {
   EB.scale = 0.6;
@@ -24,8 +28,6 @@
     viewport.scrollTop  = cy * s - viewport.clientHeight / 2;
   }
 
-  // Measure the bounding box of every rendered .node on the canvas,
-  // in canvas (unscaled) coordinates. Returns null if nothing's there.
   function contentBBox() {
     if (!canvas) return null;
     var nodes = canvas.querySelectorAll('.node');
@@ -33,8 +35,6 @@
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      // offsetLeft/Top are in canvas (pre-transform) coords because
-      // the transform is on .canvas itself, not its children.
       var x = n.offsetLeft, y = n.offsetTop;
       var w = n.offsetWidth, h = n.offsetHeight;
       if (!w || !h) continue;
@@ -47,13 +47,28 @@
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
   }
 
-  // Home: fit all rendered cards into the viewport with a margin and
-  // centre on the content bbox. Falls back to canvas centre if no
-  // nodes are rendered yet.
+  // Capture the current viewport: centre in canvas coords + scale.
+  // Used by Set Home to persist the DM's preferred starting view.
+  EB.captureHomeView = function () {
+    if (!viewport) return null;
+    var s = EB.scale || 1;
+    var cx = (viewport.scrollLeft + viewport.clientWidth  / 2) / s;
+    var cy = (viewport.scrollTop  + viewport.clientHeight / 2) / s;
+    return { cx: cx, cy: cy, scale: s };
+  };
+
   EB.centerInitial = function () {
+    // DM-set Home view wins if present.
+    if (EB.homeView && typeof EB.homeView.cx === 'number') {
+      var s = Math.max(0.2, Math.min(2, EB.homeView.scale || 0.6));
+      setScale(s);
+      scrollToCanvasPoint(EB.homeView.cx, EB.homeView.cy);
+      return;
+    }
+    // Fallback: fit all rendered cards into the viewport.
     var vw = viewport.clientWidth, vh = viewport.clientHeight;
     var bbox = contentBBox();
-    var pad = 60; // canvas units of breathing room around content
+    var pad = 60;
     var cx, cy, contentW, contentH;
     if (bbox) {
       contentW = bbox.w + pad * 2;
@@ -95,7 +110,7 @@
     var isPanning = false;
     var startScrollX = 0, startScrollY = 0, startMouseX = 0, startMouseY = 0;
     viewport.addEventListener('mousedown', function (e) {
-      if (e.target.closest('.node') || e.target.closest('.map-controls')) return;
+      if (e.target.closest('.node') || e.target.closest('.eberoth-title') || e.target.closest('.map-controls')) return;
       isPanning = true;
       startScrollX = viewport.scrollLeft;
       startScrollY = viewport.scrollTop;
@@ -119,7 +134,6 @@
       EB.centerInitial();
     };
 
-    // Reset ↺: revert to baseline (delete this user's customs).
     document.getElementById('layoutReset').onclick = function () {
       if (!confirm('Reset your layout to the DM\'s baseline? This clears any rearrangements you\'ve made.')) return;
       EB.customPositions = {};
