@@ -64,14 +64,17 @@ function open() { detail.open(props.entity.id); }
 .personal-card:hover { border-color: var(--gold-dim); }
 
 .personal-card.vis-restricted {
+  background: rgba(74,107,145,0.12);
   border-color: var(--blue);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(74,107,145,0.35);
 }
 .personal-card.vis-dm-only {
+  background: rgba(139,58,58,0.14);
   border-color: var(--red);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
 .personal-card.is-glow {
+  background: rgba(201,169,97,0.10);
   border-color: var(--gold);
   box-shadow: 0 0 calc(10px * var(--scale, 1)) rgba(201,169,97,0.45);
 }
