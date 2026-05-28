@@ -19,15 +19,16 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
-import { useLayoutStore } from 'src/stores/layout';
+import { useAppSettingsStore } from 'src/stores/app-settings';
 import PartyAndPersonalRow from 'components/home/PartyAndPersonalRow.vue';
 import FactionsGrid from 'components/home/FactionsGrid.vue';
 import LoreRow from 'components/home/LoreRow.vue';
 
 const entities = useEntitiesStore();
-const layout = useLayoutStore();
+const appSettings = useAppSettingsStore();
 
 onMounted(async () => {
-  await Promise.all([entities.load(), layout.load()]);
+  await Promise.all([entities.load(), appSettings.load()]);
+  appSettings.subscribeRealtime();
 });
 </script>
