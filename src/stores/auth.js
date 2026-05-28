@@ -1,7 +1,15 @@
-// Auth store. Tracks who is signed in (passphrase → email).
+// Auth store. Tracks who is signed in (passcode → bucket).
 // Also tracks viewing-as (DM previewing another player).
 //
 // Buckets: dm | baker | butcher | charlie | guest | null
+//
+// Mapping inherited from the original static site (03-auth.js):
+//   MAREN   → baker    (Kalvorn)
+//   SAMAEL  → butcher  (Azrael)
+//   TEACHER → charlie  (Dirk)
+//   THOREBE → dm
+// Email = '<bucket>@compendium.local', password = the passcode.
+// normalisePasscode strips non-letters and uppercases the input.
 //
 // effectiveBucket() returns viewingAs if set, otherwise actual.
 // All visibility-aware reads should key off effectiveBucket.
@@ -27,12 +35,8 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     async hydrate() {
-      // Pull the current session and seed state.
       const { data } = await supabase.auth.getSession();
       this._applySession(data?.session);
-
-      // Subscribe once for live updates. If signOut happens or token
-      // refresh fails, this fires SIGNED_OUT and clears state.
       if (!this.hydrated) {
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'SIGNED_OUT') {
@@ -47,7 +51,7 @@ export const useAuthStore = defineStore('auth', {
     _applySession(session) {
       if (session && session.user) {
         this.user = session.user;
-        this.actualBucket = bucketFor(session.user.email);
+        this.actualBucket = bucketFromEmail(session.user.email);
       } else {
         this._clearSession();
       }
@@ -57,11 +61,15 @@ export const useAuthStore = defineStore('auth', {
       this.actualBucket = null;
       this.viewingAs = null;
     },
-    async signInWithPassphrase(passphrase) {
-      const email = emailFor(passphrase);
-      if (!email) return { error: new Error('Unknown passphrase') };
-      const password = passphrase;
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    async signInWithPassphrase(rawPassphrase) {
+      const passcode = normalisePasscode(rawPassphrase);
+      const bucket = PASSCODES[passcode];
+      if (!bucket) return { error: new Error('Unknown passphrase') };
+      const email = bucket + '@compendium.local';
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: passcode
+      });
       if (error) return { error };
       this._applySession(data.session);
       return { user: data.user };
@@ -77,11 +85,23 @@ export const useAuthStore = defineStore('auth', {
   }
 });
 
-const MAP = {
-  'dungeon-master':  { email: 'dm@compendium.local',       bucket: 'dm'      },
-  'kalvorn':         { email: 'baker@compendium.local',    bucket: 'baker'   },
-  'azrael':          { email: 'charlie@compendium.local',  bucket: 'charlie' },
-  'dirk':            { email: 'butcher@compendium.local',  bucket: 'butcher' }
+// passcode → bucket. Matches the original site's PASSCODES.
+const PASSCODES = {
+  'MAREN':   'baker',
+  'SAMAEL':  'butcher',
+  'TEACHER': 'charlie',
+  'THOREBE': 'dm'
 };
-function emailFor(passphrase)  { return MAP[passphrase]?.email  || null; }
-function bucketFor(email)      { return Object.values(MAP).find(m => m.email === email)?.bucket || null; }
+
+function normalisePasscode(s) {
+  return String(s || '').replace(/[^a-zA-Z]/g, '').toUpperCase();
+}
+
+function bucketFromEmail(email) {
+  if (!email) return null;
+  // Email format is '<bucket>@compendium.local'.
+  const local = String(email).split('@')[0];
+  // Valid buckets we recognise.
+  if (['dm', 'baker', 'butcher', 'charlie'].indexOf(local) >= 0) return local;
+  return null;
+}

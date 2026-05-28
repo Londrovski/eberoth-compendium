@@ -11,11 +11,12 @@
               label="Passphrase"
               filled
               autofocus
+              class="input-upper"
               :error="!!error"
               :error-message="error"
               autocomplete="off"
-              autocapitalize="off"
               spellcheck="false"
+              @update:model-value="onInput"
             />
             <q-btn
               type="submit"
@@ -28,7 +29,7 @@
           </q-form>
 
           <div class="text-caption text-grey-6 q-mt-md text-center">
-            Passphrases: dungeon-master · kalvorn · azrael · dirk
+            Passphrases: Maren · Samael · Teacher · Thorebe
           </div>
         </q-card>
       </q-page>
@@ -47,13 +48,19 @@ const passphrase = ref('');
 const error = ref(null);
 const loading = ref(false);
 
+// Force input to uppercase as user types. Keeps cursor sensible by
+// only assigning when value actually differs.
+function onInput(v) {
+  const upper = String(v || '').toUpperCase();
+  if (upper !== passphrase.value) passphrase.value = upper;
+}
+
 async function onSubmit() {
   error.value = null;
   loading.value = true;
-  const cleaned = passphrase.value.trim().toLowerCase();
   // eslint-disable-next-line no-console
-  console.log('[landing] attempting sign-in with', JSON.stringify(cleaned));
-  const result = await auth.signInWithPassphrase(cleaned);
+  console.log('[landing] attempting sign-in with', JSON.stringify(passphrase.value));
+  const result = await auth.signInWithPassphrase(passphrase.value);
   loading.value = false;
   if (result?.error) {
     error.value = result.error.message || 'Unable to sign in';
@@ -70,5 +77,9 @@ async function onSubmit() {
   background: #fdfaf2;
   color: #1f1b16;
   border-color: #d8cfb8;
+}
+.input-upper :deep(input) {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 </style>
