@@ -4,8 +4,8 @@
       <span>Notes</span>
       <span class="status" :class="{ saving }">
         <template v-if="!authed">Sign in</template>
-        <template v-else-if="saving">Saving…</template>
-        <template v-else-if="lastSavedAt">Saved · {{ relativeSaved }}</template>
+        <template v-else-if="saving">Saving...</template>
+        <template v-else-if="lastSavedAt">Saved {{ relativeSaved }}</template>
       </span>
     </header>
 
@@ -19,7 +19,6 @@
       >
         <span
           class="label"
-          :ref="el => labelRefs[tab.id] = el"
           @dblclick.stop="onRenameStart(tab, $event)"
           @blur="onRenameEnd(tab, $event)"
           @keydown.enter.prevent="$event.target.blur()"
@@ -30,7 +29,7 @@
           class="close"
           :title="'Close tab'"
           @click.stop="onDelete(tab)"
-        >✕</span>
+        >x</span>
       </button>
       <button class="add-tab" :title="'New tab'" :disabled="!authed" @click="onAdd">+</button>
     </div>
@@ -61,7 +60,6 @@ const state = reactive({ tabs: [], activeId: null });
 const saving = ref(false);
 const lastSavedAt = ref(null);
 const bodyEl = ref(null);
-const labelRefs = {};
 let saveTimer = null;
 let suppressNextSelect = false;
 
@@ -92,7 +90,6 @@ function onBodyInput() {
 function onTabClick(tab) {
   if (suppressNextSelect) { suppressNextSelect = false; return; }
   if (tab.id === state.activeId) return;
-  // Persist current body before switching tabs.
   if (activeTab.value && bodyEl.value) {
     activeTab.value.html = bodyEl.value.innerHTML;
   }
@@ -101,7 +98,6 @@ function onTabClick(tab) {
 
 watch(() => state.activeId, async () => {
   await nextTick();
-  // v-html refresh isn't reactive on inner edits — sync the DOM from data.
   if (bodyEl.value && activeTab.value) bodyEl.value.innerHTML = activeTab.value.html || '';
   flush();
 });
@@ -147,4 +143,142 @@ function onDelete(tab) {
   if (!window.confirm('Delete "' + tab.label + '"?')) return;
   const idx = state.tabs.findIndex(t => t.id === tab.id);
   state.tabs.splice(idx, 1);
-  if (state.activeId ==
+  if (state.activeId === tab.id) {
+    const fallback = state.tabs[Math.max(0, idx - 1)] || state.tabs[0];
+    state.activeId = fallback.id;
+  }
+  flush();
+}
+
+const relativeSaved = computed(() => {
+  if (!lastSavedAt.value) return '';
+  const sec = Math.round((Date.now() - lastSavedAt.value.getTime()) / 1000);
+  if (sec < 5) return 'just now';
+  if (sec < 60) return sec + 's ago';
+  const min = Math.round(sec / 60);
+  if (min < 60) return min + 'm ago';
+  return 'a while ago';
+});
+
+onMounted(async () => {
+  if (!authed.value) return;
+  const loaded = await fetchNotepad();
+  state.tabs = loaded.tabs;
+  state.activeId = loaded.activeId;
+  await nextTick();
+  if (bodyEl.value && activeTab.value) bodyEl.value.innerHTML = activeTab.value.html || '';
+});
+</script>
+
+<style scoped>
+.notepad-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  min-height: 0;
+}
+
+.drawer-header {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+}
+.drawer-header .status {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  font-weight: normal;
+  text-transform: none;
+}
+.drawer-header .status.saving { color: var(--gold-dim); }
+
+.notes-tabs {
+  display: flex;
+  background: var(--bg-panel-2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.note-tab {
+  padding: 6px 12px;
+  border-right: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cinzel', serif;
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+}
+.note-tab.active {
+  color: var(--gold);
+  background: var(--bg-panel);
+  border-bottom: 2px solid var(--gold);
+}
+.note-tab .label { outline: none; min-width: 30px; }
+.note-tab .label.editing {
+  color: var(--gold-bright);
+  background: var(--bg);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.note-tab .close {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 0 2px;
+}
+.note-tab .close:hover { color: var(--red); }
+.add-tab {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+}
+.add-tab:disabled { opacity: 0.4; cursor: default; }
+
+.note-body-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.note-body {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.note-body:empty:before {
+  content: "Write whatever you'll need to remember...";
+  color: var(--text-dim);
+  font-style: italic;
+  pointer-events: none;
+}
+</style>
