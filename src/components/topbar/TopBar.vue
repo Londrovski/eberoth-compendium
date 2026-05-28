@@ -18,8 +18,11 @@
       <q-space />
 
       <div class="row items-center q-gutter-sm">
-        <ViewAsSelect v-if="viewer.isDM" />
-        <CardScaleControls v-if="viewer.isDM" />
+        <template v-if="viewer.isDM">
+          <CardScaleControls which="card" />
+          <CardScaleControls which="faction" />
+          <ViewAsSelect />
+        </template>
         <q-chip dense outline color="grey-7">{{ roleLabel }}</q-chip>
         <q-btn flat round dense icon="lock" :title="'Sign out'" @click="onSignOut" />
       </div>

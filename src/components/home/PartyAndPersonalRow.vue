@@ -1,5 +1,5 @@
 <template>
-  <section class="party-section">
+  <section class="party-section" :style="sectionStyle">
     <div class="section-label">The Party &amp; Personal</div>
     <div class="row-wrap">
       <PartyCard v-for="pc in players" :key="pc.id" :entity="pc" />
@@ -39,17 +39,19 @@ import { computed } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useViewer } from 'src/composables/useViewer';
 import { useAuthStore } from 'src/stores/auth';
+import { useLayoutStore } from 'src/stores/layout';
 import PartyCard from 'components/home/PartyCard.vue';
 import PersonalCard from 'components/home/PersonalCard.vue';
 
 const entities = useEntitiesStore();
 const viewer   = useViewer();
 const auth     = useAuthStore();
+const layout   = useLayoutStore();
 
 const BUCKET_TO_PLAYER = {
   baker:   'kalvorn',
-  butcher: 'dirk',
-  charlie: 'azrael'
+  butcher: 'azrael',
+  charlie: 'dirk'
 };
 
 const players = computed(() =>
@@ -66,44 +68,48 @@ const myPersonals = computed(() => {
 });
 
 const hasAnyPersonals = computed(() => {
-  if (viewer.isDM.value) {
+  if (viewer.isDM) {
     return players.value.some(p => personalsOf(p.id).length > 0);
   }
   return myPersonals.value.length > 0;
 });
+
+const sectionStyle = computed(() => ({
+  '--scale': layout.cardScale
+}));
 </script>
 
 <style scoped>
 .party-section {
-  padding: 12px 0 16px;
+  padding: calc(12px * var(--scale, 1)) 0 calc(16px * var(--scale, 1));
   border-bottom: 1px solid #d8cfb8;
 }
 .section-label {
-  font-size: 0.7rem;
+  font-size: calc(0.75rem * var(--scale, 1));
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #8a7148;
-  margin-bottom: 10px;
+  margin-bottom: calc(10px * var(--scale, 1));
 }
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: calc(8px * var(--scale, 1));
   align-items: center;
 }
 .divider {
   width: 1px;
   align-self: stretch;
   background: #d8cfb8;
-  margin: 0 6px;
+  margin: 0 calc(6px * var(--scale, 1));
 }
 .group-chip {
-  font-size: 0.7rem;
+  font-size: calc(0.75rem * var(--scale, 1));
   font-weight: 500;
   color: #8a7148;
-  padding: 4px 8px;
+  padding: calc(4px * var(--scale, 1)) calc(8px * var(--scale, 1));
   background: #ede4d1;
-  border-radius: 4px;
+  border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
 }
 </style>

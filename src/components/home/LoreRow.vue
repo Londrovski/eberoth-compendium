@@ -1,5 +1,5 @@
 <template>
-  <section class="lore-section" v-if="lore.length">
+  <section class="lore-section" v-if="lore.length" :style="sectionStyle">
     <div class="section-label">Lore</div>
     <div class="row-wrap">
       <LoreCard v-for="l in lore" :key="l.id" :entity="l" />
@@ -10,31 +10,37 @@
 <script setup>
 import { computed } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
+import { useLayoutStore } from 'src/stores/layout';
 import LoreCard from 'components/home/LoreCard.vue';
 
 const entities = useEntitiesStore();
+const layout   = useLayoutStore();
 
 const lore = computed(() =>
   [...entities.lore].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 );
+
+const sectionStyle = computed(() => ({
+  '--scale': layout.cardScale
+}));
 </script>
 
 <style scoped>
 .lore-section {
-  padding: 18px 0 4px;
+  padding: calc(18px * var(--scale, 1)) 0 calc(4px * var(--scale, 1));
   border-top: 1px solid #d8cfb8;
-  margin-top: 16px;
+  margin-top: calc(16px * var(--scale, 1));
 }
 .section-label {
-  font-size: 0.7rem;
+  font-size: calc(0.75rem * var(--scale, 1));
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #8a7148;
-  margin-bottom: 10px;
+  margin-bottom: calc(10px * var(--scale, 1));
 }
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: calc(8px * var(--scale, 1));
 }
 </style>

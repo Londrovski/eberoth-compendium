@@ -1,5 +1,5 @@
 <template>
-  <section class="factions-section">
+  <section class="factions-section" :style="sectionStyle">
     <div class="section-head">
       <div class="section-label">Factions</div>
       <q-btn
@@ -44,23 +44,28 @@ const orderedFactions = computed(() => {
   return [...ordered, ...rest];
 });
 
+const sectionStyle = computed(() => ({
+  '--scale': layout.cardScale,
+  '--faction-scale': layout.factionScale
+}));
+
 function onNewFaction() {
-  $q.notify({ type: 'info', message: 'New-faction form ships in Q5.' });
+  $q.notify({ type: 'info', message: 'New-faction form ships in Q5B.' });
 }
 </script>
 
 <style scoped>
 .factions-section {
-  padding: 14px 0 4px;
+  padding: calc(14px * var(--scale, 1)) 0 calc(4px * var(--scale, 1));
 }
 .section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: calc(12px * var(--scale, 1));
 }
 .section-label {
-  font-size: 0.7rem;
+  font-size: calc(0.75rem * var(--scale, 1));
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #8a7148;
@@ -68,7 +73,7 @@ function onNewFaction() {
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: calc(16px * var(--scale, 1));
 }
 @media (max-width: 900px) {
   .grid { grid-template-columns: repeat(2, 1fr); }

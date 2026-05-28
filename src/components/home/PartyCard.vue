@@ -1,6 +1,6 @@
 <template>
   <div class="party-card" :class="{ 'is-glow': glow }" :style="cardStyle" @click="open">
-    <EntityAvatar :entity="entity" :size="size" />
+    <EntityAvatar :entity="entity" :size="avatarSize" />
     <div class="meta">
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="sub" v-if="entity.sub">{{ entity.sub }}</div>
@@ -23,8 +23,9 @@ const layout = useLayoutStore();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 
-const size = computed(() => Math.round(44 * layout.cardScale));
+const avatarSize = computed(() => Math.round(44 * layout.cardScale));
 const cardStyle = computed(() => ({
+  '--scale': layout.cardScale,
   padding: (8 * layout.cardScale) + 'px ' + (12 * layout.cardScale) + 'px'
 }));
 
@@ -35,10 +36,10 @@ function open() { detail.open(props.entity.id); }
 .party-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(10px * var(--scale, 1));
   background: #f3eee3;
   border: 1px solid #d8cfb8;
-  border-radius: 8px;
+  border-radius: calc(8px * var(--scale, 1));
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -46,9 +47,9 @@ function open() { detail.open(props.entity.id); }
 .party-card.is-glow {
   background: #fff8e0;
   border-color: #c08a2b;
-  box-shadow: 0 0 8px rgba(192, 138, 43, 0.5);
+  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(192, 138, 43, 0.5);
 }
 .meta { display: flex; flex-direction: column; min-width: 0; }
-.name { font-weight: 500; font-size: 0.85rem; color: #1f1b16; }
-.sub  { font-size: 0.7rem; color: #6b5b3f; }
+.name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: #1f1b16; line-height: 1.2; }
+.sub  { font-size: calc(0.7rem * var(--scale, 1)); color: #6b5b3f; line-height: 1.2; }
 </style>

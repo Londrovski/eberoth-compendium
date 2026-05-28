@@ -1,6 +1,6 @@
 <template>
   <div class="member-card" :class="{ 'is-glow': glow }" :style="cardStyle" @click="open">
-    <EntityAvatar :entity="entity" :size="size" />
+    <EntityAvatar :entity="entity" :size="avatarSize" />
     <div class="meta">
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="role" v-if="role">{{ role }}</div>
@@ -28,8 +28,9 @@ const entities = useEntitiesStore();
 const detail   = useEntityDetail();
 const glow     = useGlow(props.entity.id);
 
-const size = computed(() => Math.round(36 * layout.cardScale));
+const avatarSize = computed(() => Math.round(36 * layout.cardScale));
 const cardStyle = computed(() => ({
+  '--scale': layout.cardScale,
   padding: (6 * layout.cardScale) + 'px ' + (8 * layout.cardScale) + 'px'
 }));
 
@@ -48,10 +49,10 @@ function open() { detail.open(props.entity.id); }
 .member-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--scale, 1));
   background: #f3eee3;
   border: 1px solid #d8cfb8;
-  border-radius: 6px;
+  border-radius: calc(6px * var(--scale, 1));
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -59,17 +60,17 @@ function open() { detail.open(props.entity.id); }
 .member-card.is-glow {
   background: #fff8e0;
   border-color: #c08a2b;
-  box-shadow: 0 0 6px rgba(192, 138, 43, 0.45);
+  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(192, 138, 43, 0.45);
 }
 .meta { flex: 1; min-width: 0; }
-.name { font-weight: 500; font-size: 0.78rem; color: #1f1b16; }
-.role { font-size: 0.65rem; color: #6b5b3f; }
+.name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: #1f1b16; line-height: 1.2; }
+.role { font-size: calc(0.7rem * var(--scale, 1)); color: #6b5b3f; line-height: 1.2; }
 .badge {
-  font-size: 0.65rem;
+  font-size: calc(0.65rem * var(--scale, 1));
   color: #6b5b3f;
-  padding: 2px 6px;
+  padding: 2px calc(6px * var(--scale, 1));
   background: #ede4d1;
-  border-radius: 4px;
+  border-radius: calc(4px * var(--scale, 1));
   flex-shrink: 0;
 }
 </style>
