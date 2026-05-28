@@ -8,10 +8,23 @@
     transition-hide="slide-right"
   >
     <q-card class="detail-card column">
-      <DetailHeader :entity="entity" @close="close" />
+      <DetailHeader
+        :entity="entity"
+        :editing="editing"
+        @close="close"
+        @edit="onEdit"
+        @cancel-edit="onCancelEdit"
+      />
 
       <q-scroll-area class="col">
-        <div class="q-pa-md" v-if="entity">
+        <DetailEditForm
+          v-if="editing && entity"
+          :entity="entity"
+          @cancel="onCancelEdit"
+          @saved="onSaved"
+        />
+
+        <div class="q-pa-md" v-else-if="entity">
           <DetailIdentity :entity="entity" />
           <DetailMemberships :entity="entity" v-if="memberships.length" :memberships="memberships" />
           <DetailPersonalTo :entity="entity" v-if="personalTo" :personal-to="personalTo" />
@@ -29,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import DetailHeader from 'components/detail/DetailHeader.vue';
@@ -39,12 +52,15 @@ import DetailPersonalTo from 'components/detail/DetailPersonalTo.vue';
 import DetailBody from 'components/detail/DetailBody.vue';
 import DetailFacts from 'components/detail/DetailFacts.vue';
 import DetailNotes from 'components/detail/DetailNotes.vue';
+import DetailEditForm from 'components/detail/DetailEditForm.vue';
 
 const entities = useEntitiesStore();
 const detail   = useEntityDetail();
 
 const isOpenRef = detail.isOpen;
 const currentIdRef = detail.currentEntityId;
+
+const editing = ref(false);
 
 const open = computed({
   get: () => isOpenRef.value,
@@ -54,6 +70,8 @@ const open = computed({
 const entity = computed(() =>
   currentIdRef.value ? entities.byId[currentIdRef.value] : null
 );
+
+watch(currentIdRef, () => { editing.value = false; });
 
 const memberships = computed(() => {
   if (!entity.value) return [];
@@ -72,7 +90,13 @@ const personalTo = computed(() => {
   return { player, relationship: row.relationship };
 });
 
-function close() { detail.close(); }
+function close() {
+  detail.close();
+  editing.value = false;
+}
+function onEdit()       { editing.value = true; }
+function onCancelEdit() { editing.value = false; }
+function onSaved()      { editing.value = false; }
 </script>
 
 <style scoped>

@@ -27,8 +27,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useViewer } from 'src/composables/useViewer';
+import * as fullBodiesApi from 'src/api/full-bodies';
 
 const props = defineProps({
   entity: { type: Object, required: true }
@@ -43,9 +44,31 @@ function paragraphsOf(text) {
 const sharedParas = computed(() => paragraphsOf(props.entity.shared_body));
 const viewerParas = computed(() => paragraphsOf(props.entity.viewerBody));
 
+const VIEWER_LABEL = {
+  baker:   'Kalvorn',
+  butcher: 'Dirk',
+  charlie: 'Azrael'
+};
+
+const allBodies = ref({});
+
+async function loadBodies(id) {
+  if (!viewer.isDM.value || !id) { allBodies.value = {}; return; }
+  allBodies.value = await fullBodiesApi.fetchAllBodiesFor(id);
+}
+
+watch(() => props.entity.id, (id) => { loadBodies(id); }, { immediate: false });
+onMounted(() => loadBodies(props.entity.id));
+
 const otherBodies = computed(() => {
   if (!viewer.isDM.value) return [];
-  return [];
+  return ['baker', 'butcher', 'charlie']
+    .filter(v => allBodies.value[v] && allBodies.value[v].trim())
+    .map(v => ({
+      viewer: v,
+      label:  VIEWER_LABEL[v],
+      paras:  paragraphsOf(allBodies.value[v])
+    }));
 });
 </script>
 
