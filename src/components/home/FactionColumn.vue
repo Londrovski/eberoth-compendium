@@ -91,15 +91,26 @@ async function onMemberMoveDown(idx) {
   gap: calc(8px * var(--faction-scale, 1));
   padding-bottom: calc(6px * var(--faction-scale, 1));
   border-bottom: 1px solid #d8cfb8;
+  transition: background 0.15s ease;
 }
+
+/* Restricted visibility — box the whole header with a tinted glow.
+   Replaces the bottom border with a full box look. */
 .faction-header.vis-restricted {
-  border-bottom-color: rgba(74, 107, 145, 0.55);
-  border-bottom-width: 2px;
+  background: #ecf1f8;
+  border: 1px solid #7d9bc1;
+  border-radius: calc(6px * var(--faction-scale, 1));
+  padding: calc(6px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
+  box-shadow: 0 0 calc(8px * var(--faction-scale, 1)) rgba(74, 107, 145, 0.3);
 }
 .faction-header.vis-dm-only {
-  border-bottom-color: rgba(156, 42, 42, 0.55);
-  border-bottom-width: 2px;
+  background: #f8ecec;
+  border: 1px solid #c17d7d;
+  border-radius: calc(6px * var(--faction-scale, 1));
+  padding: calc(6px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
+  box-shadow: 0 0 calc(8px * var(--faction-scale, 1)) rgba(156, 42, 42, 0.3);
 }
+
 .header-main {
   display: flex;
   align-items: center;
