@@ -1,7 +1,7 @@
 <template>
   <div class="entity-avatar" :style="style">
     <img v-if="src" :src="src" :alt="alt" @error="onError" />
-    <span v-else class="initials">{{ initials }}</span>
+    <span v-else class="missing">?</span>
   </div>
 </template>
 
@@ -13,18 +13,15 @@ const props = defineProps({
   size:   { type: Number, default: 44 }
 });
 
-// PNGs live on the 'main' branch of the eberoth repo at the root,
-// served via GitHub raw. The DB stores bare filenames like
-// 'Aldus Corvath.png'. Resolve them at render time.
 const IMAGE_BASE = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/';
 
 function resolveUrl(raw) {
   if (!raw) return null;
   const s = String(raw).trim();
   if (!s) return null;
-  if (/^https?:\/\//i.test(s)) return s;       // already absolute
-  if (s.startsWith('/')) return s;             // already a path
-  return IMAGE_BASE + encodeURIComponent(s);   // bare filename → GitHub raw
+  if (/^https?:\/\//i.test(s)) return s;
+  if (s.startsWith('/')) return s;
+  return IMAGE_BASE + encodeURIComponent(s);
 }
 
 const errored = ref(false);
@@ -33,13 +30,10 @@ const src = computed(() => {
   return resolveUrl(props.entity.sigil || props.entity.image);
 });
 const alt = computed(() => props.entity.name || '');
-const initials = computed(() => {
-  const n = String(props.entity.short_name || props.entity.name || '?').trim();
-  return n.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-});
 const style = computed(() => ({
   width:  props.size + 'px',
-  height: props.size + 'px'
+  height: props.size + 'px',
+  fontSize: Math.round(props.size * 0.55) + 'px'
 }));
 
 function onError() { errored.value = true; }
@@ -50,9 +44,9 @@ function onError() { errored.value = true; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3eee3;
-  border: 1px solid #d8cfb8;
-  border-radius: 6px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -60,11 +54,12 @@ function onError() { errored.value = true; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
 }
-.initials {
-  font-family: 'Cinzel', serif;
-  font-weight: 500;
-  color: #6b4f2e;
-  font-size: 0.85em;
+.missing {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
 }
 </style>
