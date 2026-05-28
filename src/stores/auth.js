@@ -5,6 +5,10 @@
 //
 // effectiveBucket() returns viewingAs if set, otherwise actual.
 // All visibility-aware reads should key off effectiveBucket.
+//
+// Source of truth: Supabase session. We subscribe to onAuthStateChange
+// so the store stays in sync — if the session expires or is signed
+// out, actualBucket falls back to null automatically.
 
 import { defineStore } from 'pinia';
 import { supabase } from 'boot/supabase';
@@ -13,7 +17,8 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     actualBucket: null,
-    viewingAs: null
+    viewingAs: null,
+    hydrated: false
   }),
   getters: {
     isDM:         (s) => s.actualBucket === 'dm',
@@ -22,11 +27,35 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     async hydrate() {
+      // Pull the current session and seed state.
       const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        this.user = data.session.user;
-        this.actualBucket = bucketFor(data.session.user.email);
+      this._applySession(data?.session);
+
+      // Subscribe once for live updates. If signOut happens or token
+      // refresh fails, this fires SIGNED_OUT and clears state.
+      if (!this.hydrated) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_OUT') {
+            this._clearSession();
+          } else if (session) {
+            this._applySession(session);
+          }
+        });
+        this.hydrated = true;
       }
+    },
+    _applySession(session) {
+      if (session && session.user) {
+        this.user = session.user;
+        this.actualBucket = bucketFor(session.user.email);
+      } else {
+        this._clearSession();
+      }
+    },
+    _clearSession() {
+      this.user = null;
+      this.actualBucket = null;
+      this.viewingAs = null;
     },
     async signInWithPassphrase(passphrase) {
       const email = emailFor(passphrase);
@@ -34,15 +63,12 @@ export const useAuthStore = defineStore('auth', {
       const password = passphrase;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
-      this.user = data.user;
-      this.actualBucket = bucketFor(email);
+      this._applySession(data.session);
       return { user: data.user };
     },
     async signOut() {
       await supabase.auth.signOut();
-      this.user = null;
-      this.actualBucket = null;
-      this.viewingAs = null;
+      this._clearSession();
     },
     setViewingAs(bucket) {
       if (!this.isDM) return;
