@@ -54,43 +54,45 @@ const tagNames = computed(() => {
 
 <style scoped>
 .dm-info {
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: #f3eee3;
-  border: 1px solid #d8cfb8;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
 }
 .dm-info.state-everyone {
-  background: #f3eee3;
-  border-color: #d8cfb8;
+  border-left-color: var(--gold-dim);
 }
 .dm-info.state-restricted {
-  background: #ecf1f8;
-  border-color: #7d9bc1;
+  border-left-color: var(--blue);
+  background: rgba(74,107,145,0.08);
 }
 .dm-info.state-dm-only {
-  background: #f8ecec;
-  border-color: #c17d7d;
+  border-left-color: var(--red);
+  background: rgba(139,58,58,0.10);
 }
 
 .section-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.65rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: #8a7148;
-  margin-bottom: 4px;
+  color: var(--gold-dim);
+  margin-bottom: 6px;
 }
 .info-block { min-width: 0; }
 .info-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.65rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #6b5b3f;
+  color: var(--text-dim);
   margin-bottom: 2px;
 }
 .info-value {
   font-size: 0.9rem;
-  color: #1f1b16;
+  color: var(--text);
   font-weight: 500;
 }
-.tag-text { color: #6b4f2e; }
+.tag-text { color: var(--gold-bright); }
 </style>
