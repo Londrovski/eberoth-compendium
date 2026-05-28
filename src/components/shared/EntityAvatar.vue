@@ -13,8 +13,25 @@ const props = defineProps({
   size:   { type: Number, default: 44 }
 });
 
+// PNGs live on the 'main' branch of the eberoth repo at the root,
+// served via GitHub raw. The DB stores bare filenames like
+// 'Aldus Corvath.png'. Resolve them at render time.
+const IMAGE_BASE = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/';
+
+function resolveUrl(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  if (/^https?:\/\//i.test(s)) return s;       // already absolute
+  if (s.startsWith('/')) return s;             // already a path
+  return IMAGE_BASE + encodeURIComponent(s);   // bare filename → GitHub raw
+}
+
 const errored = ref(false);
-const src = computed(() => errored.value ? null : (props.entity.sigil || props.entity.image || null));
+const src = computed(() => {
+  if (errored.value) return null;
+  return resolveUrl(props.entity.sigil || props.entity.image);
+});
 const alt = computed(() => props.entity.name || '');
 const initials = computed(() => {
   const n = String(props.entity.short_name || props.entity.name || '?').trim();
