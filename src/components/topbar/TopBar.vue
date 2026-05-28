@@ -2,8 +2,11 @@
   <q-header bordered class="eb-topbar">
     <q-toolbar class="q-px-md">
       <div class="row items-center q-gutter-sm brand">
-        <span class="text-h6 app-title">Eberoth</span>
-        <span class="text-caption sub">The Compendium</span>
+        <img class="logo" :src="LOGO" alt="Eberoth" />
+        <div class="brand-text">
+          <span class="eberoth">Eberoth</span>
+          <span class="sub">The Compendium</span>
+        </div>
       </div>
 
       <q-space />
@@ -36,6 +39,8 @@ import { characterFromBucket } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 
+const LOGO = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
+
 const router = useRouter();
 const auth = useAuthStore();
 const viewer = useViewer();
@@ -60,21 +65,36 @@ async function onSignOut() {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
-.brand .app-title {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
-  color: var(--gold);
-  letter-spacing: 0.08em;
+.brand { gap: 10px; }
+.logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(201,169,97,0.45));
 }
-.brand .sub {
+.brand-text { display: flex; flex-direction: column; line-height: 1; }
+.eberoth {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 12px rgba(201,169,97,0.55),
+    0 0 22px rgba(201,169,97,0.25);
+}
+.sub {
+  font-family: 'Cinzel', serif;
   color: var(--gold-dim);
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
+  margin-top: 2px;
 }
 .eb-tabs :deep(.q-tab) {
   color: var(--text-dim);
   font-family: 'Cinzel', serif;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   font-size: 0.7rem;
 }
