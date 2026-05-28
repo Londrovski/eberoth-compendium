@@ -1,16 +1,11 @@
 // DM-controlled global config store. Source of truth: Supabase
 // app_settings table. We subscribe to Realtime so any DM change
 // propagates live to every connected client.
-//
-// Today holds: cardScale, factionScale, factionOrder.
-// Future: theme, glow colour, default visibility for new entities,
-// active session id, anything DM-controlled and app-wide.
 
 import { defineStore } from 'pinia';
 import { supabase } from 'boot/supabase';
 import * as appSettingsApi from 'src/api/app-settings';
 
-// Default values — used until the first fetch completes.
 const DEFAULTS = {
   card_scale:    { scale: 1.0 },
   faction_scale: { scale: 1.0 },
@@ -50,11 +45,21 @@ export const useAppSettingsStore = defineStore('appSettings', {
       this.factionOrder = order;
       await appSettingsApi.setKey('faction_order', { order });
     },
+    async moveFactionUp(factionId) {
+      const i = this.factionOrder.indexOf(factionId);
+      if (i <= 0) return;
+      const next = [...this.factionOrder];
+      [next[i - 1], next[i]] = [next[i], next[i - 1]];
+      await this.setFactionOrder(next);
+    },
+    async moveFactionDown(factionId) {
+      const i = this.factionOrder.indexOf(factionId);
+      if (i < 0 || i >= this.factionOrder.length - 1) return;
+      const next = [...this.factionOrder];
+      [next[i + 1], next[i]] = [next[i], next[i + 1]];
+      await this.setFactionOrder(next);
+    },
 
-    // Open a Realtime channel on public.app_settings. Idempotent —
-    // call from any page's onMount and it only subscribes once per
-    // app lifetime. Each INSERT/UPDATE event applies to local state
-    // so the UI re-renders without a reload.
     subscribeRealtime() {
       if (this._subscribed) return;
       this._subscribed = true;
@@ -73,5 +78,4 @@ export const useAppSettingsStore = defineStore('appSettings', {
   }
 });
 
-// Back-compat alias. Old useLayoutStore() calls keep working.
 export const useLayoutStore = useAppSettingsStore;

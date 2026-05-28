@@ -5,22 +5,37 @@
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="sub" v-if="relationship">{{ relationship }}</div>
     </div>
+    <ReorderArrows
+      v-if="viewer.isDM && reorderable"
+      :disable-up="isFirst"
+      :disable-down="isLast"
+      :vertical="false"
+      @up="$emit('move-up')"
+      @down="$emit('move-down')"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import EntityAvatar from 'components/shared/EntityAvatar.vue';
-import { useLayoutStore } from 'src/stores/layout';
+import ReorderArrows from 'components/shared/ReorderArrows.vue';
+import { useAppSettingsStore } from 'src/stores/app-settings';
+import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 
 const props = defineProps({
   entity:       { type: Object, required: true },
-  relationship: { type: String, default: '' }
+  relationship: { type: String, default: '' },
+  reorderable:  { type: Boolean, default: false },
+  isFirst:      { type: Boolean, default: false },
+  isLast:       { type: Boolean, default: false }
 });
+defineEmits(['move-up', 'move-down']);
 
-const layout = useLayoutStore();
+const layout = useAppSettingsStore();
+const viewer = useViewer();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 

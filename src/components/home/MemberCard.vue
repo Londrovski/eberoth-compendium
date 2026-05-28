@@ -6,25 +6,38 @@
       <div class="role" v-if="role">{{ role }}</div>
     </div>
     <div class="badge" v-if="otherCount > 0" :title="otherFactionsTitle">+{{ otherCount }}</div>
+    <ReorderArrows
+      v-if="viewer.isDM"
+      :disable-up="isFirst"
+      :disable-down="isLast"
+      @up="$emit('move-up')"
+      @down="$emit('move-down')"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import EntityAvatar from 'components/shared/EntityAvatar.vue';
-import { useLayoutStore } from 'src/stores/layout';
+import ReorderArrows from 'components/shared/ReorderArrows.vue';
+import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useEntitiesStore } from 'src/stores/entities';
+import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 
 const props = defineProps({
   entity:    { type: Object, required: true },
   role:      { type: String, default: '' },
-  factionId: { type: String, required: true }
+  factionId: { type: String, required: true },
+  isFirst:   { type: Boolean, default: false },
+  isLast:    { type: Boolean, default: false }
 });
+defineEmits(['move-up', 'move-down']);
 
-const layout   = useLayoutStore();
+const layout   = useAppSettingsStore();
 const entities = useEntitiesStore();
+const viewer   = useViewer();
 const detail   = useEntityDetail();
 const glow     = useGlow(props.entity.id);
 

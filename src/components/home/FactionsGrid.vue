@@ -2,18 +2,17 @@
   <section class="factions-section" :style="sectionStyle">
     <div class="section-head">
       <div class="section-label">Factions</div>
-      <q-btn
-        v-if="viewer.isDM"
-        flat dense no-caps
-        icon="add"
-        label="New faction"
-        size="sm"
-        class="text-grey-7"
-        @click="onNewFaction"
-      />
     </div>
     <div class="grid">
-      <FactionColumn v-for="f in orderedFactions" :key="f.id" :faction="f" />
+      <FactionColumn
+        v-for="(f, idx) in orderedFactions"
+        :key="f.id"
+        :faction="f"
+        :is-first="idx === 0"
+        :is-last="idx === orderedFactions.length - 1"
+        @move-up="onMoveUp"
+        @move-down="onMoveDown"
+      />
     </div>
   </section>
 </template>
@@ -21,15 +20,11 @@
 <script setup>
 import { computed } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
-import { useLayoutStore } from 'src/stores/layout';
-import { useViewer } from 'src/composables/useViewer';
-import { useQuasar } from 'quasar';
+import { useAppSettingsStore } from 'src/stores/app-settings';
 import FactionColumn from 'components/home/FactionColumn.vue';
 
 const entities = useEntitiesStore();
-const layout   = useLayoutStore();
-const viewer   = useViewer();
-const $q       = useQuasar();
+const layout   = useAppSettingsStore();
 
 const orderedFactions = computed(() => {
   const byId = Object.fromEntries(entities.factions.map(f => [f.id, f]));
@@ -49,9 +44,8 @@ const sectionStyle = computed(() => ({
   '--faction-scale': layout.factionScale
 }));
 
-function onNewFaction() {
-  $q.notify({ type: 'info', message: 'New-faction form ships in Q5B.' });
-}
+function onMoveUp(id)   { layout.moveFactionUp(id);   }
+function onMoveDown(id) { layout.moveFactionDown(id); }
 </script>
 
 <style scoped>

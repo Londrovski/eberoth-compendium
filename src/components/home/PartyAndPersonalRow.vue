@@ -12,10 +12,15 @@
             <template v-if="personalsOf(pc.id).length">
               <div class="group-chip">{{ pc.short_name || pc.name }}:</div>
               <PersonalCard
-                v-for="row in personalsOf(pc.id)"
+                v-for="(row, idx) in personalsOf(pc.id)"
                 :key="pc.id + '-' + row.entity.id"
                 :entity="row.entity"
                 :relationship="row.relationship"
+                :reorderable="true"
+                :is-first="idx === 0"
+                :is-last="idx === personalsOf(pc.id).length - 1"
+                @move-up="onPersonalMoveUp(pc.id, idx)"
+                @move-down="onPersonalMoveDown(pc.id, idx)"
               />
             </template>
           </template>
@@ -41,6 +46,7 @@ import { useViewer } from 'src/composables/useViewer';
 import { useAuthStore } from 'src/stores/auth';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { playerIdFromBucket } from 'src/config/players';
+import { swapPersonalOrder } from 'src/api/reorder';
 import PartyCard from 'components/home/PartyCard.vue';
 import PersonalCard from 'components/home/PersonalCard.vue';
 
@@ -71,6 +77,17 @@ const hasAnyPersonals = computed(() => {
 const sectionStyle = computed(() => ({
   '--scale': layout.cardScale
 }));
+
+async function onPersonalMoveUp(playerId, idx) {
+  const rows = personalsOf(playerId);
+  if (idx <= 0) return;
+  await swapPersonalOrder(playerId, rows[idx].entity.id, rows[idx - 1].entity.id);
+}
+async function onPersonalMoveDown(playerId, idx) {
+  const rows = personalsOf(playerId);
+  if (idx >= rows.length - 1) return;
+  await swapPersonalOrder(playerId, rows[idx].entity.id, rows[idx + 1].entity.id);
+}
 </script>
 
 <style scoped>
