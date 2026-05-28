@@ -9,17 +9,9 @@
     </div>
 
     <template v-else>
-      <div class="text-h6 q-mb-sm">Scaffold OK</div>
-      <div class="text-body2 text-grey-7 q-mb-md">
-        Phase Q2 complete. The home dashboard components ship in Q3.
-      </div>
-      <div class="text-caption text-grey-6">
-        Entities loaded: {{ entities.all.length }} ·
-        Factions: {{ entities.factions.length }} ·
-        Players: {{ entities.players.length }} ·
-        Memberships: {{ entities.memberships.length }} ·
-        Personals: {{ entities.personals.length }}
-      </div>
+      <PartyAndPersonalRow />
+      <FactionsGrid />
+      <LoreRow />
     </template>
   </q-page>
 </template>
@@ -28,6 +20,9 @@
 import { onMounted } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useLayoutStore } from 'src/stores/layout';
+import PartyAndPersonalRow from 'components/home/PartyAndPersonalRow.vue';
+import FactionsGrid from 'components/home/FactionsGrid.vue';
+import LoreRow from 'components/home/LoreRow.vue';
 
 const entities = useEntitiesStore();
 const layout = useLayoutStore();

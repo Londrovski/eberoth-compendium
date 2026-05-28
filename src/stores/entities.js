@@ -11,6 +11,14 @@ import * as entitiesApi from 'src/api/entities';
 import * as membershipsApi from 'src/api/memberships';
 import * as personalsApi from 'src/api/personals';
 
+// Player id → viewer bucket. Mirrors the MAP in stores/auth.js,
+// inverted. Keep these two files in sync.
+const PLAYER_TO_BUCKET = {
+  kalvorn: 'baker',
+  dirk:    'butcher',
+  azrael:  'charlie'
+};
+
 export const useEntitiesStore = defineStore('entities', {
   state: () => ({
     byId: {},
@@ -50,9 +58,9 @@ export const useEntitiesStore = defineStore('entities', {
       const e = s.byId[entityId];
       if (!e || !viewer) return false;
       if (e.tagged_viewers?.has(viewer)) return true;
-      const playerEntity = Object.values(s.byId).find(x => x.kind === 'player' && x.bucket === viewer);
-      if (!playerEntity) return false;
-      return s.personals.some(p => p.entity_id === entityId && p.player_id === playerEntity.id);
+      const playerId = Object.keys(PLAYER_TO_BUCKET).find(pid => PLAYER_TO_BUCKET[pid] === viewer);
+      if (!playerId) return false;
+      return s.personals.some(p => p.entity_id === entityId && p.player_id === playerId);
     }
   },
   actions: {
@@ -71,6 +79,7 @@ export const useEntitiesStore = defineStore('entities', {
         this.personals = pers;
       } catch (e) {
         this.error = e;
+        // eslint-disable-next-line no-console
         console.error('[entities] load failed', e);
       } finally {
         this.loading = false;
