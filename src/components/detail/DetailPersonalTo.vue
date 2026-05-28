@@ -26,10 +26,11 @@ function open(id) { detail.open(id); }
 
 <style scoped>
 .section-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: #8a7148;
+  color: var(--gold-dim);
   margin-bottom: 8px;
 }
 .chip {
@@ -37,13 +38,17 @@ function open(id) { detail.open(id); }
   align-items: center;
   gap: 10px;
   padding: 6px 12px 6px 6px;
-  background: #fff8e0;
-  border: 1px solid #c08a2b;
+  background: rgba(201,169,97,0.10);
+  border: 1px solid var(--gold-dim);
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.chip:hover { background: #fdefc4; }
+.chip:hover {
+  background: rgba(201,169,97,0.18);
+  border-color: var(--gold);
+}
 .meta { display: flex; flex-direction: column; min-width: 0; }
-.name { font-weight: 500; font-size: 0.85rem; }
-.role { font-size: 0.7rem; color: #6b5b3f; font-style: italic; }
+.name { font-weight: 500; font-size: 0.85rem; color: var(--gold-bright); }
+.role { font-size: 0.7rem; color: var(--text-dim); font-style: italic; }
 </style>
