@@ -5,21 +5,36 @@
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="sub" v-if="entity.sub">{{ entity.sub }}</div>
     </div>
+    <ReorderArrows
+      v-if="viewer.isDM && reorderable"
+      :disable-up="isFirst"
+      :disable-down="isLast"
+      :vertical="false"
+      @up="$emit('move-up')"
+      @down="$emit('move-down')"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import EntityAvatar from 'components/shared/EntityAvatar.vue';
-import { useLayoutStore } from 'src/stores/layout';
+import ReorderArrows from 'components/shared/ReorderArrows.vue';
+import { useAppSettingsStore } from 'src/stores/app-settings';
+import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 
 const props = defineProps({
-  entity: { type: Object, required: true }
+  entity:      { type: Object, required: true },
+  reorderable: { type: Boolean, default: false },
+  isFirst:     { type: Boolean, default: false },
+  isLast:      { type: Boolean, default: false }
 });
+defineEmits(['move-up', 'move-down']);
 
-const layout = useLayoutStore();
+const layout = useAppSettingsStore();
+const viewer = useViewer();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 
@@ -49,7 +64,7 @@ function open() { detail.open(props.entity.id); }
   border-color: #c08a2b;
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(192, 138, 43, 0.45);
 }
-.meta { min-width: 0; }
+.meta { min-width: 0; flex: 1; }
 .name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: #1f1b16; line-height: 1.2; }
 .sub  { font-size: calc(0.7rem * var(--scale, 1)); color: #6b5b3f; line-height: 1.2; }
 </style>
