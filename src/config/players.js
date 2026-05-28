@@ -1,18 +1,21 @@
-// Single source of truth for the bucket ↔ player↔character mapping.
+// Single source of truth for the bucket ↔ player ↔ character mapping.
 // Imported by anything that needs to translate between the three.
 //
-// bucket: stored in the JWT email's local-part. The auth axis.
-// playerId: entity id of the player character in Supabase.
-// characterName: display name we show to humans.
+// Verified against the Supabase data (entity_personal_to.player_id
+// cross-referenced with entity_player_tag.viewer for known personals).
 //
-// Drift between these three was a real bug source. Keep this file
-// the only place where the mapping is defined.
+//   bucket: stored in the JWT email's local-part. The auth axis.
+//   playerId: entity id of the player character in Supabase.
+//   characterName: display name we show to humans.
+//
+// Drift between these three has been a real bug source. Keep this
+// file the ONLY place where the mapping is defined.
 
 export const PLAYERS = [
   { bucket: 'dm',      playerId: null,      characterName: 'DM' },
   { bucket: 'baker',   playerId: 'kalvorn', characterName: 'Kalvorn' },
-  { bucket: 'butcher', playerId: 'azrael',  characterName: 'Azrael' },
-  { bucket: 'charlie', playerId: 'dirk',    characterName: 'Dirk' }
+  { bucket: 'butcher', playerId: 'dirk',    characterName: 'Dirk' },
+  { bucket: 'charlie', playerId: 'azrael',  characterName: 'Azrael' }
 ];
 
 export function characterFromBucket(bucket) {
@@ -26,6 +29,3 @@ export function playerIdFromBucket(bucket) {
 export function bucketFromPlayerId(playerId) {
   return PLAYERS.find(p => p.playerId === playerId)?.bucket || null;
 }
-
-// Buckets we offer in the View-As dropdown (DM previewing players).
-export const VIEW_AS_BUCKETS = PLAYERS.filter(p => p.bucket !== 'dm' || true);
