@@ -1,0 +1,17 @@
+# Force browsers to revalidate the entry bundle on every load. Hashed
+# chunks below are immutable so the page still loads fast — only the
+# index.html and the entry index-*.js are checked for freshness.
+#
+# Without this, stale browser caches break the SPA when a deploy
+# changes the hashed chunk filenames: the cached index.js tries to
+# fetch chunks that no longer exist and Cloudflare's SPA fallback
+# returns index.html, which is HTML, not JS — hence MIME errors.
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
