@@ -75,16 +75,19 @@ function open() { detail.open(props.entity.id); }
 .member-card:hover { border-color: var(--gold-dim); background: var(--bg-card); }
 
 .member-card.vis-restricted {
+  background: rgba(74,107,145,0.12);
   border-left-color: var(--blue);
   border-color: rgba(74,107,145,0.5);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(74,107,145,0.3);
 }
 .member-card.vis-dm-only {
+  background: rgba(139,58,58,0.14);
   border-left-color: var(--red);
   border-color: rgba(139,58,58,0.5);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(139,58,58,0.3);
 }
 .member-card.is-glow {
+  background: rgba(201,169,97,0.10);
   border-color: var(--gold);
   border-left-color: var(--gold);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(201,169,97,0.45);
