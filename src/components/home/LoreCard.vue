@@ -58,19 +58,22 @@ function open() { detail.open(props.entity.id); }
   border: 1px solid var(--gold-dim);
   border-radius: calc(6px * var(--scale, 1));
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .lore-card:hover { border-color: var(--gold); }
 
 .lore-card.vis-restricted {
+  background: rgba(74,107,145,0.12);
   border-color: var(--blue);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(74,107,145,0.35);
 }
 .lore-card.vis-dm-only {
+  background: rgba(139,58,58,0.14);
   border-color: var(--red);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
 .lore-card.is-glow {
+  background: rgba(201,169,97,0.10);
   border-color: var(--gold);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(201,169,97,0.5);
 }
