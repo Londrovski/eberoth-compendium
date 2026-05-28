@@ -15,7 +15,12 @@ export default defineConfig(() => ({
   devServer: { open: false, port: 9000 },
 
   framework: {
-    config: {},
+    // Force dark mode — without this Quasar puts body--light on <body>,
+    // which makes q-card / q-menu / q-field default to white and beats
+    // our app.scss overrides on specificity. With dark: true the body
+    // gets body--dark and Quasar's component defaults flip to use the
+    // $dark / $dark-page tokens we set in quasar.variables.scss.
+    config: { dark: true },
     plugins: ['Notify', 'Dialog', 'Loading']
   },
 
