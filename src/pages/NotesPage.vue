@@ -1,86 +1,79 @@
 <template>
-  <q-page padding>
-    <div class="page-title text-h6 q-mb-sm">Notes</div>
-    <div class="text-caption text-grey-7 q-mb-md">
-      Your personal notepad. Only you can see this.
-    </div>
+  <q-page class="notes-page">
+    <div class="notes-layout">
+      <div class="left-pane column">
+        <div class="threads-section">
+          <ThreadsPanel />
+        </div>
+        <div class="notepad-section col">
+          <NotepadPanel />
+        </div>
+      </div>
 
-    <q-input
-      v-model="text"
-      type="textarea"
-      filled
-      autogrow
-      placeholder="Write whatever you like…"
-      :disable="!authed"
-      :loading="loading"
-      @blur="flush"
-    />
-    <div class="status q-mt-xs" :class="{ saving }">
-      <span v-if="saving">Saving…</span>
-      <span v-else-if="lastSavedAt">Saved · {{ relativeSaved }}</span>
-      <span v-else-if="!authed">Sign in to take notes</span>
+      <div class="pane-divider" />
+
+      <div class="right-pane column">
+        <div class="page-title-row q-px-md q-py-sm">
+          <div class="text-h6">Sessions</div>
+          <div class="text-caption text-grey-7">A record of what has passed.</div>
+        </div>
+        <q-scroll-area class="col">
+          <SessionsListPanel />
+        </q-scroll-area>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useAuthStore } from 'src/stores/auth';
-import * as notesApi from 'src/api/notes';
-
-const NOTEPAD_KEY = '__notepad__';
-
-const auth = useAuthStore();
-const authed = computed(() => !!auth.user);
-
-const text = ref('');
-const saving = ref(false);
-const loading = ref(false);
-const lastSavedAt = ref(null);
-let saveTimer = null;
-
-async function load() {
-  if (!authed.value) return;
-  loading.value = true;
-  const html = await notesApi.fetch(NOTEPAD_KEY);
-  text.value = html || '';
-  lastSavedAt.value = html ? new Date() : null;
-  loading.value = false;
-}
-
-async function flush() {
-  if (!authed.value) return;
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  saving.value = true;
-  await notesApi.save(NOTEPAD_KEY, text.value || '');
-  saving.value = false;
-  lastSavedAt.value = new Date();
-}
-
-watch(text, () => {
-  if (!authed.value) return;
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(flush, 1500);
-});
-
-onMounted(load);
-
-const relativeSaved = computed(() => {
-  if (!lastSavedAt.value) return '';
-  const sec = Math.round((Date.now() - lastSavedAt.value.getTime()) / 1000);
-  if (sec < 5) return 'just now';
-  if (sec < 60) return sec + 's ago';
-  const min = Math.round(sec / 60);
-  if (min < 60) return min + 'm ago';
-  return 'a while ago';
-});
+import ThreadsPanel from 'components/notes/ThreadsPanel.vue';
+import NotepadPanel from 'components/notes/NotepadPanel.vue';
+import SessionsListPanel from 'components/notes/SessionsListPanel.vue';
 </script>
 
 <style scoped>
-.status {
-  font-size: 0.75rem;
-  color: #8a7148;
-  min-height: 1em;
+.notes-page {
+  /* Topbar (q-header) is 50px; fill the rest of the viewport. */
+  height: calc(100vh - 50px);
+  padding: 0;
 }
-.status.saving { color: #c08a2b; }
+.notes-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+.left-pane {
+  width: 360px;
+  min-width: 280px;
+  max-width: 40%;
+  background: #f8f1dd;
+  border-right: 1px solid #e7dcc4;
+}
+.threads-section {
+  flex: 0 0 auto;
+  max-height: 45%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e7dcc4;
+  background: #faf3df;
+}
+.notepad-section {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+.pane-divider { width: 1px; background: #e7dcc4; }
+.right-pane { flex: 1; background: #fdfaf2; }
+.page-title-row {
+  border-bottom: 1px solid #e7dcc4;
+  background: #faf3df;
+}
+
+@media (max-width: 700px) {
+  .notes-layout { flex-direction: column; }
+  .left-pane { width: 100%; max-width: 100%; }
+  .threads-section { max-height: 30vh; }
+}
 </style>

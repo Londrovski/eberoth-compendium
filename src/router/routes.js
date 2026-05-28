@@ -5,10 +5,8 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '',          name: 'home',     component: () => import('pages/HomePage.vue') },
-      { path: 'sessions',  name: 'sessions', component: () => import('pages/SessionsPage.vue') },
-      { path: 'notes',     name: 'notes',    component: () => import('pages/NotesPage.vue') },
-      { path: 'threads',   name: 'threads',  component: () => import('pages/ThreadsPage.vue') }
+      { path: '',      name: 'home',  component: () => import('pages/HomePage.vue') },
+      { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') }
     ]
   },
   {
@@ -16,6 +14,9 @@ const routes = [
     name: 'landing',
     component: () => import('pages/LandingPage.vue')
   },
+  // Legacy redirects — old bookmarks of /sessions or /threads land on Notes.
+  { path: '/sessions', redirect: { name: 'notes' } },
+  { path: '/threads',  redirect: { name: 'notes' } },
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/NotFoundPage.vue')
