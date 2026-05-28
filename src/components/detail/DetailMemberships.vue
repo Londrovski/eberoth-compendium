@@ -33,10 +33,11 @@ function open(id) { detail.open(id); }
 
 <style scoped>
 .section-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: #8a7148;
+  color: var(--gold-dim);
   margin-bottom: 8px;
 }
 .list { display: flex; flex-direction: column; gap: 6px; }
@@ -45,13 +46,15 @@ function open(id) { detail.open(id); }
   align-items: center;
   gap: 10px;
   padding: 6px 8px;
-  background: #f3eee3;
-  border: 1px solid #d8cfb8;
-  border-radius: 6px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
+  border-radius: 4px;
   cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.row-item:hover { background: #ede4d1; }
+.row-item:hover { border-color: var(--gold-dim); background: var(--bg-card); }
 .meta { display: flex; flex-direction: column; min-width: 0; }
-.name { font-weight: 500; font-size: 0.85rem; }
-.role { font-size: 0.7rem; color: #6b5b3f; }
+.name { font-weight: 500; font-size: 0.85rem; color: var(--text); }
+.role { font-size: 0.7rem; color: var(--text-dim); font-style: italic; }
 </style>
