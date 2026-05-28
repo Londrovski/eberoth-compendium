@@ -19,7 +19,6 @@ export async function saveEntity(payload) {
       name:        payload.identity.name,
       sub:         payload.identity.sub || null,
       image:       payload.identity.image || null,
-      cluster_id:  payload.identity.cluster_id || null,
       shared_body: payload.sharedBody || null
     })
     .eq('id', id);

@@ -15,17 +15,8 @@
       <EditFacts v-model="facts" />
 
       <div class="row q-mt-lg q-gutter-sm">
-        <q-btn
-          color="primary"
-          label="Save"
-          :loading="saving"
-          @click="onSave"
-        />
-        <q-btn
-          flat
-          label="Cancel"
-          @click="$emit('cancel')"
-        />
+        <q-btn color="primary" label="Save" :loading="saving" @click="onSave" />
+        <q-btn flat label="Cancel" @click="$emit('cancel')" />
         <q-space />
         <q-btn
           flat
@@ -70,7 +61,7 @@ const loading = ref(true);
 const saving  = ref(false);
 const error   = ref(null);
 
-const identity   = ref({ name: '', sub: '', image: '', cluster_id: '' });
+const identity   = ref({ name: '', sub: '', image: '' });
 const sharedBody = ref('');
 const visibility = ref([]);
 const tags       = ref([]);
@@ -85,10 +76,9 @@ const factions = computed(() => entities.factions);
 onMounted(async () => {
   const e = props.entity;
   identity.value = {
-    name:       e.name || '',
-    sub:        e.sub || '',
-    image:      e.image || '',
-    cluster_id: e.cluster_id || ''
+    name:  e.name  || '',
+    sub:   e.sub   || '',
+    image: e.image || ''
   };
   sharedBody.value = e.shared_body || '';
   facts.value      = Array.isArray(e.facts) ? [...e.facts] : [];

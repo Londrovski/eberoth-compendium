@@ -1,10 +1,9 @@
 <template>
   <section class="edit-section">
     <div class="section-label">Identity</div>
-    <q-input v-model="local.name"       label="Name" dense filled class="q-mb-sm" @update:model-value="emitChange" />
-    <q-input v-model="local.sub"        label="Sub-line (e.g. role, descriptor)" dense filled class="q-mb-sm" @update:model-value="emitChange" />
-    <q-input v-model="local.image"      label="Image URL (optional)" dense filled class="q-mb-sm" @update:model-value="emitChange" />
-    <q-input v-model="local.cluster_id" label="Cluster (legacy)" dense filled @update:model-value="emitChange" />
+    <q-input v-model="local.name"  label="Name" dense filled class="q-mb-sm" @update:model-value="emitChange" />
+    <q-input v-model="local.sub"   label="Sub-line (e.g. role, descriptor)" dense filled class="q-mb-sm" @update:model-value="emitChange" />
+    <q-input v-model="local.image" label="Image filename (optional, e.g. House Foo.png)" dense filled @update:model-value="emitChange" />
   </section>
 </template>
 

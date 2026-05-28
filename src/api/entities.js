@@ -43,7 +43,6 @@ export async function fetchAll(effectiveBucket) {
     sub:          e.sub,
     image:        e.image,
     sigil:        e.sigil,
-    cluster_id:   e.cluster_id,
     sort_order:   e.sort_order,
     shared_body:  e.shared_body,
     auth_bucket:  e.auth_bucket,
