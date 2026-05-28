@@ -1,13 +1,29 @@
 // Entities store. Holds the world: factions, players, NPCs, lore.
 // Plus the cross-cutting tables: visibility, per-player bodies, tags,
 // memberships, personal-to.
+//
+// Supabase Realtime: any change to entities or the 6 cross-cutting
+// tables triggers a refresh of the relevant slice so the UI updates
+// without a page reload.
 
 import { defineStore } from 'pinia';
 import { useAuthStore } from 'src/stores/auth';
+import { supabase } from 'boot/supabase';
 import * as entitiesApi from 'src/api/entities';
 import * as membershipsApi from 'src/api/memberships';
 import * as personalsApi from 'src/api/personals';
 import { playerIdFromBucket } from 'src/config/players';
+
+// Tables we subscribe to. Any change refetches the corresponding slice.
+const REALTIME_TABLES = [
+  'entities',
+  'entity_visibility',
+  'entity_player_body',
+  'entity_player_tag',
+  'entity_facts',
+  'entity_memberships',
+  'entity_personal_to'
+];
 
 export const useEntitiesStore = defineStore('entities', {
   state: () => ({
@@ -15,7 +31,10 @@ export const useEntitiesStore = defineStore('entities', {
     memberships: [],
     personals:   [],
     loading: false,
-    error: null
+    error: null,
+    _subscribed: false,
+    _channel: null,
+    _refetchTimer: null
   }),
   getters: {
     all:       (s) => Object.values(s.byId),
@@ -47,9 +66,7 @@ export const useEntitiesStore = defineStore('entities', {
     glowsFor: (s) => (entityId, viewer) => {
       const e = s.byId[entityId];
       if (!e || !viewer) return false;
-      // Rule 1: tagged for this viewer.
       if (e.tagged_viewers?.has(viewer)) return true;
-      // Rule 2 + 3: viewer's own PC, or personal to their PC.
       const ownPlayerId = playerIdFromBucket(viewer);
       if (!ownPlayerId) return false;
       if (entityId === ownPlayerId) return true;
@@ -77,6 +94,32 @@ export const useEntitiesStore = defineStore('entities', {
       } finally {
         this.loading = false;
       }
+    },
+
+    // Debounced refetch — several Realtime events in quick succession
+    // (e.g. a bulk edit) collapse into one network round trip.
+    _scheduleRefetch() {
+      if (this._refetchTimer) clearTimeout(this._refetchTimer);
+      this._refetchTimer = setTimeout(() => {
+        this._refetchTimer = null;
+        this.load();
+      }, 250);
+    },
+
+    // Open Realtime channels on all data tables. Any UPDATE/INSERT/
+    // DELETE triggers a debounced refetch. Idempotent: only subscribes
+    // once per app lifetime.
+    subscribeRealtime() {
+      if (this._subscribed) return;
+      this._subscribed = true;
+      const ch = supabase.channel('entities_changes');
+      REALTIME_TABLES.forEach(table => {
+        ch.on('postgres_changes',
+          { event: '*', schema: 'public', table },
+          () => this._scheduleRefetch()
+        );
+      });
+      this._channel = ch.subscribe();
     }
   }
 });

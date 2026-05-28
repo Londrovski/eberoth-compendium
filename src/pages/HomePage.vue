@@ -30,5 +30,6 @@ const appSettings = useAppSettingsStore();
 onMounted(async () => {
   await Promise.all([entities.load(), appSettings.load()]);
   appSettings.subscribeRealtime();
+  entities.subscribeRealtime();
 });
 </script>

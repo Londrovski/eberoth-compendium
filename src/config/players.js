@@ -1,31 +1,43 @@
-// Single source of truth for the bucket ↔ player ↔ character mapping.
-// Imported by anything that needs to translate between the three.
+// Player config — read from the entities store at runtime.
+// The DM is the only hardcoded row because DM has no entity record.
+// Every PC's bucket↔character mapping is now sourced from
+// entities.auth_bucket + entities.display_name in Supabase.
 //
-// Verified against the Supabase data (entity_personal_to.player_id
-// cross-referenced with entity_player_tag.viewer for known personals).
+// Add a 4th player = INSERT one row in entities (kind='player',
+// auth_bucket='X', display_name='Y'). Zero code change required.
 //
-//   bucket: stored in the JWT email's local-part. The auth axis.
-//   playerId: entity id of the player character in Supabase.
-//   characterName: display name we show to humans.
-//
-// Drift between these three has been a real bug source. Keep this
-// file the ONLY place where the mapping is defined.
+// Keep this file small. It's only the runtime glue between the
+// auth bucket and the player entity.
 
-export const PLAYERS = [
-  { bucket: 'dm',      playerId: null,      characterName: 'DM' },
-  { bucket: 'baker',   playerId: 'kalvorn', characterName: 'Kalvorn' },
-  { bucket: 'butcher', playerId: 'dirk',    characterName: 'Dirk' },
-  { bucket: 'charlie', playerId: 'azrael',  characterName: 'Azrael' }
-];
+import { useEntitiesStore } from 'src/stores/entities';
+
+const DM = { bucket: 'dm', playerId: null, characterName: 'DM' };
+
+function playersFromStore() {
+  const entities = useEntitiesStore();
+  return entities.players
+    .filter(p => p.auth_bucket)
+    .map(p => ({
+      bucket: p.auth_bucket,
+      playerId: p.id,
+      characterName: p.display_name || p.name
+    }));
+}
+
+export function allPlayers() {
+  return [DM, ...playersFromStore()];
+}
 
 export function characterFromBucket(bucket) {
-  return PLAYERS.find(p => p.bucket === bucket)?.characterName || null;
+  if (bucket === 'dm') return 'DM';
+  return playersFromStore().find(p => p.bucket === bucket)?.characterName || null;
 }
 
 export function playerIdFromBucket(bucket) {
-  return PLAYERS.find(p => p.bucket === bucket)?.playerId || null;
+  if (bucket === 'dm') return null;
+  return playersFromStore().find(p => p.bucket === bucket)?.playerId || null;
 }
 
 export function bucketFromPlayerId(playerId) {
-  return PLAYERS.find(p => p.playerId === playerId)?.bucket || null;
+  return playersFromStore().find(p => p.playerId === playerId)?.bucket || null;
 }
