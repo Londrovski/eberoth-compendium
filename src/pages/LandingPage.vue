@@ -1,37 +1,36 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <q-page-container>
-      <q-page class="row items-center justify-center bg-dark">
-        <q-card flat bordered class="landing-card q-pa-lg" style="min-width: 340px; max-width: 360px;">
-          <div class="text-h5 app-title text-center q-mb-xs">Eberoth</div>
-          <div class="text-caption text-center text-grey-7 q-mb-md">The Compendium</div>
+      <q-page class="row items-center justify-center landing-page">
+        <div class="landing-card">
+          <div class="landing-rule" />
+          <h1 class="landing-eberoth">Eberoth</h1>
+          <div class="landing-compendium">The Compendium</div>
+          <div class="landing-rule" />
+
+          <p class="landing-tag">Enter your passphrase.</p>
           <q-form @submit.prevent="onSubmit">
-            <q-input
+            <input
               v-model="passphrase"
-              label="Passphrase"
-              filled
-              autofocus
-              class="input-upper"
-              :error="!!error"
-              :error-message="error"
+              type="text"
+              class="landing-input"
+              :class="{ shake: !!error }"
+              placeholder="Passphrase"
+              maxlength="30"
               autocomplete="off"
               spellcheck="false"
-              @update:model-value="onInput"
+              autofocus
+              @input="onInput"
             />
-            <q-btn
-              type="submit"
-              color="primary"
-              label="Enter"
-              class="full-width q-mt-md"
-              :loading="loading"
-              :disable="!passphrase.trim()"
-            />
+            <div class="landing-actions">
+              <button type="submit" :disabled="!passphrase.trim() || loading">
+                {{ loading ? '…' : 'Enter' }}
+              </button>
+            </div>
           </q-form>
 
-          <div class="text-caption text-grey-6 q-mt-md text-center">
-            Passphrases: Maren · Samael · Teacher · Thorebe
-          </div>
-        </q-card>
+          <div class="landing-error">{{ error || ' ' }}</div>
+        </div>
       </q-page>
     </q-page-container>
   </q-layout>
@@ -48,24 +47,18 @@ const passphrase = ref('');
 const error = ref(null);
 const loading = ref(false);
 
-// Force input to uppercase as user types. Keeps cursor sensible by
-// only assigning when value actually differs.
-function onInput(v) {
-  const upper = String(v || '').toUpperCase();
+function onInput(e) {
+  const upper = String(e.target.value || '').toUpperCase();
   if (upper !== passphrase.value) passphrase.value = upper;
 }
 
 async function onSubmit() {
   error.value = null;
   loading.value = true;
-  // eslint-disable-next-line no-console
-  console.log('[landing] attempting sign-in with', JSON.stringify(passphrase.value));
   const result = await auth.signInWithPassphrase(passphrase.value);
   loading.value = false;
   if (result?.error) {
     error.value = result.error.message || 'Unable to sign in';
-    // eslint-disable-next-line no-console
-    console.warn('[landing] sign-in failed:', result.error);
     return;
   }
   router.push({ name: 'home' });
@@ -73,13 +66,108 @@ async function onSubmit() {
 </script>
 
 <style scoped>
-.landing-card {
-  background: #fdfaf2;
-  color: #1f1b16;
-  border-color: #d8cfb8;
+.landing-page {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(180deg, rgba(11,9,5,0.55) 0%, rgba(11,9,5,0.85) 100%),
+    url('https://raw.githubusercontent.com/Londrovski/eberoth/main/The%20Descending%20Horizon.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.input-upper :deep(input) {
-  text-transform: uppercase;
+
+.landing-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 40px 48px 32px;
+  width: min(460px, 92vw);
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+}
+.landing-rule {
+  height: 1px;
+  background: var(--gold-dim);
+  opacity: 0.5;
+  margin: 0 auto;
+  width: 80%;
+}
+.landing-eberoth {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 56px;
+  color: var(--gold);
   letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 22px 0 10px;
+  text-shadow:
+    0 0 30px rgba(201,169,97,0.7),
+    0 0 60px rgba(201,169,97,0.35),
+    0 2px 12px rgba(0,0,0,1);
+  margin: 0;
+}
+.landing-compendium {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold-dim);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  padding-bottom: 18px;
+}
+.landing-tag {
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 22px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+.landing-input {
+  width: 100%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+.landing-input:focus { border-color: var(--gold-dim); }
+.landing-input.shake { animation: shake 0.35s ease; border-color: var(--red); }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+.landing-actions { margin-top: 16px; }
+.landing-actions button {
+  width: 100%;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-dim);
+  color: var(--bg);
+  padding: 9px 0;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.landing-actions button:hover:not(:disabled) {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.landing-actions button:disabled { opacity: 0.5; cursor: default; }
+.landing-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 18px;
+  font-style: italic;
 }
 </style>

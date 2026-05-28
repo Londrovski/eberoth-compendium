@@ -5,54 +5,48 @@
     </q-banner>
 
     <div v-if="loading" class="text-center q-pa-xl">
-      <q-spinner size="32px" />
+      <q-spinner size="32px" color="warning" />
     </div>
 
-    <q-list separator v-else-if="sessions.length" class="session-list">
-      <template v-for="s in sessions" :key="s.id">
-        <q-item
-          clickable
-          :active="expandedId === s.id"
-          active-class="session-active"
-          @click="toggle(s.id)"
-        >
-          <q-item-section avatar>
-            <div class="session-number">{{ s.number }}</div>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="session-title">
-              {{ s.title || ('Session ' + s.number) }}
-            </q-item-label>
-            <q-item-label caption v-if="s.row_summary">{{ s.row_summary }}</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-icon :name="expandedId === s.id ? 'expand_less' : 'expand_more'" />
-          </q-item-section>
-        </q-item>
-        <q-slide-transition>
-          <div v-show="expandedId === s.id" class="session-detail-wrap">
-            <SessionDetailInline v-if="expandedId === s.id" :session="s" />
-          </div>
-        </q-slide-transition>
-      </template>
-    </q-list>
+    <div v-else-if="sessions.length" class="session-rows">
+      <button
+        v-for="s in sessions"
+        :key="s.id"
+        class="session-row"
+        @click="open(s)"
+      >
+        <span class="session-row-number">{{ s.number }}</span>
+        <span class="session-row-body">
+          <span class="session-row-title">{{ s.title || ('Session ' + s.number) }}</span>
+          <span v-if="s.row_summary" class="session-row-sub">{{ s.row_summary }}</span>
+        </span>
+        <span class="session-row-arrow">▸</span>
+      </button>
+    </div>
 
-    <div v-else class="text-center text-grey-7 q-pa-xl">No sessions yet.</div>
+    <div v-else class="sessions-empty">No sessions yet.</div>
+
+    <SessionDetailPanel
+      v-model="dialogOpen"
+      :session="selected"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import * as sessionsApi from 'src/api/sessions';
-import SessionDetailInline from 'components/notes/SessionDetailInline.vue';
+import SessionDetailPanel from 'components/notes/SessionDetailPanel.vue';
 
 const sessions = ref([]);
 const loading  = ref(true);
 const error    = ref(null);
-const expandedId = ref(null);
+const dialogOpen = ref(false);
+const selected = ref(null);
 
-function toggle(id) {
-  expandedId.value = expandedId.value === id ? null : id;
+function open(s) {
+  selected.value = s;
+  dialogOpen.value = true;
 }
 
 onMounted(async () => {
@@ -67,18 +61,35 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.session-list { background: #fdfaf2; }
-.session-number {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 1.4rem;
-  color: #6b4f2e;
-  min-width: 40px;
+.sessions-list { display: flex; flex-direction: column; gap: 0; }
+
+.session-rows { display: flex; flex-direction: column; gap: 6px; }
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text);
+  width: 100%;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+.session-row:hover {
+  border-color: var(--gold-dim);
+  transform: translateX(2px);
+}
+.session-row-number {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--gold);
+  min-width: 28px;
   text-align: center;
+  line-height: 1;
 }
-.session-title { font-weight: 500; }
-.session-active { background: #f5ebcf; }
-.session-detail-wrap {
-  background: #fffaee;
-  border-bottom: 1px solid #e7dcc4;
-}
-</style>
+.session-row

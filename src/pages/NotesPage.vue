@@ -1,26 +1,24 @@
 <template>
   <q-page class="notes-page">
     <div class="notes-layout">
-      <div class="left-pane column">
-        <div class="threads-section">
+      <aside class="drawer">
+        <section class="drawer-section threads">
           <ThreadsPanel />
-        </div>
-        <div class="notepad-section col">
+        </section>
+        <section class="drawer-section notes">
           <NotepadPanel />
-        </div>
-      </div>
+        </section>
+      </aside>
 
-      <div class="pane-divider" />
-
-      <div class="right-pane column">
-        <div class="page-title-row q-px-md q-py-sm">
-          <div class="text-h6">Sessions</div>
-          <div class="text-caption text-grey-7">A record of what has passed.</div>
+      <main class="main-pane">
+        <div class="main-head">
+          <span class="head-label">Sessions</span>
+          <span class="head-sub">A record of what has passed.</span>
         </div>
-        <q-scroll-area class="col">
+        <div class="main-scroll">
           <SessionsListPanel />
-        </q-scroll-area>
-      </div>
+        </div>
+      </main>
     </div>
   </q-page>
 </template>
@@ -33,47 +31,50 @@ import SessionsListPanel from 'components/notes/SessionsListPanel.vue';
 
 <style scoped>
 .notes-page {
-  /* Topbar (q-header) is 50px; fill the rest of the viewport. */
   height: calc(100vh - 50px);
   padding: 0;
+  background: var(--bg);
 }
 .notes-layout {
   display: flex;
   height: 100%;
   width: 100%;
 }
-.left-pane {
-  width: 360px;
-  min-width: 280px;
-  max-width: 40%;
-  background: #f8f1dd;
-  border-right: 1px solid #e7dcc4;
-}
-.threads-section {
-  flex: 0 0 auto;
-  max-height: 45%;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid #e7dcc4;
-  background: #faf3df;
-}
-.notepad-section {
-  flex: 1;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-}
-.pane-divider { width: 1px; background: #e7dcc4; }
-.right-pane { flex: 1; background: #fdfaf2; }
-.page-title-row {
-  border-bottom: 1px solid #e7dcc4;
-  background: #faf3df;
-}
 
-@media (max-width: 700px) {
-  .notes-layout { flex-direction: column; }
-  .left-pane { width: 100%; max-width: 100%; }
-  .threads-section { max-height: 30vh; }
+/* Drawer mirrors the old site's left rail. */
+.drawer {
+  width: 340px;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-</style>
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.drawer-section.threads { flex: 0 0 auto; max-height: 45%; }
+.drawer-section.notes   { flex: 1 1 auto; border-top: 1px solid var(--border); min-height: 0; }
+
+/* Main pane = sessions list. */
+.main-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+}
+.main-head {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.head-label {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 13

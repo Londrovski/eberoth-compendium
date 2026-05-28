@@ -65,39 +65,49 @@ function open() { detail.open(props.entity.id); }
   display: flex;
   align-items: center;
   gap: calc(8px * var(--scale, 1));
-  background: #f3eee3;
-  border: 1px solid #d8cfb8;
-  border-radius: calc(6px * var(--scale, 1));
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim);
+  border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.member-card:hover { background: #ede4d1; }
+.member-card:hover { border-color: var(--gold-dim); background: var(--bg-card); }
 
 .member-card.vis-restricted {
-  background: #ecf1f8;
-  border-color: #7d9bc1;
-  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(74, 107, 145, 0.3);
+  border-left-color: var(--blue);
+  border-color: rgba(74,107,145,0.5);
+  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(74,107,145,0.3);
 }
 .member-card.vis-dm-only {
-  background: #f8ecec;
-  border-color: #c17d7d;
-  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(156, 42, 42, 0.3);
+  border-left-color: var(--red);
+  border-color: rgba(139,58,58,0.5);
+  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(139,58,58,0.3);
 }
-
 .member-card.is-glow {
-  background: #fff8e0;
-  border-color: #c08a2b;
-  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(192, 138, 43, 0.45);
+  border-color: var(--gold);
+  border-left-color: var(--gold);
+  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(201,169,97,0.45);
 }
 
 .meta { flex: 1; min-width: 0; }
-.name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: #1f1b16; line-height: 1.2; }
-.role { font-size: calc(0.7rem * var(--scale, 1)); color: #6b5b3f; line-height: 1.2; }
+.name {
+  font-weight: 500;
+  font-size: calc(0.85rem * var(--scale, 1));
+  color: var(--text);
+  line-height: 1.2;
+}
+.role {
+  font-size: calc(0.7rem * var(--scale, 1));
+  color: var(--text-dim);
+  line-height: 1.2;
+}
 .badge {
   font-size: calc(0.65rem * var(--scale, 1));
-  color: #6b5b3f;
+  color: var(--gold);
   padding: 2px calc(6px * var(--scale, 1));
-  background: #ede4d1;
+  background: rgba(201,169,97,0.12);
+  border: 1px solid var(--gold-dim);
   border-radius: calc(4px * var(--scale, 1));
   flex-shrink: 0;
 }

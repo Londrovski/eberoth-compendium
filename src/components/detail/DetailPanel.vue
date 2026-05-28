@@ -35,7 +35,7 @@
         </div>
 
         <div v-else class="q-pa-xl text-center text-grey-7">
-          <q-spinner size="32px" v-if="isOpenRef" />
+          <q-spinner size="32px" color="warning" v-if="isOpenRef" />
         </div>
       </q-scroll-area>
     </q-card>
@@ -90,7 +90,7 @@ const personalTo = computed(() => {
   const row = entities.personals.find(p => p.entity_id === entity.value.id);
   if (!row) return null;
   const player = entities.byId[row.player_id];
-  if (!player) return null;
+  if (!row) return null;
   return { player, relationship: row.relationship };
 });
 
@@ -105,11 +105,12 @@ function onSaved()      { editing.value = false; }
 
 <style scoped>
 .detail-card {
-  width: 520px;
+  width: 460px;
   max-width: 100vw;
   height: 100vh;
-  background: #fdfaf2;
-  color: #1f1b16;
+  background: var(--bg-panel);
+  color: var(--text);
+  border-left: 1px solid var(--border);
 }
 @media (max-width: 600px) {
   .detail-card { width: 100vw; }

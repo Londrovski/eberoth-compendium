@@ -1,54 +1,40 @@
 <template>
-  <div class="threads-panel column">
-    <div class="panel-title row items-center q-px-sm q-py-xs">
-      <span class="text-subtitle2">Threads</span>
-      <q-space />
-      <span class="text-caption text-grey-7" v-if="openCount">{{ openCount }} open</span>
-    </div>
+  <div class="threads-panel">
+    <header class="drawer-header">
+      <span>Active Threads</span>
+      <button class="hdr-btn" :disabled="!authed" :title="'Add thread'" @click="add">+</button>
+    </header>
 
-    <div v-if="!authed" class="text-grey-7 q-pa-md text-caption">
-      Sign in to track threads.
-    </div>
+    <div class="threads-list">
+      <div v-if="!authed" class="threads-empty">Sign in to track threads.</div>
 
-    <template v-else>
-      <div class="add-row q-px-sm q-py-xs">
-        <q-input
-          v-model="draft"
-          dense outlined
-          placeholder="A new thread to chase…"
-          @keyup.enter="add"
+      <template v-else>
+        <div
+          v-for="(t, i) in threads"
+          :key="t.id"
+          class="thread"
+          :class="{ done: t.done }"
         >
-          <template #append>
-            <q-btn flat dense round icon="add" size="sm" :disable="!draft.trim()" @click="add" />
-          </template>
-        </q-input>
-      </div>
-
-      <q-scroll-area class="col">
-        <q-list dense>
-          <q-item v-for="t in threads" :key="t.id" class="thread-row">
-            <q-item-section side>
-              <q-checkbox dense v-model="t.done" @update:model-value="persist" />
-            </q-item-section>
-            <q-item-section>
-              <q-input
-                v-model="t.text"
-                dense borderless
-                :class="{ 'thread-done': t.done }"
-                @blur="persist"
-                @keyup.enter="$event.target.blur()"
-              />
-            </q-item-section>
-            <q-item-section side>
-              <q-btn flat round dense size="sm" icon="close" @click="remove(t)" />
-            </q-item-section>
-          </q-item>
-          <q-item v-if="!threads.length">
-            <q-item-section class="text-grey-7 text-caption">Nothing on the line.</q-item-section>
-          </q-item>
-        </q-list>
-      </q-scroll-area>
-    </template>
+          <input
+            type="checkbox"
+            v-model="t.done"
+            class="thread-check"
+            @change="persist"
+          />
+          <span
+            class="text"
+            contenteditable="true"
+            spellcheck="false"
+            @blur="onTextBlur(i, $event)"
+            @keydown.enter.prevent="$event.target.blur()"
+          >{{ t.text }}</span>
+          <button class="del" :title="'Remove'" @click="remove(t)">✕</button>
+        </div>
+        <div v-if="!threads.length" class="threads-empty">
+          No active threads. Tap + to add one.
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -61,7 +47,6 @@ const auth = useAuthStore();
 const authed = computed(() => !!auth.user);
 
 const threads = ref([]);
-const draft = ref('');
 
 let saveTimer = null;
 function persist() {
@@ -72,16 +57,21 @@ function persist() {
   }, 300);
 }
 
+function onTextBlur(i, e) {
+  const v = (e.target.innerText || '').trim() || '(untitled)';
+  threads.value[i].text = v;
+  e.target.innerText = v;
+  persist();
+}
+
 function add() {
-  const t = draft.value.trim();
-  if (!t) return;
+  if (!authed.value) return;
   threads.value.push({
     id: randomId(),
-    text: t,
+    text: 'New thread',
     done: false,
     position: threads.value.length
   });
-  draft.value = '';
   persist();
 }
 
@@ -89,8 +79,6 @@ function remove(thread) {
   threads.value = threads.value.filter(x => x.id !== thread.id);
   persist();
 }
-
-const openCount = computed(() => threads.value.filter(t => !t.done).length);
 
 function randomId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -103,11 +91,42 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.threads-panel { height: 100%; }
-.panel-title {
-  border-bottom: 1px solid #e7dcc4;
-  background: #f3ead6;
+.threads-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
 }
-.thread-row { padding-left: 4px; padding-right: 4px; }
-.thread-done :deep(input) { text-decoration: line-through; color: #998860; }
-</style>
+
+.drawer-header {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+}
+.hdr-btn {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  font-family: inherit;
+}
+.hdr-btn:hover:not(:disabled) { background: var(--gold-dim); color: var(--bg); }
+.hdr-btn:disabled { opacity: 0.4; cursor: default; }
+
+.threads-list {
+  overflow-y: auto;
+  p

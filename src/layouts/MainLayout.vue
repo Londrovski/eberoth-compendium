@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" class="app-shell">
     <TopBar />
     <q-page-container>
       <router-view />
@@ -14,3 +14,7 @@
 import TopBar from 'components/topbar/TopBar.vue';
 import DetailPanel from 'components/detail/DetailPanel.vue';
 </script>
+
+<style scoped>
+.app-shell { background: var(--bg); color: var(--text); }
+</style>

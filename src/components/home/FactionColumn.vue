@@ -83,32 +83,25 @@ async function onMemberMoveDown(idx) {
   display: flex;
   flex-direction: column;
   gap: calc(8px * var(--scale, 1));
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: calc(10px * var(--scale, 1)) calc(12px * var(--scale, 1));
 }
 .faction-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: calc(8px * var(--faction-scale, 1));
-  padding-bottom: calc(6px * var(--faction-scale, 1));
-  border-bottom: 1px solid #d8cfb8;
-  transition: background 0.15s ease;
+  padding-bottom: calc(8px * var(--faction-scale, 1));
+  border-bottom: 1px solid var(--border);
 }
 
-/* Restricted visibility — box the whole header with a tinted glow.
-   Replaces the bottom border with a full box look. */
 .faction-header.vis-restricted {
-  background: #ecf1f8;
-  border: 1px solid #7d9bc1;
-  border-radius: calc(6px * var(--faction-scale, 1));
-  padding: calc(6px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
-  box-shadow: 0 0 calc(8px * var(--faction-scale, 1)) rgba(74, 107, 145, 0.3);
+  border-bottom-color: var(--blue);
 }
 .faction-header.vis-dm-only {
-  background: #f8ecec;
-  border: 1px solid #c17d7d;
-  border-radius: calc(6px * var(--faction-scale, 1));
-  padding: calc(6px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
-  box-shadow: 0 0 calc(8px * var(--faction-scale, 1)) rgba(156, 42, 42, 0.3);
+  border-bottom-color: var(--red);
 }
 
 .header-main {
@@ -119,12 +112,14 @@ async function onMemberMoveDown(idx) {
   flex: 1;
   min-width: 0;
 }
-.header-main:hover .faction-name { color: #6b4f2e; }
+.header-main:hover .faction-name { color: var(--gold-bright); }
 .faction-name {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 500;
-  font-size: calc(0.95rem * var(--faction-scale, 1));
-  color: #1f1b16;
+  font-size: calc(1rem * var(--faction-scale, 1));
+  color: var(--gold);
   line-height: 1.2;
+  letter-spacing: 0.04em;
 }
 .member-list {
   display: flex;
@@ -133,7 +128,7 @@ async function onMemberMoveDown(idx) {
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
-  color: #a89572;
+  color: var(--text-dim);
   font-style: italic;
   padding: calc(6px * var(--scale, 1)) calc(8px * var(--scale, 1));
 }

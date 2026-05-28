@@ -55,8 +55,6 @@ const viewer   = useViewer();
 const auth     = useAuthStore();
 const layout   = useAppSettingsStore();
 
-// Grouped DM view = real DM mode, not view-as. In view-as DM sees the
-// page as that player would.
 const showGroupedView = computed(() => viewer.isDM && !viewer.isViewingAs);
 
 const players = computed(() =>
@@ -73,7 +71,6 @@ const myPersonals = computed(() => {
 
 const hasAnyPersonals = computed(() => {
   if (showGroupedView.value) {
-    // DM toggle can hide them entirely.
     if (!layout.showPersonals) return false;
     return players.value.some(p => personalsOf(p.id).length > 0);
   }
@@ -99,13 +96,14 @@ async function onPersonalMoveDown(playerId, idx) {
 <style scoped>
 .party-section {
   padding: calc(12px * var(--scale, 1)) 0 calc(16px * var(--scale, 1));
-  border-bottom: 1px solid #d8cfb8;
+  border-bottom: 1px solid var(--border);
 }
 .section-label {
-  font-size: calc(0.75rem * var(--scale, 1));
-  letter-spacing: 0.5px;
+  font-family: 'Cinzel', serif;
+  font-size: calc(0.7rem * var(--scale, 1));
+  letter-spacing: 3px;
   text-transform: uppercase;
-  color: #8a7148;
+  color: var(--gold-dim);
   margin-bottom: calc(10px * var(--scale, 1));
 }
 .row-wrap {
@@ -117,16 +115,20 @@ async function onPersonalMoveDown(playerId, idx) {
 .divider {
   width: 1px;
   align-self: stretch;
-  background: #d8cfb8;
+  background: var(--border);
   margin: 0 calc(6px * var(--scale, 1));
 }
 .group-chip {
-  font-size: calc(0.75rem * var(--scale, 1));
+  font-family: 'Cinzel', serif;
+  font-size: calc(0.7rem * var(--scale, 1));
   font-weight: 500;
-  color: #8a7148;
+  color: var(--gold-dim);
   padding: calc(4px * var(--scale, 1)) calc(8px * var(--scale, 1));
-  background: #ede4d1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
   border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 </style>

@@ -47,14 +47,15 @@ async function onMoveDown(idx) {
 <style scoped>
 .lore-section {
   padding: calc(18px * var(--scale, 1)) 0 calc(4px * var(--scale, 1));
-  border-top: 1px solid #d8cfb8;
+  border-top: 1px solid var(--border);
   margin-top: calc(16px * var(--scale, 1));
 }
 .section-label {
-  font-size: calc(0.75rem * var(--scale, 1));
-  letter-spacing: 0.5px;
+  font-family: 'Cinzel', serif;
+  font-size: calc(0.7rem * var(--scale, 1));
+  letter-spacing: 3px;
   text-transform: uppercase;
-  color: #8a7148;
+  color: var(--gold-dim);
   margin-bottom: calc(10px * var(--scale, 1));
 }
 .row-wrap {
