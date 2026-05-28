@@ -34,6 +34,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth';
 import { useViewer } from 'src/composables/useViewer';
+import { characterFromBucket } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 
@@ -43,8 +44,10 @@ const viewer = useViewer();
 
 const roleLabel = computed(() => {
   if (!auth.actualBucket) return '—';
-  if (auth.isViewingAs) return `DM → ${auth.viewingAs}`;
-  return auth.actualBucket;
+  if (auth.isViewingAs) {
+    return 'DM → ' + (characterFromBucket(auth.viewingAs) || auth.viewingAs);
+  }
+  return characterFromBucket(auth.actualBucket) || auth.actualBucket;
 });
 
 async function onSignOut() {

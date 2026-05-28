@@ -7,16 +7,7 @@ import { useAuthStore } from 'src/stores/auth';
 import * as entitiesApi from 'src/api/entities';
 import * as membershipsApi from 'src/api/memberships';
 import * as personalsApi from 'src/api/personals';
-
-// Player id ↔ viewer bucket. Mirrors the PASSCODES table in auth.js.
-//   bucket 'baker'   → Kalvorn
-//   bucket 'butcher' → Azrael
-//   bucket 'charlie' → Dirk
-const PLAYER_TO_BUCKET = {
-  kalvorn: 'baker',
-  azrael:  'butcher',
-  dirk:    'charlie'
-};
+import { playerIdFromBucket } from 'src/config/players';
 
 export const useEntitiesStore = defineStore('entities', {
   state: () => ({
@@ -58,11 +49,10 @@ export const useEntitiesStore = defineStore('entities', {
       if (!e || !viewer) return false;
       // Rule 1: tagged for this viewer.
       if (e.tagged_viewers?.has(viewer)) return true;
-      // Rule 2: viewer's own PC.
-      const ownPlayerId = Object.keys(PLAYER_TO_BUCKET).find(pid => PLAYER_TO_BUCKET[pid] === viewer);
-      if (ownPlayerId && entityId === ownPlayerId) return true;
-      // Rule 3: personal-to viewer's player.
+      // Rule 2 + 3: viewer's own PC, or personal to their PC.
+      const ownPlayerId = playerIdFromBucket(viewer);
       if (!ownPlayerId) return false;
+      if (entityId === ownPlayerId) return true;
       return s.personals.some(p => p.entity_id === entityId && p.player_id === ownPlayerId);
     }
   },

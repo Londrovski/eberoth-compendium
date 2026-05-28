@@ -1,6 +1,6 @@
 <template>
   <section class="edit-section">
-    <div class="section-label">Faction memberships</div>
+    <div class="section-label">Factions</div>
     <div class="text-caption text-grey-7 q-mb-sm">
       One row per faction this entity belongs to. Role is shown next to their name in the faction column.
     </div>
@@ -25,7 +25,7 @@
     </div>
     <q-btn
       flat dense no-caps icon="add"
-      label="Add membership"
+      label="Add faction"
       class="text-grey-7"
       @click="addRow"
     />

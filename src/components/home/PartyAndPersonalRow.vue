@@ -39,20 +39,15 @@ import { computed } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useViewer } from 'src/composables/useViewer';
 import { useAuthStore } from 'src/stores/auth';
-import { useLayoutStore } from 'src/stores/layout';
+import { useAppSettingsStore } from 'src/stores/app-settings';
+import { playerIdFromBucket } from 'src/config/players';
 import PartyCard from 'components/home/PartyCard.vue';
 import PersonalCard from 'components/home/PersonalCard.vue';
 
 const entities = useEntitiesStore();
 const viewer   = useViewer();
 const auth     = useAuthStore();
-const layout   = useLayoutStore();
-
-const BUCKET_TO_PLAYER = {
-  baker:   'kalvorn',
-  butcher: 'azrael',
-  charlie: 'dirk'
-};
+const layout   = useAppSettingsStore();
 
 const players = computed(() =>
   [...entities.players].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
@@ -61,8 +56,7 @@ const players = computed(() =>
 function personalsOf(playerId) { return entities.personalsOf(playerId); }
 
 const myPersonals = computed(() => {
-  const bucket = auth.effectiveBucket;
-  const pid = BUCKET_TO_PLAYER[bucket];
+  const pid = playerIdFromBucket(auth.effectiveBucket);
   if (!pid) return [];
   return entities.personalsOf(pid);
 });

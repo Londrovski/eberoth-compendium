@@ -13,6 +13,7 @@
 import { computed } from 'vue';
 import { useAuthStore } from 'src/stores/auth';
 import { useEntitiesStore } from 'src/stores/entities';
+import { PLAYERS } from 'src/config/players';
 
 const auth = useAuthStore();
 const entities = useEntitiesStore();
@@ -25,10 +26,7 @@ const value = computed({
   }
 });
 
-const options = [
-  { label: 'DM',      value: 'dm' },
-  { label: 'Kalvorn', value: 'baker' },
-  { label: 'Azrael',  value: 'charlie' },
-  { label: 'Dirk',    value: 'butcher' }
-];
+// Drive options from the canonical PLAYERS table so View-As, role chip,
+// group chips and glow all agree.
+const options = PLAYERS.map(p => ({ label: p.characterName, value: p.bucket }));
 </script>

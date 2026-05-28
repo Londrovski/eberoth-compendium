@@ -1,6 +1,6 @@
 <template>
   <section class="memberships q-mb-md">
-    <div class="section-label">Memberships</div>
+    <div class="section-label">Factions</div>
     <div class="list">
       <div
         v-for="row in memberships"
