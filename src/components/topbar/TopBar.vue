@@ -19,8 +19,7 @@
 
       <div class="row items-center q-gutter-sm">
         <template v-if="viewer.isDM">
-          <CardScaleControls which="card" />
-          <CardScaleControls which="faction" />
+          <DmToolsMenu />
           <ViewAsSelect />
         </template>
         <q-chip dense outline color="grey-7">{{ roleLabel }}</q-chip>
@@ -36,7 +35,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth';
 import { useViewer } from 'src/composables/useViewer';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
-import CardScaleControls from 'components/topbar/CardScaleControls.vue';
+import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
