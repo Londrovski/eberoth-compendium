@@ -3,42 +3,43 @@
     flat dense no-caps
     icon="settings"
     label="DM Tools"
-    class="text-grey-7"
-    content-class="dm-tools-menu"
+    class="dm-btn"
+    menu-anchor="bottom right"
+    menu-self="top right"
   >
-    <div class="q-pa-md" style="min-width: 300px;" @click.stop>
+    <div class="dm-menu" @click.stop>
 
-      <div class="section-label">Card scale</div>
-      <div class="section-hint">Everywhere — cards, members, lore.</div>
+      <div class="dm-label">Card scale</div>
       <CardScaleControls which="card" />
 
-      <q-separator class="q-my-md" />
+      <q-separator class="sep" />
 
-      <div class="section-label">Faction scale</div>
-      <div class="section-hint">Faction headers only — sigil + name.</div>
+      <div class="dm-label">Faction scale</div>
       <CardScaleControls which="faction" />
 
-      <q-separator class="q-my-md" />
+      <q-separator class="sep" />
 
-      <div class="section-label">View</div>
-      <q-toggle
-        :model-value="layout.showPersonals"
-        label="Show player personals"
-        dense
-        @update:model-value="onTogglePersonals"
-      />
-      <div class="section-hint" style="margin-top: 2px;">
-        Turn off to declutter your DM view. View-As still shows them.
+      <div class="dm-label">Personals</div>
+      <div class="row items-center q-gutter-xs">
+        <button
+          class="pill"
+          :class="{ active:  layout.showPersonals }"
+          @click="setPersonals(true)"
+        >Show</button>
+        <button
+          class="pill"
+          :class="{ active: !layout.showPersonals }"
+          @click="setPersonals(false)"
+        >Hide</button>
       </div>
 
-      <q-separator class="q-my-md" />
+      <q-separator class="sep" />
 
-      <div class="section-label">Quick add</div>
-      <div class="section-hint">Creates DM-only. Set visibility from the detail panel.</div>
-      <div class="column q-gutter-xs q-mt-xs">
-        <q-btn flat dense no-caps align="left" icon="add" label="New faction" @click="openAdd('faction')" />
-        <q-btn flat dense no-caps align="left" icon="add" label="New NPC"     @click="openAdd('npc')" />
-        <q-btn flat dense no-caps align="left" icon="add" label="New lore"    @click="openAdd('lore')" />
+      <div class="dm-label">Quick add</div>
+      <div class="column q-gutter-xs">
+        <button class="add-row" @click="openAdd('faction')">+ New faction</button>
+        <button class="add-row" @click="openAdd('npc')">+ New NPC</button>
+        <button class="add-row" @click="openAdd('lore')">+ New lore</button>
       </div>
     </div>
   </q-btn-dropdown>
@@ -54,23 +55,68 @@ import { useAppSettingsStore } from 'src/stores/app-settings';
 
 const layout = useAppSettingsStore();
 
-const adding = ref(null);  // null | 'faction' | 'npc' | 'lore'
+const adding = ref(null);
 function openAdd(kind) { adding.value = kind; }
-
-function onTogglePersonals(v) { layout.setShowPersonals(v); }
+function setPersonals(v) { layout.setShowPersonals(v); }
 </script>
 
 <style scoped>
-.section-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.5px;
+.dm-btn {
+  color: var(--gold-dim);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  font-size: 11px;
   text-transform: uppercase;
-  color: #8a7148;
-  margin-bottom: 2px;
 }
-.section-hint {
-  font-size: 0.7rem;
-  color: #8a7148;
-  margin-bottom: 8px;
+.dm-btn:hover { color: var(--gold); }
+
+.dm-menu {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  min-width: 230px;
+  font-family: 'Cinzel', serif;
 }
+.dm-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 4px;
+}
+.sep { background: var(--border); margin: 10px 0; }
+
+.pill {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pill:hover { color: var(--gold); border-color: var(--gold-dim); }
+.pill.active {
+  background: var(--gold-dim);
+  border-color: var(--gold-dim);
+  color: var(--bg);
+}
+
+.add-row {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold-dim);
+  padding: 4px 8px;
+  border-radius: 3px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.add-row:hover { color: var(--gold); border-color: var(--gold-dim); background: var(--bg-panel-2); }
 </style>
