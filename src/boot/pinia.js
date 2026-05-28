@@ -1,8 +1,5 @@
-// Register Pinia with the app + expose the store registry to other boot files.
+// Pinia is now registered by Quasar's autogen via the default export
+// in src/stores/index.js. This boot file is kept as a no-op stub so
+// any leftover imports don't break; not in the boot order anymore.
 import { boot } from 'quasar/wrappers';
-import { createPinia } from 'pinia';
-
-export default boot(({ app }) => {
-  const pinia = createPinia();
-  app.use(pinia);
-});
+export default boot(() => {});
