@@ -46,13 +46,13 @@ body {
   color: var(--gold);
 }
 
-// Custom scrollbar — gold-on-ink.
+// Custom scrollbar.
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
-// Quasar overrides — keep the dark surfaces consistent.
+// Quasar overrides.
 .q-page, .q-page-container { background: var(--bg); }
 .q-card { background: var(--bg-panel); color: var(--text); }
 .q-list { background: transparent; }
@@ -77,5 +77,24 @@ body {
 .q-checkbox__inner--falsy .q-checkbox__bg { border-color: var(--gold-dim); }
 .q-checkbox__inner--truthy .q-checkbox__bg { background: var(--gold) !important; border-color: var(--gold) !important; }
 .q-checkbox__svg { color: var(--bg) !important; }
+
+// Floating popups (DM Tools dropdown, View-As select list, etc).
+.q-menu {
+  background: var(--bg-panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.q-menu .q-item {
+  color: var(--text);
+  font-family: 'Cinzel', serif;
+}
+.q-menu .q-item--active,
+.q-menu .q-item.q-router-link--active,
+.q-menu .q-item:hover {
+  color: var(--gold);
+  background: var(--bg-panel-2);
+}
+.q-virtual-scroll__content { background: var(--bg-panel); }
 
 .text-grey-6, .text-grey-7, .text-grey-8 { color: var(--text-dim) !important; }
