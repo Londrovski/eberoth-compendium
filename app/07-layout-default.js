@@ -112,8 +112,17 @@
   // Returns: { entityId → {x, y} }
 
   EB.defaultLayout = function () {
-    var L = EB.shiftedLayout();
+    // Defensive: EB.byId may be stale if initLayout ran before
+    // loadContent populated the window globals. Rebuild if it looks
+    // empty but window.PLAYERS/NPCS/etc. are now populated.
     var byId = EB.byId || {};
+    if (Object.keys(byId).length === 0 &&
+        ((window.PLAYERS || []).length || (window.NPCS || []).length ||
+         (window.FACTIONS || []).length || (window.LORE || []).length)) {
+      if (typeof EB.initLayout === 'function') EB.initLayout();
+      byId = EB.byId || {};
+    }
+    var L = EB.shiftedLayout();
     var pos = {};
 
     // Step 1: gather visible entities per cluster, sort by sort_order,
