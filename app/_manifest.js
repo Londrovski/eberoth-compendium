@@ -4,6 +4,12 @@
 // modules can rely on EB.sb at boot time.
 // 01-content registers EB.loadContent() — called by data.js to fetch
 // all entities and sessions from Supabase before the app boots.
+//
+// 07-layout split into 4 files (Phase C):
+//   07-layout-config     — LAYOUT constants, clusterLayout, CLUSTER_PRIORITY
+//   07-layout-slots      — slot allocator + collision resolver
+//   07-layout-default    — clusterOf, shiftedLayout, defaultLayout, getAnchors
+//   07-layout-positions  — Supabase I/O (load/save/cluster offsets/home/push)
 
 window.MANIFEST = [
   '00-supabase',
@@ -14,7 +20,10 @@ window.MANIFEST = [
   '04-storage',
   '05-portraits',
   '06-landing',
-  '07-layout',
+  '07-layout-config',
+  '07-layout-slots',
+  '07-layout-default',
+  '07-layout-positions',
   '08-mentions',
   '09-detail',
   '10-map-render',
