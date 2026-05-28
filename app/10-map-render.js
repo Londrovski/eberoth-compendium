@@ -1,27 +1,23 @@
 // Renders the map nodes + cluster labels + Eberoth title.
 //
 // Reads EB.shiftedLayout() (not EB.LAYOUT directly) so cluster offsets
-// applied by the DM ripple through to labels, ref shadows, etc.
+// applied by the DM ripple through to labels.
 //
-// Every node + shadow + cluster label is tagged with data-cluster so
-// the DM block-move drag can collect "everything in this cluster" via
-// a single DOM query. Ref shadows always belong to the players
-// cluster (they live in the Personal column) regardless of where the
-// underlying entity normally lives. The Eberoth title is rendered as
-// a real .node (.node-title) tagged data-cluster="title" so it
-// inherits the standard drag mechanic.
+// Every node + cluster label is tagged with data-cluster so the DM
+// block-move drag can collect "everything in this cluster" via a
+// single DOM query. The Eberoth title is rendered as a real .node
+// (.node-title) tagged data-cluster="title" so it inherits the
+// standard drag mechanic.
 //
 // shortName: if an entity has a shortName field it is used on the map
 // card label; the full name is still used in the detail panel h2.
 //
-// Shadows:
-//   - For PLAYERS: their backstory cards that have been placed
-//     elsewhere render an extra shadow in the Personal column, AND
-//     their personal refs (entities they're tied to that live
-//     elsewhere) render as shadows below the backstory.
-//   - For DM: per-owner backstory columns get personal-ref shadows
-//     beneath each player's backstory, so DM can see what each
-//     player's Personal section will end up looking like.
+// Phase C (2026-05-28): retired the BACKSTORY loop and both shadow
+// loops (player-view + DM-view) along with the Personal column. The
+// new Lore cluster grid takes their place — entities flow into it via
+// EB.defaultLayout() based on cluster_id='lore'. The Lore cluster
+// label now sits above the new grid, sourced from
+// EB.shiftedLayout().loreGrid.anchor (so cluster_offsets.lore ripples).
 (function () {
   EB.initMapRender = function () {
     var canvas = document.getElementById('canvas');
@@ -66,20 +62,6 @@
         'title'
       );
     }
-    function makeShadow(entity, p, suffix, cluster) {
-      if (!p) return;
-      var el = document.createElement('div');
-      el.className = 'node node-npc shadow';
-      el.dataset.id = entity.id + (suffix || '-shadow');
-      if (cluster) el.dataset.cluster = cluster;
-      el.style.left = p.x + 'px';
-      el.style.top = p.y + 'px';
-      el.innerHTML =
-        '<div class="shape"><div class="portrait">' + EB.portraitHTML(entity) + '</div>' +
-        '<div class="name">' + cardLabel(entity) + '</div></div>';
-      el.addEventListener('click', function () { EB.openDetail(entity); });
-      canvas.appendChild(el);
-    }
 
     function clusterForEntity(id) {
       return EB.clusterOf ? EB.clusterOf(id) : null;
@@ -90,19 +72,20 @@
       linesSvg.innerHTML = '';
       var L = EB.shiftedLayout();
       var pos = EB.currentPositions();
-      var bucket = EB.currentBucket();
-      var isDM = bucket === 'dm';
 
       addEberothTitle();
+
+      // Party row label — above the party row.
       addClusterLabel('The Party', L.party.x + L.party.gap, L.party.y - L.headerOffset, 'players');
-      var refs = EB.getMyRefs();
-      var hasPersonal = EB.BACKSTORY.length > 0 || (!isDM && refs.length > 0)
-        || (isDM && Object.keys(EB.PERSONAL_REFS).some(function (k) { return (EB.PERSONAL_REFS[k] || []).length > 0; }));
-      if (hasPersonal) {
-        addClusterLabel('Personal', L.party.x + L.party.gap, L.personalY - L.headerOffset, 'players');
-      }
-      if ((window.LORE || []).length > 0) {
-        addClusterLabel('Lore', L.special.x, L.loreGridY - L.headerOffset, 'lore');
+
+      // Lore grid label — above the new lore cluster grid. The grid's
+      // top row sits at loreGrid.anchor.y; the label sits headerOffset
+      // pixels above that, centered on the middle column.
+      var loreEntities = EB.entitiesInCluster ? EB.entitiesInCluster('lore') : [];
+      if (loreEntities.length > 0) {
+        var loreLabelX = L.loreGrid.anchor.x + L.loreGrid.gapX; // middle col of 3
+        var loreLabelY = L.loreGrid.anchor.y - L.headerOffset;
+        addClusterLabel('Lore', loreLabelX, loreLabelY, 'lore');
       }
 
       (window.PLAYERS || []).forEach(function (p) {
@@ -113,7 +96,7 @@
       (window.LORE || []).forEach(function (l) {
         makeNode('node-special', pos[l.id], l.id,
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(l) + '</div><div class="name">' + cardLabel(l) + '</div></div>',
-          function () { EB.openDetail(l); }, 'lore');
+          function () { EB.openDetail(l); }, clusterForEntity(l.id));
       });
       (window.FACTIONS || []).forEach(function (f) {
         makeNode('node-faction ' + f.id, pos[f.id], f.id,
@@ -126,55 +109,6 @@
           '<div class="shape"><div class="portrait">' + EB.portraitHTML(n) + '</div><div class="name">' + cardLabel(n) + '</div></div>',
           function () { EB.openDetail(n); }, clusterForEntity(n.id));
       });
-      EB.BACKSTORY.forEach(function (b) {
-        makeNode('node-npc', pos[b.id], b.id,
-          '<div class="shape"><div class="portrait">' + EB.portraitHTML(b) + '</div><div class="name">' + cardLabel(b) + '</div></div>',
-          function () { EB.openDetail(b); }, 'players');
-      });
-
-      // ---- Shadow duplicates ----
-      if (!isDM) {
-        EB.BACKSTORY.forEach(function (b) {
-          var actual = pos[b.id];
-          var defPos = EB.getBackstoryDefaultPos(b);
-          if (!actual || !defPos) return;
-          if (Math.hypot(actual.x - defPos.x, actual.y - defPos.y) > 50) {
-            makeShadow(b, defPos, '-shadow', 'players');
-          }
-        });
-        var stackIdx = EB.BACKSTORY.length;
-        refs.forEach(function (refId) {
-          var entity = EB.byId[refId];
-          if (!entity) return;
-          var p = {
-            x: L.party.x + L.party.gap,
-            y: L.personalY + stackIdx * L.personalCardGapY
-          };
-          makeShadow(entity, p, '-ref', 'players');
-          stackIdx++;
-        });
-      } else {
-        ['baker', 'butcher', 'charlie'].forEach(function (bkt) {
-          var bktRefs = EB.PERSONAL_REFS[bkt] || [];
-          if (bktRefs.length === 0) return;
-          var charId = EB.BUCKET_TO_CHARACTER[bkt];
-          var ownerIdx = (window.PLAYERS || []).findIndex(function (p) { return p.id === charId; });
-          if (ownerIdx < 0) return;
-          var ownerBackstoryCount = (window.BACKSTORY || [])
-            .filter(function (b) { return b.ownerId === charId; }).length;
-          var s = ownerBackstoryCount;
-          bktRefs.forEach(function (refId) {
-            var entity = EB.byId[refId];
-            if (!entity) return;
-            var p = {
-              x: L.party.x + ownerIdx * L.party.gap,
-              y: L.personalY + s * L.personalCardGapY
-            };
-            makeShadow(entity, p, '-ref-' + bkt, 'players');
-            s++;
-          });
-        });
-      }
 
       if (EB.applyHouseTints) EB.applyHouseTints();
     };
