@@ -4,16 +4,12 @@
 // instance per request in SSR, and a singleton in SPA mode.
 //
 // Individual stores live in their own files (auth.js, entities.js,
-// layout.js) and use defineStore from pinia directly.
+// layout.js) and import defineStore directly from 'pinia'.
 
-import { defineStore as piniaDefineStore } from 'pinia';
 import { createPinia } from 'pinia';
-import { defineStore } from '#q-app/wrappers';
+import { defineStore as qDefineStore } from '#q-app/wrappers';
 
-export default defineStore((/* { ssrContext } */) => {
+export default qDefineStore((/* { ssrContext } */) => {
   const pinia = createPinia();
   return pinia;
 });
-
-// Re-export defineStore from pinia for convenience.
-export const defineStore = piniaDefineStore;
