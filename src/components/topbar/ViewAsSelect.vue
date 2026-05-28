@@ -5,6 +5,8 @@
     emit-value map-options
     dense outlined options-dense
     label="View as"
+    class="view-as-select"
+    popup-content-class="view-as-popup"
     style="min-width: 130px;"
   />
 </template>
@@ -26,10 +28,27 @@ const value = computed({
   }
 });
 
-// Options driven by the entities store via allPlayers(). Computed so
-// it stays reactive — when a new PC is added to Supabase, the dropdown
-// updates without a refresh.
 const options = computed(() =>
   allPlayers().map(p => ({ label: p.characterName, value: p.bucket }))
 );
 </script>
+
+<style scoped>
+.view-as-select {
+  font-family: 'Cinzel', serif;
+}
+.view-as-select :deep(.q-field__control) {
+  background: var(--bg-panel-2);
+  color: var(--text);
+  border-color: var(--gold-dim);
+}
+.view-as-select :deep(.q-field__label) {
+  color: var(--gold-dim);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.view-as-select :deep(.q-field__native),
+.view-as-select :deep(.q-field__input) { color: var(--gold); }
+.view-as-select :deep(.q-icon) { color: var(--gold-dim); }
+</style>
