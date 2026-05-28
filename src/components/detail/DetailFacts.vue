@@ -2,7 +2,7 @@
   <section class="facts-section q-mb-md">
     <div class="section-label">Known</div>
     <ul class="facts-list">
-      <li v-for="(fact, i) in facts" :key="i">{{ fact }}</li>
+      <li v-for="(fact, i) in facts" :key="i" v-html="fact"></li>
     </ul>
   </section>
 </template>
@@ -15,20 +15,33 @@ defineProps({
 
 <style scoped>
 .section-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: #8a7148;
-  margin-bottom: 6px;
+  color: var(--gold-dim);
+  margin-bottom: 8px;
 }
 .facts-list {
+  list-style: none;
   margin: 0;
-  padding-left: 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 .facts-list li {
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #1f1b16;
-  margin-bottom: 4px;
+  color: var(--text);
+  padding-left: 14px;
+  position: relative;
 }
+.facts-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--gold-dim);
+}
+.facts-list li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 </style>
