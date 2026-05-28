@@ -7,9 +7,10 @@ import { supabase } from 'boot/supabase';
 import * as appSettingsApi from 'src/api/app-settings';
 
 const DEFAULTS = {
-  card_scale:    { scale: 1.0 },
-  faction_scale: { scale: 1.0 },
-  faction_order: { order: [] }
+  card_scale:        { scale: 1.0 },
+  faction_scale:     { scale: 1.0 },
+  faction_order:     { order: [] },
+  dm_show_personals: { show: true }
 };
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -17,6 +18,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     cardScale: 1.0,
     factionScale: 1.0,
     factionOrder: [],
+    showPersonals: true,
     _subscribed: false,
     _channel: null
   }),
@@ -24,14 +26,16 @@ export const useAppSettingsStore = defineStore('appSettings', {
     async load() {
       const rows = await appSettingsApi.fetchAll();
       const byKey = Object.fromEntries(rows.map(r => [r.key, r.value]));
-      this._applyRow('card_scale',    byKey.card_scale    || DEFAULTS.card_scale);
-      this._applyRow('faction_scale', byKey.faction_scale || DEFAULTS.faction_scale);
-      this._applyRow('faction_order', byKey.faction_order || DEFAULTS.faction_order);
+      this._applyRow('card_scale',        byKey.card_scale        || DEFAULTS.card_scale);
+      this._applyRow('faction_scale',     byKey.faction_scale     || DEFAULTS.faction_scale);
+      this._applyRow('faction_order',     byKey.faction_order     || DEFAULTS.faction_order);
+      this._applyRow('dm_show_personals', byKey.dm_show_personals || DEFAULTS.dm_show_personals);
     },
     _applyRow(key, value) {
-      if (key === 'card_scale')    this.cardScale    = value?.scale ?? 1.0;
-      if (key === 'faction_scale') this.factionScale = value?.scale ?? 1.0;
-      if (key === 'faction_order') this.factionOrder = value?.order ?? [];
+      if (key === 'card_scale')        this.cardScale     = value?.scale ?? 1.0;
+      if (key === 'faction_scale')     this.factionScale  = value?.scale ?? 1.0;
+      if (key === 'faction_order')     this.factionOrder  = value?.order ?? [];
+      if (key === 'dm_show_personals') this.showPersonals = value?.show ?? true;
     },
     async setCardScale(scale) {
       this.cardScale = scale;
@@ -44,6 +48,10 @@ export const useAppSettingsStore = defineStore('appSettings', {
     async setFactionOrder(order) {
       this.factionOrder = order;
       await appSettingsApi.setKey('faction_order', { order });
+    },
+    async setShowPersonals(show) {
+      this.showPersonals = !!show;
+      await appSettingsApi.setKey('dm_show_personals', { show: !!show });
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);

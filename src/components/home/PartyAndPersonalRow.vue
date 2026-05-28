@@ -55,9 +55,8 @@ const viewer   = useViewer();
 const auth     = useAuthStore();
 const layout   = useAppSettingsStore();
 
-// Grouped view = real DM mode (not view-as). In view-as mode DM sees
-// the page exactly as that player would, including a flat personals
-// row of only their own personals.
+// Grouped DM view = real DM mode, not view-as. In view-as DM sees the
+// page as that player would.
 const showGroupedView = computed(() => viewer.isDM && !viewer.isViewingAs);
 
 const players = computed(() =>
@@ -74,6 +73,8 @@ const myPersonals = computed(() => {
 
 const hasAnyPersonals = computed(() => {
   if (showGroupedView.value) {
+    // DM toggle can hide them entirely.
+    if (!layout.showPersonals) return false;
     return players.value.some(p => personalsOf(p.id).length > 0);
   }
   return myPersonals.value.length > 0;

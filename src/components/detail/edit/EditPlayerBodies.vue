@@ -5,19 +5,19 @@
       Optional. Shown to each viewer in addition to the shared body. Empty = no row written.
     </div>
     <q-expansion-item
-      v-for="opt in OPTS"
-      :key="opt.value"
-      :label="opt.label"
-      :caption="local[opt.value] ? '' : 'Empty'"
+      v-for="p in players"
+      :key="p.bucket"
+      :label="p.characterName"
+      :caption="local[p.bucket] ? '' : 'Empty'"
       dense dense-toggle
       header-class="text-grey-8"
     >
       <q-input
-        v-model="local[opt.value]"
+        v-model="local[p.bucket]"
         type="textarea"
         autogrow filled dense
         class="q-ma-sm"
-        :placeholder="'Body just for ' + opt.label"
+        :placeholder="'Body just for ' + p.characterName"
         @update:model-value="emitChange"
       />
     </q-expansion-item>
@@ -25,19 +25,15 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
-
-const OPTS = [
-  { value: 'dm',      label: 'DM' },
-  { value: 'baker',   label: 'Kalvorn' },
-  { value: 'butcher', label: 'Dirk' },
-  { value: 'charlie', label: 'Azrael' }
-];
+import { reactive, watch, computed } from 'vue';
+import { allPlayers } from 'src/config/players';
 
 const props = defineProps({
   modelValue: { type: Object, required: true }
 });
 const emit = defineEmits(['update:modelValue']);
+
+const players = computed(() => allPlayers());
 
 const local = reactive({ ...props.modelValue });
 

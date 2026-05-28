@@ -2,7 +2,7 @@
   <section class="edit-section">
     <div class="section-label">Personal to</div>
     <div class="text-caption text-grey-7 q-mb-sm">
-      Place this entity in a player's personal top-row.
+      Place this entity in a player's personal top-row. Doesn't change visibility — set that separately above.
     </div>
     <div class="row q-gutter-sm items-center">
       <q-select
@@ -36,8 +36,13 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
+// Use display_name from the player entity row (the canonical character
+// name). Falls back to short_name then name if display_name is missing.
 const playerOptions = computed(() =>
-  props.players.map(p => ({ label: p.short_name || p.name, value: p.id }))
+  props.players.map(p => ({
+    label: p.display_name || p.short_name || p.name,
+    value: p.id
+  }))
 );
 
 function onPlayerChange(playerId) {

@@ -5,26 +5,31 @@
       Who can see this entity. Tick * for everyone.
     </div>
     <div class="row q-gutter-md">
-      <q-checkbox v-for="opt in OPTS" :key="opt.value"
-        :model-value="modelValue.includes(opt.value)"
-        :label="opt.label"
-        @update:model-value="(v) => toggle(opt.value, v)"
+      <q-checkbox
+        :model-value="modelValue.includes('*')"
+        label="Everyone"
+        @update:model-value="(v) => toggle('*', v)"
+      />
+      <q-checkbox
+        v-for="p in players"
+        :key="p.bucket"
+        :model-value="modelValue.includes(p.bucket)"
+        :label="p.characterName"
+        @update:model-value="(v) => toggle(p.bucket, v)"
       />
     </div>
   </section>
 </template>
 
 <script setup>
-const OPTS = [
-  { value: '*',       label: 'Everyone' },
-  { value: 'dm',      label: 'DM' },
-  { value: 'baker',   label: 'Kalvorn' },
-  { value: 'butcher', label: 'Dirk' },
-  { value: 'charlie', label: 'Azrael' }
-];
+import { computed } from 'vue';
+import { allPlayers } from 'src/config/players';
 
 const props = defineProps({ modelValue: { type: Array, required: true } });
 const emit  = defineEmits(['update:modelValue']);
+
+// Drive labels from the canonical players.js so they can't drift.
+const players = computed(() => allPlayers());
 
 function toggle(value, checked) {
   const next = new Set(props.modelValue);
