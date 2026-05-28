@@ -1,18 +1,17 @@
 <template>
   <section class="notes-section q-mt-md">
     <div class="section-label">Your notes</div>
-    <q-input
+    <textarea
+      class="notes-input"
       v-model="text"
-      type="textarea"
-      filled
-      autogrow
+      :disabled="!authed"
       placeholder="Personal notes about this entity. Only you can see these."
-      :disable="!authed"
+      rows="4"
       @blur="flush"
-    />
+    ></textarea>
     <div class="status" :class="{ saving }">
-      <span v-if="saving">Saving…</span>
-      <span v-else-if="lastSavedAt">Saved · {{ relativeSaved }}</span>
+      <span v-if="saving">Saving...</span>
+      <span v-else-if="lastSavedAt">Saved {{ relativeSaved }}</span>
       <span v-else-if="!authed">Sign in to take notes</span>
     </div>
   </section>
@@ -86,17 +85,37 @@ const relativeSaved = computed(() => {
 
 <style scoped>
 .section-label {
+  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: #8a7148;
+  color: var(--gold-dim);
   margin-bottom: 6px;
 }
+.notes-input {
+  width: 100%;
+  min-height: 90px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 14px;
+  line-height: 1.55;
+  outline: none;
+  resize: vertical;
+}
+.notes-input::placeholder {
+  color: var(--text-dim);
+  font-style: italic;
+}
+.notes-input:focus { border-color: var(--gold-dim); }
 .status {
   font-size: 0.7rem;
-  color: #8a7148;
+  color: var(--text-dim);
   margin-top: 4px;
   min-height: 1em;
 }
-.status.saving { color: #c08a2b; }
+.status.saving { color: var(--gold); }
 </style>
