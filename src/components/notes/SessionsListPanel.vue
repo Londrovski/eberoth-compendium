@@ -20,7 +20,7 @@
           <span class="session-row-title">{{ s.title || ('Session ' + s.number) }}</span>
           <span v-if="s.row_summary" class="session-row-sub">{{ s.row_summary }}</span>
         </span>
-        <span class="session-row-arrow">▸</span>
+        <span class="session-row-arrow">&gt;</span>
       </button>
     </div>
 
@@ -92,4 +92,21 @@ onMounted(async () => {
   text-align: center;
   line-height: 1;
 }
-.session-row
+.session-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.session-row-title { font-size: 14px; color: var(--text); }
+.session-row-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.35;
+}
+.session-row-arrow { color: var(--gold-dim); font-size: 14px; line-height: 1; }
+
+.sessions-empty {
+  text-align: center;
+  font-style: italic;
+  color: var(--text-dim);
+  padding: 24px 0;
+  font-size: 13px;
+}
+</style>
