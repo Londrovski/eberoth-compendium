@@ -28,7 +28,7 @@
             @blur="onTextBlur(i, $event)"
             @keydown.enter.prevent="$event.target.blur()"
           >{{ t.text }}</span>
-          <button class="del" :title="'Remove'" @click="remove(t)">✕</button>
+          <button class="del" :title="'Remove'" @click="remove(t)">x</button>
         </div>
         <div v-if="!threads.length" class="threads-empty">
           No active threads. Tap + to add one.
@@ -129,4 +129,55 @@ onMounted(async () => {
 
 .threads-list {
   overflow-y: auto;
-  p
+  padding: 8px 10px;
+  flex: 1;
+  min-height: 0;
+}
+.thread {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-dim);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  transition: border-color 0.15s ease;
+}
+.thread:focus-within { border-color: var(--gold-dim); }
+.thread.done .text { color: var(--text-dim); text-decoration: line-through; }
+.thread-check {
+  margin-top: 3px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+.thread .text {
+  flex: 1;
+  outline: none;
+  color: var(--text);
+  cursor: text;
+  min-height: 18px;
+  word-wrap: break-word;
+}
+.thread .text:focus { color: var(--gold-bright); }
+.thread .del {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+  font-family: inherit;
+}
+.thread .del:hover { color: var(--red); }
+
+.threads-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+}
+</style>
