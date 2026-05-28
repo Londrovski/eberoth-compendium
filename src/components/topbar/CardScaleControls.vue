@@ -1,9 +1,9 @@
 <template>
-  <div class="row items-center q-gutter-xs" :title="title">
-    <span class="text-caption text-grey-7" style="min-width: 30px;">{{ label }}</span>
-    <q-btn flat round dense icon="remove" size="sm" @click="dec" />
-    <span class="text-caption text-grey-7" style="min-width: 38px; text-align: center;">{{ pct }}%</span>
-    <q-btn flat round dense icon="add" size="sm" @click="inc" />
+  <div class="row items-center q-gutter-xs scale-row" :title="title">
+    <span class="lbl" style="min-width: 46px;">{{ label }}</span>
+    <q-btn flat round dense icon="remove" size="sm" class="step-btn" @click="dec" />
+    <span class="pct" style="min-width: 38px; text-align: center;">{{ pct }}%</span>
+    <q-btn flat round dense icon="add" size="sm" class="step-btn" @click="inc" />
   </div>
 </template>
 
@@ -12,7 +12,7 @@ import { computed } from 'vue';
 import { useLayoutStore } from 'src/stores/layout';
 
 const props = defineProps({
-  which: { type: String, default: 'card' }   // 'card' | 'faction'
+  which: { type: String, default: 'card' }
 });
 
 const layout = useLayoutStore();
@@ -44,3 +44,21 @@ function dec() {
   else                            layout.setCardScale(next);
 }
 </script>
+
+<style scoped>
+.scale-row { color: var(--text); }
+.lbl {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.pct {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--gold);
+}
+.step-btn { color: var(--gold-dim); }
+.step-btn:hover { color: var(--gold); }
+</style>
