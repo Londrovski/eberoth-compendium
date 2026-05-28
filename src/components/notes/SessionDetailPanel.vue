@@ -24,32 +24,32 @@
           </q-banner>
 
           <template v-else-if="session">
-            <div v-if="session.row_summary" class="session-row-summary">{{ session.row_summary }}</div>
+            <div v-if="session.row_summary" class="session-row-summary" v-html="session.row_summary"></div>
 
             <div v-if="full.body" class="player-body">
               <div class="player-body-label">For you</div>
-              <div class="player-body-text">{{ full.body }}</div>
+              <div class="player-body-text" v-html="full.body"></div>
             </div>
 
             <div v-if="full.summary.length" class="session-summary-box">
               <div class="session-summary-label">Key Takeaways</div>
               <ul class="session-summary-list">
-                <li v-for="line in full.summary" :key="line.id">{{ line.line }}</li>
+                <li v-for="line in full.summary" :key="line.id" v-html="line.line"></li>
               </ul>
             </div>
 
             <div v-for="part in full.parts" :key="part.id" class="part-block">
               <div class="session-detail-part-label">{{ part.label }}</div>
               <div v-for="b in part.blocks" :key="b.id" class="block">
-                <p v-if="b.type === 'para' && b.text" class="session-block-para">{{ b.text }}</p>
-                <div v-else-if="b.type === 'highlight' && b.text" class="session-block-highlight">{{ b.text }}</div>
-                <div v-else-if="b.type === 'takeaway' && b.text" class="session-block-takeaway">{{ b.text }}</div>
+                <p v-if="b.type === 'para' && b.text" class="session-block-para" v-html="b.text"></p>
+                <div v-else-if="b.type === 'highlight' && b.text" class="session-block-highlight" v-html="b.text"></div>
+                <div v-else-if="b.type === 'takeaway' && b.text" class="session-block-takeaway" v-html="b.text"></div>
                 <div v-else-if="b.type === 'testimonies'" class="block-testimonies">
-                  <p v-if="b.text" class="session-block-para">{{ b.text }}</p>
+                  <p v-if="b.text" class="session-block-para" v-html="b.text"></p>
                   <ul class="session-block-testimonies">
                     <li v-for="t in b.testimonies" :key="t.id">
                       <span class="testimony-name">{{ t.name }}:</span>
-                      <span>{{ ' ' + t.text }}</span>
+                      <span v-html="' ' + t.text"></span>
                     </li>
                   </ul>
                 </div>
@@ -156,6 +156,7 @@ watch(
   text-align: center;
   line-height: 1.5;
 }
+.session-row-summary :deep(strong) { color: var(--gold-bright); font-style: normal; font-weight: 600; }
 
 .player-body {
   border-left: 3px solid var(--gold);
@@ -173,6 +174,7 @@ watch(
   margin-bottom: 6px;
 }
 .player-body-text { font-size: 13px; line-height: 1.55; color: var(--text); }
+.player-body-text :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 
 .session-summary-box {
   background: rgba(201,169,97,0.05);
@@ -199,6 +201,7 @@ watch(
   position: relative;
 }
 .session-summary-list li::before { content: '—'; position: absolute; left: 0; color: var(--gold-dim); }
+.session-summary-list li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 
 .session-detail-part-label {
   font-family: 'Cinzel', serif;
@@ -216,6 +219,7 @@ watch(
   line-height: 1.65;
   margin: 0 0 9px 0;
 }
+.session-block-para :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 .session-block-highlight {
   color: var(--gold-bright);
   font-size: 14px;
@@ -251,6 +255,7 @@ watch(
   font-size: 13px;
   line-height: 1.55;
 }
+.session-block-testimonies li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 .testimony-name { color: var(--gold-bright); font-weight: 600; }
 
 .empty-note { color: var(--text-dim); font-size: 13px; font-style: italic; text-align: center; padding: 16px 0; }
