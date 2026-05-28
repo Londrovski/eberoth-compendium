@@ -1,0 +1,13 @@
+// Global styles. Keep tiny — component-scoped styles do the heavy lifting.
+// Quasar provides the variables; we only override what we need.
+
+body {
+  font-family: 'Cinzel', serif;
+  background: #faf7f0;
+  color: #1f1b16;
+}
+
+.app-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 500;
+}
