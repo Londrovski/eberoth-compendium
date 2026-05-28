@@ -41,9 +41,9 @@ const auth = useAuthStore();
 const viewer = useViewer();
 
 const roleLabel = computed(() => {
-  if (!auth.actualBucket) return '—';
+  if (!auth.actualBucket) return '-';
   if (auth.isViewingAs) {
-    return 'DM → ' + (characterFromBucket(auth.viewingAs) || auth.viewingAs);
+    return 'DM > ' + (characterFromBucket(auth.viewingAs) || auth.viewingAs);
   }
   return characterFromBucket(auth.actualBucket) || auth.actualBucket;
 });
@@ -52,4 +52,42 @@ async function onSignOut() {
   await auth.signOut();
   router.push({ name: 'landing' });
 }
-</scr
+</script>
+
+<style scoped>
+.eb-topbar {
+  background: var(--bg-panel);
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.brand .app-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+.brand .sub {
+  color: var(--gold-dim);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+.eb-tabs :deep(.q-tab) {
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+.eb-tabs :deep(.q-tab--active) { color: var(--gold); }
+.eb-tabs :deep(.q-tab__indicator) { background: var(--gold) !important; }
+
+.role-chip {
+  color: var(--gold-dim);
+  border-color: var(--gold-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+.lock-btn { color: var(--gold-dim); }
+.lock-btn:hover { color: var(--gold); }
+</style>
