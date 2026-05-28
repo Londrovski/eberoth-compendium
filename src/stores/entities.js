@@ -2,9 +2,9 @@
 // Plus the cross-cutting tables: visibility, per-player bodies, tags,
 // memberships, personal-to.
 //
-// Supabase Realtime: any change to entities or the 6 cross-cutting
-// tables triggers a refresh of the relevant slice so the UI updates
-// without a page reload.
+// View-As filter: when DM is in view-as mode (auth.isViewingAs), all
+// list getters filter to what the viewed-as bucket would see. Real
+// players don't need this — RLS pre-filters their fetches.
 
 import { defineStore } from 'pinia';
 import { useAuthStore } from 'src/stores/auth';
@@ -14,7 +14,6 @@ import * as membershipsApi from 'src/api/memberships';
 import * as personalsApi from 'src/api/personals';
 import { playerIdFromBucket } from 'src/config/players';
 
-// Tables we subscribe to. Any change refetches the corresponding slice.
 const REALTIME_TABLES = [
   'entities',
   'entity_visibility',
@@ -24,6 +23,16 @@ const REALTIME_TABLES = [
   'entity_memberships',
   'entity_personal_to'
 ];
+
+// Returns either null (no filter, viewer sees everything in byId) or
+// a predicate (e) => boolean that decides if an entity is visible to
+// the currently-viewed-as bucket.
+function viewAsFilter() {
+  const auth = useAuthStore();
+  if (!auth.isViewingAs) return null;
+  const bucket = auth.viewingAs;
+  return (e) => !!e && (e.visible_to?.has(bucket) || e.visible_to?.has('*'));
+}
 
 export const useEntitiesStore = defineStore('entities', {
   state: () => ({
@@ -37,31 +46,55 @@ export const useEntitiesStore = defineStore('entities', {
     _refetchTimer: null
   }),
   getters: {
-    all:       (s) => Object.values(s.byId),
-    players:   (s) => Object.values(s.byId).filter(e => e.kind === 'player'),
-    factions:  (s) => Object.values(s.byId).filter(e => e.kind === 'faction'),
-    npcs:      (s) => Object.values(s.byId).filter(e => e.kind === 'npc'),
-    lore:      (s) => Object.values(s.byId).filter(e => e.kind === 'lore'),
+    all: (s) => {
+      const f = viewAsFilter();
+      const list = Object.values(s.byId);
+      return f ? list.filter(f) : list;
+    },
+    players: (s) => {
+      const f = viewAsFilter();
+      const list = Object.values(s.byId).filter(e => e.kind === 'player');
+      return f ? list.filter(f) : list;
+    },
+    factions: (s) => {
+      const f = viewAsFilter();
+      const list = Object.values(s.byId).filter(e => e.kind === 'faction');
+      return f ? list.filter(f) : list;
+    },
+    npcs: (s) => {
+      const f = viewAsFilter();
+      const list = Object.values(s.byId).filter(e => e.kind === 'npc');
+      return f ? list.filter(f) : list;
+    },
+    lore: (s) => {
+      const f = viewAsFilter();
+      const list = Object.values(s.byId).filter(e => e.kind === 'lore');
+      return f ? list.filter(f) : list;
+    },
 
     membersOf: (s) => (factionId) => {
+      const f = viewAsFilter();
       return s.memberships
         .filter(m => m.faction_id === factionId)
         .sort((a, b) => a.sort_order - b.sort_order)
         .map(m => ({ entity: s.byId[m.entity_id], role: m.role, sort_order: m.sort_order }))
-        .filter(x => x.entity);
+        .filter(x => x.entity && (!f || f(x.entity)));
     },
     personalsOf: (s) => (playerId) => {
+      const f = viewAsFilter();
       return s.personals
         .filter(p => p.player_id === playerId)
         .sort((a, b) => a.sort_order - b.sort_order)
         .map(p => ({ entity: s.byId[p.entity_id], relationship: p.relationship, sort_order: p.sort_order }))
-        .filter(x => x.entity);
+        .filter(x => x.entity && (!f || f(x.entity)));
     },
     factionsOfEntity: (s) => (entityId) => {
-      return s.memberships
+      const f = viewAsFilter();
+      const list = s.memberships
         .filter(m => m.entity_id === entityId)
         .map(m => s.byId[m.faction_id])
         .filter(Boolean);
+      return f ? list.filter(f) : list;
     },
     glowsFor: (s) => (entityId, viewer) => {
       const e = s.byId[entityId];
@@ -96,8 +129,6 @@ export const useEntitiesStore = defineStore('entities', {
       }
     },
 
-    // Debounced refetch — several Realtime events in quick succession
-    // (e.g. a bulk edit) collapse into one network round trip.
     _scheduleRefetch() {
       if (this._refetchTimer) clearTimeout(this._refetchTimer);
       this._refetchTimer = setTimeout(() => {
@@ -106,9 +137,6 @@ export const useEntitiesStore = defineStore('entities', {
       }, 250);
     },
 
-    // Open Realtime channels on all data tables. Any UPDATE/INSERT/
-    // DELETE triggers a debounced refetch. Idempotent: only subscribes
-    // once per app lifetime.
     subscribeRealtime() {
       if (this._subscribed) return;
       this._subscribed = true;

@@ -1,6 +1,6 @@
 <template>
   <div class="faction-column" :style="colStyle">
-    <div class="faction-header">
+    <div class="faction-header" :class="visClass">
       <div class="header-main" @click="openFaction">
         <EntityAvatar :entity="faction" :size="headerSize" />
         <div class="faction-name">{{ faction.short_name || faction.name }}</div>
@@ -39,6 +39,7 @@ import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
+import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
 import { swapMembershipOrder } from 'src/api/reorder';
 
 const props = defineProps({
@@ -52,6 +53,7 @@ const entities = useEntitiesStore();
 const layout   = useAppSettingsStore();
 const viewer   = useViewer();
 const detail   = useEntityDetail();
+const visClass = useVisibilityIndicator(props.faction.id);
 
 const members = computed(() => entities.membersOf(props.faction.id));
 const headerSize = computed(() => Math.round(30 * layout.factionScale));
@@ -89,6 +91,14 @@ async function onMemberMoveDown(idx) {
   gap: calc(8px * var(--faction-scale, 1));
   padding-bottom: calc(6px * var(--faction-scale, 1));
   border-bottom: 1px solid #d8cfb8;
+}
+.faction-header.vis-restricted {
+  border-bottom-color: rgba(74, 107, 145, 0.55);
+  border-bottom-width: 2px;
+}
+.faction-header.vis-dm-only {
+  border-bottom-color: rgba(156, 42, 42, 0.55);
+  border-bottom-width: 2px;
 }
 .header-main {
   display: flex;

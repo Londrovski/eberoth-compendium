@@ -7,7 +7,7 @@
       <template v-if="hasAnyPersonals">
         <div class="divider" aria-hidden="true"></div>
 
-        <template v-if="viewer.isDM">
+        <template v-if="showGroupedView">
           <template v-for="pc in players" :key="'g-' + pc.id">
             <template v-if="personalsOf(pc.id).length">
               <div class="group-chip">{{ pc.short_name || pc.name }}:</div>
@@ -55,6 +55,11 @@ const viewer   = useViewer();
 const auth     = useAuthStore();
 const layout   = useAppSettingsStore();
 
+// Grouped view = real DM mode (not view-as). In view-as mode DM sees
+// the page exactly as that player would, including a flat personals
+// row of only their own personals.
+const showGroupedView = computed(() => viewer.isDM && !viewer.isViewingAs);
+
 const players = computed(() =>
   [...entities.players].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 );
@@ -68,7 +73,7 @@ const myPersonals = computed(() => {
 });
 
 const hasAnyPersonals = computed(() => {
-  if (viewer.isDM) {
+  if (showGroupedView.value) {
     return players.value.some(p => personalsOf(p.id).length > 0);
   }
   return myPersonals.value.length > 0;

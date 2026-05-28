@@ -1,5 +1,5 @@
 <template>
-  <div class="lore-card" :class="{ 'is-glow': glow }" :style="cardStyle" @click="open">
+  <div class="lore-card" :class="[{ 'is-glow': glow }, visClass]" :style="cardStyle" @click="open">
     <EntityAvatar :entity="entity" :size="avatarSize" />
     <div class="meta">
       <div class="name">{{ entity.short_name || entity.name }}</div>
@@ -24,6 +24,7 @@ import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
+import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
 
 const props = defineProps({
   entity:      { type: Object, required: true },
@@ -37,6 +38,7 @@ const layout = useAppSettingsStore();
 const viewer = useViewer();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
+const visClass = useVisibilityIndicator(props.entity.id);
 
 const avatarSize = computed(() => Math.round(36 * layout.cardScale));
 const cardStyle = computed(() => ({
@@ -63,6 +65,14 @@ function open() { detail.open(props.entity.id); }
   background: #fff8e0;
   border-color: #c08a2b;
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(192, 138, 43, 0.45);
+}
+.lore-card.vis-restricted {
+  outline: 2px solid rgba(74, 107, 145, 0.55);
+  outline-offset: 1px;
+}
+.lore-card.vis-dm-only {
+  outline: 2px solid rgba(156, 42, 42, 0.55);
+  outline-offset: 1px;
 }
 .meta { min-width: 0; flex: 1; }
 .name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: #1f1b16; line-height: 1.2; }
