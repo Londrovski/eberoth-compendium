@@ -26,6 +26,7 @@
 
         <div class="q-pa-md" v-else-if="entity">
           <DetailIdentity :entity="entity" />
+          <DetailDmInfo v-if="viewer.isDM" :entity="entity" />
           <DetailMemberships :entity="entity" v-if="memberships.length" :memberships="memberships" />
           <DetailPersonalTo :entity="entity" v-if="personalTo" :personal-to="personalTo" />
           <DetailBody :entity="entity" />
@@ -45,8 +46,10 @@
 import { ref, computed, watch } from 'vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
+import { useViewer } from 'src/composables/useViewer';
 import DetailHeader from 'components/detail/DetailHeader.vue';
 import DetailIdentity from 'components/detail/DetailIdentity.vue';
+import DetailDmInfo from 'components/detail/DetailDmInfo.vue';
 import DetailMemberships from 'components/detail/DetailMemberships.vue';
 import DetailPersonalTo from 'components/detail/DetailPersonalTo.vue';
 import DetailBody from 'components/detail/DetailBody.vue';
@@ -56,6 +59,7 @@ import DetailEditForm from 'components/detail/DetailEditForm.vue';
 
 const entities = useEntitiesStore();
 const detail   = useEntityDetail();
+const viewer   = useViewer();
 
 const isOpenRef = detail.isOpen;
 const currentIdRef = detail.currentEntityId;
