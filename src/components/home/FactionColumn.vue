@@ -121,12 +121,10 @@ async function onMemberMoveDown(idx) {
   letter-spacing: 0.04em;
 }
 .member-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: calc(10px * var(--scale, 1));
-}
-@media (max-width: 500px) {
-  .member-grid { grid-template-columns: 1fr; }
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(12px * var(--scale, 1));
+  align-items: flex-start;
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
