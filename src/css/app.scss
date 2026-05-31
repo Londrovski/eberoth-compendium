@@ -40,6 +40,14 @@
   --section-heading-color:  #8a7544;
   --section-heading-size:   11px;
   --section-heading-spacing: 3px;
+
+  // DM-tunable "lines" — borders + dividers across home cards.
+  // Master thickness applies to all cards + faction columns + dividers
+  // uniformly. Glow states override the *colour* but never the width.
+  --line-thickness: 2px;
+  --line-color:     #8a7544;
+  // Card spacing — gap between cards + faction columns on home page.
+  --card-spacing:   16px;
 }
 
 html, body { height: 100%; background: var(--bg); }
