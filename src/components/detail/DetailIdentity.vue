@@ -45,9 +45,9 @@ const kindLabel = computed(() => KIND_LABEL[props.entity.kind] || props.entity.k
   max-width: 100%;
 }
 .kind {
-  font-size: 0.7rem;
-  letter-spacing: 3px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
 }
 </style>
