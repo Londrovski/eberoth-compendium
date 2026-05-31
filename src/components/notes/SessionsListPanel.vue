@@ -25,8 +25,6 @@
     </div>
 
     <div v-else class="sessions-empty">No sessions yet.</div>
-
-    <SessionDetailPanel />
   </div>
 </template>
 
@@ -34,7 +32,6 @@
 import { ref, onMounted } from 'vue';
 import * as sessionsApi from 'src/api/sessions';
 import { useSessionDetail } from 'src/composables/useSessionDetail';
-import SessionDetailPanel from 'components/notes/SessionDetailPanel.vue';
 
 const sessions = ref([]);
 const loading  = ref(true);
