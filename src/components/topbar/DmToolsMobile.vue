@@ -1,20 +1,27 @@
 <!--
   DmToolsMobile — root panel rendered inside the TopBar DM slide-out.
-  Broken into small sub-components in ./dm-mobile/ so each control
-  can be edited independently.
+  Each control is a small focused sub-component in ./dm-mobile/.
 
-  Controls included:
-    • Party cards per row      (1 / 2 / 3)
-    • Faction cards per row    (1 / 2 / 3)
-    • Card gap                 (step 2–24 px)
-    • Card image ratio         (Square / 4:3 / Tall / Portrait)
-    • Personal cards           (Show / Hide)
-    • Background opacity       (step 0–100%)
-    • Quick add                (faction / NPC / lore)
+  Controls:
+    • Party cards per row   (1 / 2 / 3)  → --mobile-party-cols
+    • Faction cards per row (1 / 2 / 3)  → --mobile-faction-cols
+    • Card gap              (2–24 px)     → --mobile-card-spacing
+    • Card image ratio      (4 presets)   → --mobile-card-ratio
+    • Personal cards        (Show / Hide)
+    • Background opacity    (0–100 %)
+    • Quick add             (faction / NPC / lore)
 
-  All layout prefs are persisted to localStorage and applied immediately
-  as CSS custom properties on :root so card components react without
-  any rebuild or navigation.
+  All layout prefs are stored in localStorage and applied instantly as
+  CSS custom properties on :root so every card responds without a reload.
+
+  NOTE: "card scale" (cardScale in app-settings) is intentionally NOT
+  exposed here. On mobile the card width is driven entirely by the
+  column-count CSS formula, which ignores cardScale. If cardScale was
+  changed via the old desktop slider and saved to the DB, cards would
+  look different sizes because the formula divides 100% by the col count
+  but the individual card's --desktop-w is still computed from cardScale.
+  To guarantee uniform sizing across the party section, DmToolsMobile
+  resets cardScale to 1 on mount when running on a mobile viewport.
 -->
 <template>
   <div class="dm-mobile">
@@ -74,17 +81,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
-import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
-import MobileColControl    from 'components/topbar/dm-mobile/MobileColControl.vue';
-import MobileStepControl   from 'components/topbar/dm-mobile/MobileStepControl.vue';
-import MobileToggleControl from 'components/topbar/dm-mobile/MobileToggleControl.vue';
-import MobileRatioControl  from 'components/topbar/dm-mobile/MobileRatioControl.vue';
-import MobileQuickAdd      from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
+import NewEntityDialog      from 'components/topbar/NewEntityDialog.vue';
+import MobileColControl     from 'components/topbar/dm-mobile/MobileColControl.vue';
+import MobileStepControl    from 'components/topbar/dm-mobile/MobileStepControl.vue';
+import MobileToggleControl  from 'components/topbar/dm-mobile/MobileToggleControl.vue';
+import MobileRatioControl   from 'components/topbar/dm-mobile/MobileRatioControl.vue';
+import MobileQuickAdd       from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
 
 const layout = useAppSettingsStore();
 const adding = ref(null);
 
-// ── CSS custom property helper ─────────────────────────────────────────────
 function css(name, value) {
   if (typeof document !== 'undefined')
     document.documentElement.style.setProperty(name, String(value));
@@ -129,21 +135,26 @@ function setRatio(v) {
 // ── Background opacity ──────────────────────────────────────────────────────
 const bgOpacityPct = computed({
   get: () => Math.round((layout.siteBackground?.opacity ?? 0.35) * 100),
-  set: () => {} // writes go through setOpacity
+  set: () => {}
 });
-function setOpacity(pct) {
-  layout.setSiteBackground({ opacity: pct / 100 });
-}
+function setOpacity(pct) { layout.setSiteBackground({ opacity: pct / 100 }); }
 
 // ── Quick add ───────────────────────────────────────────────────────────────
 function openAdd(kind) { adding.value = kind; }
 
-// ── Apply stored values on first mount ──────────────────────────────────────
+// ── Apply stored values on mount + reset cardScale to 1 on mobile ───────────
 onMounted(() => {
   css('--mobile-party-cols',   mobilePartyCols.value);
   css('--mobile-faction-cols', mobileFactionCols.value);
   css('--mobile-card-spacing', cardSpacing.value + 'px');
   css('--mobile-card-ratio',   cardRatio.value);
+
+  // Reset cardScale to 1 so all mobile cards have the same base size.
+  // The CSS column-count formula determines actual width; cardScale only
+  // matters on desktop where the JS-computed --desktop-w is used.
+  if (layout.cardScale !== 1) {
+    layout.setCardScale(1);
+  }
 });
 </script>
 

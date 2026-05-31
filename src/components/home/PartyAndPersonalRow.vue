@@ -63,9 +63,9 @@ import { useAuthStore } from 'src/stores/auth';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { playerIdFromBucket } from 'src/config/players';
 import { swapPersonalOrder, swapEntitySortOrder } from 'src/api/reorder';
-import PartyCard from 'components/home/PartyCard.vue';
+import PartyCard    from 'components/home/PartyCard.vue';
 import PersonalCard from 'components/home/PersonalCard.vue';
-import LoreCard from 'components/home/LoreCard.vue';
+import LoreCard     from 'components/home/LoreCard.vue';
 
 const entities = useEntitiesStore();
 const viewer   = useViewer();
@@ -73,50 +73,32 @@ const auth     = useAuthStore();
 const layout   = useAppSettingsStore();
 
 const showGroupedView = computed(() => viewer.isDM && !viewer.isViewingAs);
-
 const players = computed(() =>
   [...entities.players].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 );
-
 function personalsOf(playerId) { return entities.personalsOf(playerId); }
-
 const ownPlayerId = computed(() => playerIdFromBucket(auth.effectiveBucket) || '');
-
-const myPersonals = computed(() => {
-  if (!ownPlayerId.value) return [];
-  return entities.personalsOf(ownPlayerId.value);
-});
-
+const myPersonals = computed(() =>
+  ownPlayerId.value ? entities.personalsOf(ownPlayerId.value) : []
+);
 const personalEntityIds = computed(() => {
   const set = new Set();
-  if (showGroupedView.value) {
-    players.value.forEach(p => {
-      personalsOf(p.id).forEach(row => set.add(row.entity.id));
-    });
-  } else {
-    myPersonals.value.forEach(row => set.add(row.entity.id));
-  }
+  if (showGroupedView.value) players.value.forEach(p => personalsOf(p.id).forEach(r => set.add(r.entity.id)));
+  else myPersonals.value.forEach(r => set.add(r.entity.id));
   return set;
 });
-
 const factionMemberIds = computed(() => {
   const set = new Set();
   entities.memberships.forEach(m => set.add(m.entity_id));
   return set;
 });
-
-const orphanCards = computed(() => {
-  return entities.all
-    .filter(e => {
-      if (!e) return false;
-      if (e.kind !== 'lore' && e.kind !== 'npc') return false;
-      if (personalEntityIds.value.has(e.id)) return false;
-      if (e.kind === 'npc' && factionMemberIds.value.has(e.id)) return false;
-      return true;
-    })
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-});
-
+const orphanCards = computed(() =>
+  entities.all
+    .filter(e => e && (e.kind === 'lore' || e.kind === 'npc')
+      && !personalEntityIds.value.has(e.id)
+      && !(e.kind === 'npc' && factionMemberIds.value.has(e.id)))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+);
 const hasAnyPersonals = computed(() => {
   if (showGroupedView.value) {
     if (!layout.showPersonals) return false;
@@ -124,10 +106,7 @@ const hasAnyPersonals = computed(() => {
   }
   return myPersonals.value.length > 0;
 });
-
-const sectionStyle = computed(() => ({
-  '--scale': layout.cardScale
-}));
+const sectionStyle = computed(() => ({ '--scale': layout.cardScale }));
 
 async function onPersonalMoveUp(playerId, idx) {
   const rows = personalsOf(playerId);
@@ -139,7 +118,6 @@ async function onPersonalMoveDown(playerId, idx) {
   if (idx >= rows.length - 1) return;
   await swapPersonalOrder(playerId, rows[idx].entity.id, rows[idx + 1].entity.id);
 }
-
 async function onLoreMoveUp(idx) {
   if (idx <= 0) return;
   await swapEntitySortOrder(orphanCards.value[idx].id, orphanCards.value[idx - 1].id);
@@ -162,6 +140,8 @@ async function onLoreMoveDown(idx) {
   color: var(--section-heading-color);
   margin-bottom: calc(14px * var(--scale, 1));
 }
+
+/* Desktop: horizontal flex with wrapping */
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -187,13 +167,21 @@ async function onLoreMoveDown(idx) {
   margin-top: calc(80px * var(--scale, 1));
 }
 
-/* Mobile: stack all cards vertically, turn vertical divider horizontal */
+/*
+  Mobile: keep flex-direction ROW so cards flow into a multi-column grid.
+  The cards themselves have a CSS-computed width based on --mobile-party-cols.
+  The divider flips from a vertical bar to a horizontal rule.
+*/
 @media (max-width: 600px) {
   .row-wrap {
-    flex-direction: column;
-    align-items: stretch;
+    /* Stay as row — cards will wrap automatically by their computed width */
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--mobile-card-spacing, 6px);
   }
   .divider {
+    /* Full-width horizontal separator between groups */
     width: 100%;
     height: var(--line-thickness);
     align-self: auto;
@@ -201,6 +189,7 @@ async function onLoreMoveDown(idx) {
   }
   .group-chip {
     margin-top: calc(12px * var(--scale, 1));
+    width: 100%;   /* force the label onto its own line */
   }
 }
 </style>
