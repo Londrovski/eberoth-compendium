@@ -67,15 +67,15 @@ function openFaction() { detail.open(props.faction.id); }
 
 async function onMemberMoveUp(idx) {
   if (idx <= 0) return;
-  const a = members.value[idx].entity.id;
-  const b = members.value[idx - 1].entity.id;
-  await swapMembershipOrder(props.faction.id, a, b);
+  await swapMembershipOrder(props.faction.id,
+    members.value[idx].entity.id,
+    members.value[idx - 1].entity.id);
 }
 async function onMemberMoveDown(idx) {
   if (idx >= members.value.length - 1) return;
-  const a = members.value[idx].entity.id;
-  const b = members.value[idx + 1].entity.id;
-  await swapMembershipOrder(props.faction.id, a, b);
+  await swapMembershipOrder(props.faction.id,
+    members.value[idx].entity.id,
+    members.value[idx + 1].entity.id);
 }
 </script>
 
@@ -121,15 +121,8 @@ async function onMemberMoveDown(idx) {
   background: transparent;
   min-width: 0;
 }
-
-.faction-header.vis-restricted {
-  background: #1f2c3a;
-  border-bottom-color: var(--blue);
-}
-.faction-header.vis-dm-only {
-  background: #3a1f1f;
-  border-bottom-color: var(--red);
-}
+.faction-header.vis-restricted { background: #1f2c3a; border-bottom-color: var(--blue); }
+.faction-header.vis-dm-only    { background: #3a1f1f; border-bottom-color: var(--red); }
 
 .header-main {
   display: flex;
@@ -171,8 +164,10 @@ async function onMemberMoveDown(idx) {
 }
 
 /*
-  Mobile: column goes full-width. Member cards inside respect
-  --mobile-faction-cols (1 or 2, set by DmToolsMobile, default 2).
+  Mobile: column fills full width.
+  Member cards inside use --mobile-faction-cols (1/2/3) and
+  --mobile-card-spacing, both set by DmToolsMobile.
+  Image height mirrors PartyCard's padding-bottom ratio approach.
 */
 @media (max-width: 600px) {
   .faction-column {
@@ -180,22 +175,35 @@ async function onMemberMoveDown(idx) {
     min-width: unset !important;
     max-width: 100% !important;
     flex: 0 0 100%;
+    /* Use the mobile spacing token instead of the desktop one */
+    gap: var(--mobile-card-spacing, 8px);
+    padding: 10px;
   }
+  .member-grid {
+    gap: var(--mobile-card-spacing, 8px);
+  }
+  /* Member cards: same formula as party cards but driven by --mobile-faction-cols */
   .member-grid :deep(.member-card) {
     width: calc(
-      (100% - (var(--mobile-faction-cols, 2) - 1) * var(--card-spacing))
+      (100% - (var(--mobile-faction-cols, 2) - 1) * var(--mobile-card-spacing, 8px))
       / var(--mobile-faction-cols, 2)
     ) !important;
     height: auto !important;
+    flex-shrink: 0;
   }
   .member-grid :deep(.img-wrap) {
     position: relative !important;
     height: 0 !important;
-    padding-bottom: 133% !important;
+    padding-bottom: var(--mobile-card-ratio, 133%) !important;
+  }
+  .member-grid :deep(.img-wrap .entity-avatar) {
+    position: absolute !important;
+    inset: 0 !important;
   }
   .member-grid :deep(.footer) {
     position: relative !important;
     min-height: unset !important;
+    padding: 6px 8px !important;
   }
 }
 </style>

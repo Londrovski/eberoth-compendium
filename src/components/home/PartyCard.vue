@@ -62,7 +62,6 @@ function open() { detail.open(props.entity.id); }
   transform: translateY(-3px);
   box-shadow: 0 8px 28px rgba(201, 169, 97, 0.25);
 }
-
 .party-card.vis-restricted {
   background: rgba(74,107,145,0.10);
   border-color: var(--blue);
@@ -81,36 +80,28 @@ function open() { detail.open(props.entity.id); }
 
 .img-wrap {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: var(--img-h);
   background: var(--bg);
   overflow: hidden;
 }
 .img-wrap :deep(.entity-avatar) {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   aspect-ratio: auto;
-  border: none;
-  border-radius: 0;
+  border: none; border-radius: 0;
 }
 .img-wrap :deep(img) { opacity: 0.92; transition: opacity 0.2s, transform 0.3s; }
 .party-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
 
 .footer {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   min-height: var(--footer-h);
   background: var(--bg-panel);
   border-top: var(--line-thickness) solid var(--line-color);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: flex; flex-direction: column; justify-content: center;
 }
 .party-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .party-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
@@ -131,27 +122,36 @@ function open() { detail.open(props.entity.id); }
 }
 
 /*
-  Mobile: cards fill a dynamic grid controlled by --mobile-party-cols
-  (default 2, set by DmToolsMobile). The fixed pixel width is overridden
-  so cards share the available row width equally.
+  Mobile layout.
+  --mobile-party-cols : 1 | 2 | 3   (set by DmToolsMobile, persisted in localStorage)
+  --mobile-card-spacing : Npx       (set by DmToolsMobile)
+  --mobile-card-ratio   : %         (padding-bottom trick for responsive height)
 */
 @media (max-width: 600px) {
   .party-card {
+    /* Override the JS-injected fixed pixel width */
     width: calc(
-      (100% - (var(--mobile-party-cols, 2) - 1) * var(--card-spacing))
+      (100% - (var(--mobile-party-cols, 2) - 1) * var(--mobile-card-spacing, 8px))
       / var(--mobile-party-cols, 2)
     ) !important;
     height: auto !important;
+    flex-shrink: 0;
   }
+  /* Responsive image height via padding-bottom trick */
   .img-wrap {
-    position: relative;
-    height: 0;
-    padding-bottom: 133%; /* 4:3 ratio */
+    position: relative !important;
+    height: 0 !important;
+    padding-bottom: var(--mobile-card-ratio, 133%) !important;
   }
+  .img-wrap :deep(.entity-avatar) {
+    position: absolute !important;
+    inset: 0 !important;
+  }
+  /* Footer returns to normal flow */
   .footer {
-    position: relative;
-    min-height: unset;
-    padding: 6px 8px;
+    position: relative !important;
+    min-height: unset !important;
+    padding: 6px 8px !important;
   }
 }
 </style>
