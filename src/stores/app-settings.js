@@ -26,13 +26,20 @@ const DEFAULT_BACKGROUND = {
 };
 
 const DEFAULT_LINES = {
-  thickness: 2,        // px — master border thickness
+  thickness: 2,
   color:     '#8a7544',
-  spacing:   16,       // px — gap between cards / faction columns
-  boxOpacity: 1.0      // 0..1 — faction box infill opacity
+  spacing:   16,
+  boxOpacity: 1.0
 };
 
 const DEFAULT_FACTION_CARDS_PER_ROW = 2;
+
+const DEFAULT_PLACEHOLDERS = {
+  notepad:      "Write your notes here. Use @ to link sessions, NPCs, lore cards or other players.",
+  thread:       "Add a thread you want to track. Use @ to link people, places or sessions.",
+  detail_notes: "Personal notes about this entity. Only you can see these. Use @ to link.",
+  enabled:      true
+};
 
 const DEFAULTS = {
   card_scale:        { scale: 1.0 },
@@ -47,17 +54,16 @@ const DEFAULTS = {
   external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond,
   site_background:          DEFAULT_BACKGROUND,
   site_lines:               DEFAULT_LINES,
-  faction_cards_per_row:    { n: DEFAULT_FACTION_CARDS_PER_ROW }
+  faction_cards_per_row:    { n: DEFAULT_FACTION_CARDS_PER_ROW },
+  editor_placeholders:      DEFAULT_PLACEHOLDERS
 };
 
-// Card geometry — must match the constants in the card components.
 const CARD_BASE_W = 180;
 
-// Faction box base colours (in sync with the previous hardcoded ones).
 const BOX_BASE = {
-  default:    { r: 26, g: 24, b: 20 },   // ~#1a1814 (var(--bg-panel))
-  restricted: { r: 22, g: 32, b: 44 },   // ~#16202c
-  dmOnly:     { r: 42, g: 23, b: 23 }    // ~#2a1717
+  default:    { r: 26, g: 24, b: 20 },
+  restricted: { r: 22, g: 32, b: 44 },
+  dmOnly:     { r: 42, g: 23, b: 23 }
 };
 
 function rgba({ r, g, b }, a) {
@@ -69,6 +75,17 @@ function clampInt(v, min, max, fallback) {
   const n = parseInt(v, 10);
   if (Number.isNaN(n)) return fallback;
   return Math.max(min, Math.min(max, n));
+}
+
+// CSS `content:` needs a quoted string. Escape backslashes + double
+// quotes so the placeholder can contain any characters safely.
+function cssQuotedString(s) {
+  const safe = String(s || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    // CR/LF in a content value will break the declaration. Collapse.
+    .replace(/[\r\n]+/g, ' ');
+  return `"${safe}"`;
 }
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -88,6 +105,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     siteBackground: { ...DEFAULT_BACKGROUND },
     siteLines: { ...DEFAULT_LINES },
     factionCardsPerRow: DEFAULT_FACTION_CARDS_PER_ROW,
+    editorPlaceholders: { ...DEFAULT_PLACEHOLDERS },
     _subscribed: false,
     _channel: null
   }),
@@ -166,9 +184,15 @@ export const useAppSettingsStore = defineStore('appSettings', {
       if (key === 'faction_cards_per_row') {
         this.factionCardsPerRow = clampInt(value?.n, 1, 4, DEFAULT_FACTION_CARDS_PER_ROW);
       }
+      if (key === 'editor_placeholders') {
+        this.editorPlaceholders = {
+          notepad:      value?.notepad      ?? DEFAULT_PLACEHOLDERS.notepad,
+          thread:       value?.thread       ?? DEFAULT_PLACEHOLDERS.thread,
+          detail_notes: value?.detail_notes ?? DEFAULT_PLACEHOLDERS.detail_notes,
+          enabled:      value?.enabled !== false
+        };
+      }
       if (typeof document !== 'undefined') {
-        // Card-width var depends on card_scale; faction-box vars depend
-        // on site_lines. Cheap to just re-apply on every row.
         this.applyCssVars();
       }
     },
@@ -192,10 +216,16 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--faction-box-bg',            rgba(BOX_BASE.default,    a));
       root.style.setProperty('--faction-box-bg-restricted', rgba(BOX_BASE.restricted, a));
       root.style.setProperty('--faction-box-bg-dm',         rgba(BOX_BASE.dmOnly,     a));
-      // Card width — single source of truth for column sizing.
       root.style.setProperty('--card-w', Math.round(CARD_BASE_W * (this.cardScale || 1)) + 'px');
-      // Faction layout — how many member cards fit per row inside each box.
       root.style.setProperty('--cards-per-row', this.factionCardsPerRow || DEFAULT_FACTION_CARDS_PER_ROW);
+      // Editor placeholders. Pre-quoted so CSS `content: var(...)`
+      // reads a valid <string>. When disabled, emit an empty string so
+      // the :empty:before rule visually disappears.
+      const p = this.editorPlaceholders || DEFAULT_PLACEHOLDERS;
+      const on = p.enabled !== false;
+      root.style.setProperty('--placeholder-notepad',      on ? cssQuotedString(p.notepad)      : '""');
+      root.style.setProperty('--placeholder-thread',       on ? cssQuotedString(p.thread)       : '""');
+      root.style.setProperty('--placeholder-detail-notes', on ? cssQuotedString(p.detail_notes) : '""');
     },
     async setCardScale(scale) {
       this.cardScale = scale;
@@ -287,6 +317,22 @@ export const useAppSettingsStore = defineStore('appSettings', {
       this.factionCardsPerRow = clamped;
       this.applyCssVars();
       await appSettingsApi.setKey('faction_cards_per_row', { n: clamped });
+    },
+    async setEditorPlaceholders(patch) {
+      const next = {
+        notepad:      patch?.notepad      ?? this.editorPlaceholders.notepad      ?? DEFAULT_PLACEHOLDERS.notepad,
+        thread:       patch?.thread       ?? this.editorPlaceholders.thread       ?? DEFAULT_PLACEHOLDERS.thread,
+        detail_notes: patch?.detail_notes ?? this.editorPlaceholders.detail_notes ?? DEFAULT_PLACEHOLDERS.detail_notes,
+        enabled:      patch?.enabled !== undefined ? !!patch.enabled : (this.editorPlaceholders.enabled !== false)
+      };
+      this.editorPlaceholders = next;
+      this.applyCssVars();
+      await appSettingsApi.setKey('editor_placeholders', next);
+    },
+    async resetEditorPlaceholders() {
+      this.editorPlaceholders = { ...DEFAULT_PLACEHOLDERS };
+      this.applyCssVars();
+      await appSettingsApi.setKey('editor_placeholders', this.editorPlaceholders);
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);
