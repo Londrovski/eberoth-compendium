@@ -16,18 +16,11 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+// Bootstrap (entities + app-settings load + realtime) is done in
+// MainLayout so it covers all routes. This page just renders.
 import { useEntitiesStore } from 'src/stores/entities';
-import { useAppSettingsStore } from 'src/stores/app-settings';
 import PartyAndPersonalRow from 'components/home/PartyAndPersonalRow.vue';
 import FactionsGrid from 'components/home/FactionsGrid.vue';
 
 const entities = useEntitiesStore();
-const appSettings = useAppSettingsStore();
-
-onMounted(async () => {
-  await Promise.all([entities.load(), appSettings.load()]);
-  appSettings.subscribeRealtime();
-  entities.subscribeRealtime();
-});
 </script>
