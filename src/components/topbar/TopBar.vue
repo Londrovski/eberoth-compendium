@@ -42,6 +42,7 @@
           <DmToolsMenu />
           <ViewAsSelect />
         </template>
+        <UserZoomControl />
         <q-chip dense outline class="role-chip">{{ roleLabel }}</q-chip>
         <q-btn
           flat dense no-caps
@@ -65,6 +66,7 @@ import { useAppSettingsStore } from 'src/stores/app-settings';
 import { characterFromBucket } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
+import UserZoomControl from 'components/topbar/UserZoomControl.vue';
 
 const LOGO = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
 
@@ -95,10 +97,6 @@ const dndbeyondTitle = computed(() => {
 });
 
 async function onSignOut() {
-  // Route to landing FIRST so the home page is unmounted before the
-  // auth state goes null. Otherwise the entities/view reactive chain
-  // tries to re-render with no viewer mid-signout, which briefly
-  // shows DM-visible cards as if everyone could see them.
   await router.push({ name: 'landing' });
   await auth.signOut();
 }
