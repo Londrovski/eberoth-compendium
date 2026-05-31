@@ -83,8 +83,6 @@ const roleLabel = computed(() => {
 
 const zoomUrl = computed(() => appSettings.externalZoomUrl || '');
 
-// D&D Beyond URL follows the viewed-as bucket if the DM is previewing,
-// otherwise the actual bucket. Falls back to the DM campaign URL.
 const dndbeyondUrl = computed(() => {
   const bucket = auth.isViewingAs ? auth.viewingAs : auth.actualBucket;
   return appSettings.dndbeyondUrlFor(bucket);
@@ -97,8 +95,12 @@ const dndbeyondTitle = computed(() => {
 });
 
 async function onSignOut() {
+  // Route to landing FIRST so the home page is unmounted before the
+  // auth state goes null. Otherwise the entities/view reactive chain
+  // tries to re-render with no viewer mid-signout, which briefly
+  // shows DM-visible cards as if everyone could see them.
+  await router.push({ name: 'landing' });
   await auth.signOut();
-  router.push({ name: 'landing' });
 }
 </script>
 
@@ -108,9 +110,7 @@ async function onSignOut() {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
-.eb-toolbar {
-  min-height: 84px;
-}
+.eb-toolbar { min-height: 84px; }
 .brand { gap: 16px; }
 .logo {
   width: 64px;
@@ -138,7 +138,6 @@ async function onSignOut() {
 .eb-tabs :deep(.q-tab--active) { color: var(--gold); }
 .eb-tabs :deep(.q-tab__indicator) { background: var(--gold) !important; }
 
-/* External nav buttons */
 .ext-btn {
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -151,21 +150,13 @@ async function onSignOut() {
   background: #1f3a6b;
   border-color: #3a5da3;
 }
-.zoom-btn:hover {
-  background: #2a4f8e;
-  border-color: #4d76c1;
-  color: #fff;
-}
+.zoom-btn:hover { background: #2a4f8e; border-color: #4d76c1; color: #fff; }
 .dnd-btn {
   color: #ffd6d0;
   background: #6b2222;
   border-color: #a33a3a;
 }
-.dnd-btn:hover {
-  background: #8a2a2a;
-  border-color: #c34d4d;
-  color: #fff;
-}
+.dnd-btn:hover { background: #8a2a2a; border-color: #c34d4d; color: #fff; }
 
 .role-chip {
   color: var(--gold-dim);
