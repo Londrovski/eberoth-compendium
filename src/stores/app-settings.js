@@ -1,15 +1,6 @@
 // DM-controlled global config store. Source of truth: Supabase
 // app_settings table. We subscribe to Realtime so any DM change
 // propagates live to every connected client.
-//
-// Mobile mirror (added 2026-05-31):
-// Selective subset of the desktop knobs has a `*_mobile` twin. Only the
-// dials that genuinely need a different value on phones get one
-// (card_scale, card_spacing, cards_per_row, topbar_height, wordmark_size,
-// body_card_size). All other settings are shared between mobile and
-// desktop. `mobile_preview_force` is a local-only switch (not synced)
-// that the DM can flip from DM Tools to simulate mobile layout on a
-// desktop browser.
 
 import { defineStore } from 'pinia';
 import { supabase } from 'boot/supabase';
@@ -51,13 +42,15 @@ const DEFAULT_PLACEHOLDERS = {
 };
 
 // Mobile-specific defaults. Tuned for ~360-414px phone screens.
+// `breakpoint` controls the width below which mobile mode kicks in.
 const DEFAULT_MOBILE = {
-  cardScale:      0.55,    // smaller cards on phone
-  cardSpacing:    10,      // tighter gap
-  cardsPerRow:    3,       // 3-up on home rows and inside faction blocks
-  topbarHeight:   44,      // slimmer topbar
-  wordmarkSize:   22,      // Eberoth title font-size in px
-  bodyCardSize:   12       // smaller card-name font
+  breakpoint:     600,
+  cardScale:      0.55,
+  cardSpacing:    10,
+  cardsPerRow:    3,
+  topbarHeight:   44,
+  wordmarkSize:   22,
+  bodyCardSize:   12
 };
 
 const DEFAULTS = {
@@ -130,7 +123,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     factionCardsPerRow: DEFAULT_FACTION_CARDS_PER_ROW,
     editorPlaceholders: { ...DEFAULT_PLACEHOLDERS },
     mobile: { ...DEFAULT_MOBILE },
-    mobilePreviewForce: false,  // local-only; not synced
+    mobilePreviewForce: false,
     _subscribed: false,
     _channel: null
   }),
@@ -219,12 +212,13 @@ export const useAppSettingsStore = defineStore('appSettings', {
       }
       if (key === 'mobile_layout') {
         this.mobile = {
-          cardScale:    clampNum(value?.cardScale,    0.3, 1.2, DEFAULT_MOBILE.cardScale),
-          cardSpacing:  clampInt(value?.cardSpacing,  2,   40,  DEFAULT_MOBILE.cardSpacing),
-          cardsPerRow:  clampInt(value?.cardsPerRow,  1,   5,   DEFAULT_MOBILE.cardsPerRow),
-          topbarHeight: clampInt(value?.topbarHeight, 32,  80,  DEFAULT_MOBILE.topbarHeight),
-          wordmarkSize: clampInt(value?.wordmarkSize, 14,  40,  DEFAULT_MOBILE.wordmarkSize),
-          bodyCardSize: clampInt(value?.bodyCardSize, 9,   20,  DEFAULT_MOBILE.bodyCardSize)
+          breakpoint:   clampInt(value?.breakpoint,   320, 1200, DEFAULT_MOBILE.breakpoint),
+          cardScale:    clampNum(value?.cardScale,    0.3, 1.2,  DEFAULT_MOBILE.cardScale),
+          cardSpacing:  clampInt(value?.cardSpacing,  2,   40,   DEFAULT_MOBILE.cardSpacing),
+          cardsPerRow:  clampInt(value?.cardsPerRow,  1,   5,    DEFAULT_MOBILE.cardsPerRow),
+          topbarHeight: clampInt(value?.topbarHeight, 32,  80,   DEFAULT_MOBILE.topbarHeight),
+          wordmarkSize: clampInt(value?.wordmarkSize, 14,  40,   DEFAULT_MOBILE.wordmarkSize),
+          bodyCardSize: clampInt(value?.bodyCardSize, 9,   20,   DEFAULT_MOBILE.bodyCardSize)
         };
       }
       if (typeof document !== 'undefined') {
@@ -253,7 +247,6 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--faction-box-bg-dm',         rgba(BOX_BASE.dmOnly,     a));
       root.style.setProperty('--card-w', Math.round(CARD_BASE_W * (this.cardScale || 1)) + 'px');
       root.style.setProperty('--cards-per-row', this.factionCardsPerRow);
-      // Mobile family — separate vars consumed only when isMobile is true.
       const m = this.mobile || DEFAULT_MOBILE;
       root.style.setProperty('--card-w-mobile',         Math.round(CARD_BASE_W * (m.cardScale || 0.55)) + 'px');
       root.style.setProperty('--card-spacing-mobile',   (m.cardSpacing ?? 10) + 'px');
@@ -261,7 +254,6 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--topbar-h-mobile',       (m.topbarHeight ?? 44) + 'px');
       root.style.setProperty('--wordmark-size-mobile',  (m.wordmarkSize ?? 22) + 'px');
       root.style.setProperty('--body-card-size-mobile', (m.bodyCardSize ?? 12) + 'px');
-      // Placeholders.
       const p = this.editorPlaceholders || DEFAULT_PLACEHOLDERS;
       const on = p.enabled !== false;
       root.style.setProperty('--placeholder-notepad',      on ? cssQuotedString(p.notepad)      : '""');
@@ -377,6 +369,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     },
     async setMobile(patch) {
       const next = {
+        breakpoint:   patch?.breakpoint   ?? this.mobile.breakpoint   ?? DEFAULT_MOBILE.breakpoint,
         cardScale:    patch?.cardScale    ?? this.mobile.cardScale    ?? DEFAULT_MOBILE.cardScale,
         cardSpacing:  patch?.cardSpacing  ?? this.mobile.cardSpacing  ?? DEFAULT_MOBILE.cardSpacing,
         cardsPerRow:  patch?.cardsPerRow  ?? this.mobile.cardsPerRow  ?? DEFAULT_MOBILE.cardsPerRow,
@@ -394,8 +387,6 @@ export const useAppSettingsStore = defineStore('appSettings', {
       await appSettingsApi.setKey('mobile_layout', this.mobile);
     },
     setMobilePreviewForce(v) {
-      // Local-only — never written to Supabase. Lets the DM simulate
-      // mobile layout from a desktop browser while tuning.
       this.mobilePreviewForce = !!v;
     },
     async moveFactionUp(factionId) {
