@@ -50,6 +50,11 @@
 
       <q-separator class="sep" />
 
+      <div class="dm-label">Placeholders</div>
+      <PlaceholderControls />
+
+      <q-separator class="sep" />
+
       <div class="dm-label">Quick add</div>
       <div class="column q-gutter-xs">
         <button class="add-row" @click="openAdd('faction')">+ New faction</button>
@@ -68,6 +73,7 @@ import CardScaleControls from 'components/topbar/CardScaleControls.vue';
 import TypographyControls from 'components/topbar/TypographyControls.vue';
 import BackgroundControls from 'components/topbar/BackgroundControls.vue';
 import LinesControls from 'components/topbar/LinesControls.vue';
+import PlaceholderControls from 'components/topbar/PlaceholderControls.vue';
 import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
