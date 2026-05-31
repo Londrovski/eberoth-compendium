@@ -182,8 +182,6 @@ onMounted(async () => {
 .drawer-header {
   padding: 12px 14px 8px;
   font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--gold);
   font-weight: bold;
   border-bottom: 1px solid var(--border);
@@ -191,14 +189,11 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  font-family: 'Cinzel', serif;
 }
 .drawer-header .status {
   font-size: 10px;
-  letter-spacing: 1px;
   color: var(--text-dim);
   font-weight: normal;
-  text-transform: none;
 }
 .drawer-header .status.saving { color: var(--gold-dim); }
 
@@ -219,7 +214,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Cinzel', serif;
   background: transparent;
   border-top: none;
   border-bottom: none;
@@ -268,7 +262,6 @@ onMounted(async () => {
   color: var(--text);
   border: none;
   outline: none;
-  font-family: 'Cinzel', 'Georgia', serif;
   font-size: 14px;
   line-height: 1.6;
   overflow-y: auto;
