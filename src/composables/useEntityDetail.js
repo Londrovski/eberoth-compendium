@@ -1,21 +1,41 @@
 // Tiny global event channel so any card can request the detail panel
 // to open without prop-drilling. The DetailPanel listens.
-import { ref } from 'vue';
+//
+// Now also maintains a back-stack so when a user follows an internal
+// link inside the panel (e.g. clicks a faction chip), they can step
+// back to the previous entity. The current entity is *not* in the
+// stack — the stack holds the breadcrumb behind it.
+import { ref, computed } from 'vue';
 
 const currentEntityId = ref(null);
 const isOpen = ref(false);
+const history = ref([]); // ids visited before currentEntityId
 
 export function useEntityDetail() {
   return {
     currentEntityId,
     isOpen,
+    canGoBack: computed(() => history.value.length > 0),
+    historyDepth: computed(() => history.value.length),
     open(id) {
+      // If something is already open and we're navigating to a
+      // different entity, push the current one onto the back-stack.
+      if (isOpen.value && currentEntityId.value && currentEntityId.value !== id) {
+        history.value.push(currentEntityId.value);
+      }
       currentEntityId.value = id;
+      isOpen.value = true;
+    },
+    back() {
+      if (!history.value.length) return;
+      const prev = history.value.pop();
+      currentEntityId.value = prev;
       isOpen.value = true;
     },
     close() {
       isOpen.value = false;
       currentEntityId.value = null;
+      history.value = [];
     }
   };
 }
