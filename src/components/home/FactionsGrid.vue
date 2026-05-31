@@ -57,10 +57,10 @@ function onMoveDown(id) { layout.moveFactionDown(id); }
   margin-bottom: calc(12px * var(--scale, 1));
 }
 .section-label {
-  font-size: calc(0.7rem * var(--scale, 1));
-  letter-spacing: 3px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
 }
 .grid {
   display: grid;
