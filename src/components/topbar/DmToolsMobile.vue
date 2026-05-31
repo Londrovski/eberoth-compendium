@@ -1,12 +1,19 @@
 <!--
-  DmToolsMobile — root panel, wires up all sub-controls.
+  DmToolsMobile — mobile-only DM controls panel.
 
-  When the faction header scale changes we:
-    1. Write the CSS custom property on :root (for font/padding CSS rules)
-    2. Dispatch a custom event 'eb-faction-header-scale' on window so each
-       FactionColumn instance re-reads the token and updates the :size prop
-       passed to EntityAvatar — the only way to resize the avatar border-box,
-       which is set via an inline style that CSS cannot override.
+  IMPORTANT: Nothing in this file writes to Supabase.
+  All settings are stored in localStorage and applied as CSS custom
+  properties on :root. Desktop settings (cardScale, factionScale,
+  siteBackground, etc.) live in Supabase and are managed by the
+  desktop DmToolsMenu — these two sets of controls are fully decoupled.
+
+  Mobile CSS custom properties managed here:
+    --mobile-party-cols            (1/2/3)
+    --mobile-faction-cols          (1/2/3)
+    --mobile-faction-header-scale  (0.4–1.5)
+    --mobile-card-spacing          (2–24 px)
+    --mobile-card-ratio            (% string)
+    --mobile-bg-opacity            (0–1, applied only on mobile via @media)
 -->
 <template>
   <div class="dm-mobile">
@@ -46,6 +53,9 @@
     />
     <div class="sep" />
 
+    <!-- Personal cards: reads from Supabase store but writing is safe
+         because it’s a content-visibility toggle, not a layout setting,
+         and players see the same value on all devices. -->
     <MobileToggleControl
       label="Personal cards"
       :modelValue="layout.showPersonals"
@@ -53,12 +63,15 @@
     />
     <div class="sep" />
 
+    <!-- Background opacity: local override, does NOT write to Supabase.
+         Uses --mobile-bg-opacity which is applied only inside
+         @media (max-width: 600px) in app.scss. -->
     <MobileStepControl
       label="Background opacity"
       v-model="bgOpacityPct"
       :min="0" :max="100" :step="5"
       :display="bgOpacityPct + '%'"
-      @update:modelValue="setOpacity"
+      @update:modelValue="setBgOpacity"
     />
     <div class="sep" />
 
@@ -70,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import NewEntityDialog            from 'components/topbar/NewEntityDialog.vue';
 import MobileColControl           from 'components/topbar/dm-mobile/MobileColControl.vue';
@@ -80,6 +93,8 @@ import MobileRatioControl         from 'components/topbar/dm-mobile/MobileRatioC
 import MobileQuickAdd             from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
 import MobileFactionHeaderControl from 'components/topbar/dm-mobile/MobileFactionHeaderControl.vue';
 
+// Read-only access: only showPersonals and setShowPersonals are used,
+// and that particular setting is device-agnostic (content visibility).
 const layout = useAppSettingsStore();
 const adding = ref(null);
 
@@ -112,10 +127,7 @@ const factionHeaderScale = ref(parseFloat(localStorage.getItem(HEADER_KEY) || '0
 function setFactionHeaderScale(v) {
   factionHeaderScale.value = v;
   localStorage.setItem(HEADER_KEY, String(v));
-  // 1. Update the CSS token (controls font size + padding via CSS rules)
   css('--mobile-faction-header-scale', v);
-  // 2. Notify FactionColumn instances so they re-read the token and pass
-  //    the updated :size prop to EntityAvatar (inline style, needs JS)
   window.dispatchEvent(new CustomEvent('eb-faction-header-scale'));
 }
 
@@ -137,27 +149,36 @@ function setRatio(v) {
   css('--mobile-card-ratio', v);
 }
 
-// ── Background opacity ──────────────────────────────────────────────────────
-const bgOpacityPct = computed({
-  get: () => Math.round((layout.siteBackground?.opacity ?? 0.35) * 100),
-  set: () => {}
-});
-function setOpacity(pct) { layout.setSiteBackground({ opacity: pct / 100 }); }
+// ── Background opacity (local, does NOT touch Supabase) ────────────────────
+// Stored as 0–100 integer. Applied via --mobile-bg-opacity which is used
+// in app.scss inside @media (max-width: 600px) only, so it never affects
+// the desktop background layer.
+const BG_OPACITY_KEY = 'eb_mobile_bg_opacity';
+const bgOpacityPct = ref(parseInt(localStorage.getItem(BG_OPACITY_KEY) || '35', 10));
+function setBgOpacity(pct) {
+  bgOpacityPct.value = pct;
+  localStorage.setItem(BG_OPACITY_KEY, String(pct));
+  css('--mobile-bg-opacity', pct / 100);
+}
 
-// ── Quick add ───────────────────────────────────────────────────────────────
+// ── Quick add (writes entity to Supabase, safe — same on all devices) ─────
 function openAdd(kind) { adding.value = kind; }
 
 // ── Apply all stored values on mount ──────────────────────────────────────
+// No Supabase writes here. We only apply CSS vars from localStorage.
 onMounted(() => {
   css('--mobile-party-cols',           mobilePartyCols.value);
   css('--mobile-faction-cols',         mobileFactionCols.value);
   css('--mobile-faction-header-scale', factionHeaderScale.value);
   css('--mobile-card-spacing',         cardSpacing.value + 'px');
   css('--mobile-card-ratio',           cardRatio.value);
-  // Dispatch so FactionColumn instances initialise their headerSize
+  css('--mobile-bg-opacity',           bgOpacityPct.value / 100);
   window.dispatchEvent(new CustomEvent('eb-faction-header-scale'));
-  // Normalise cardScale so all party-section cards are the same size
-  if (layout.cardScale !== 1) layout.setCardScale(1);
+  // NOTE: cardScale is intentionally NOT reset here. Desktop cardScale
+  // lives in Supabase and must not be touched by mobile. Instead, the
+  // mobile card CSS uses the column-count formula which makes cardScale
+  // irrelevant on narrow viewports (see PartyCard, MemberCard, LoreCard,
+  // PersonalCard @media blocks).
 });
 </script>
 

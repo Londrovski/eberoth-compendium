@@ -1,58 +1,53 @@
 // Global palette + base styles for the whole Compendium.
-// Mirrors the old site's styles/01-base.css token set so the whole
-// app reads as the same dark-parchment / gold-ink family.
 
 :root {
-  // Ink / panel surfaces
   --bg:         #0e0d0b;
   --bg-panel:   #1a1814;
   --bg-panel-2: #221f1a;
   --bg-card:    #2a261f;
   --border:     #3a3530;
 
-  // Gold accents
   --gold:        #c9a961;
   --gold-dim:    #8a7544;
   --gold-bright: #e6c87c;
 
-  // Text
   --text:     #e8e2d4;
   --text-dim: #a39d8e;
 
-  // Status
   --red:   #8b3a3a;
   --green: #6abf69;
   --blue:  #4a6b91;
 
-  // House colours
   --c-crown:   #c9a961;
   --c-corvath: #a83a3a;
   --c-voss:    #3d6b3a;
   --c-gorrund: #b8932e;
   --c-halvorn: #5a3a8a;
 
-  // DM-tunable typography (overridden at runtime by app-settings store).
-  --body-card-color:        #e8e2d4;
-  --body-card-size:         14px;
-  --body-session-color:     #c9bfa9;
-  --body-session-size:      15px;
-  --bold-accent-color:      #d8c98a;
-  --section-heading-color:  #8a7544;
-  --section-heading-size:   11px;
+  // DM-tunable typography
+  --body-card-color:         #e8e2d4;
+  --body-card-size:          14px;
+  --body-session-color:      #c9bfa9;
+  --body-session-size:       15px;
+  --bold-accent-color:       #d8c98a;
+  --section-heading-color:   #8a7544;
+  --section-heading-size:    11px;
   --section-heading-spacing: 3px;
 
-  // DM-tunable "lines" — borders + dividers across home cards.
+  // DM-tunable lines (written by applyCssVars from Supabase)
   --line-thickness: 2px;
   --line-color:     #8a7544;
-  // Card spacing — gap between cards + faction columns on home page.
   --card-spacing:   16px;
 
-  // Mobile-specific tokens — defaults only; overridden at runtime
-  // by DmToolsMobile via document.documentElement.style.setProperty.
-  --mobile-party-cols:    2;
-  --mobile-faction-cols:  2;
-  --mobile-card-spacing:  8px;
-  --mobile-card-ratio:    133%;  // padding-bottom image height trick
+  // Mobile-only layout tokens — defaults only.
+  // All written by DmToolsMobile from localStorage; never touched by
+  // the desktop DmToolsMenu and never written to Supabase.
+  --mobile-party-cols:           3;
+  --mobile-faction-cols:         3;
+  --mobile-faction-header-scale: 0.7;
+  --mobile-card-spacing:         6px;
+  --mobile-card-ratio:           133%;
+  --mobile-bg-opacity:           0.35;
 }
 
 html, body { height: 100%; background: var(--bg); }
@@ -69,13 +64,11 @@ body {
   color: var(--gold);
 }
 
-// Custom scrollbar.
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
-// Quasar overrides.
 .q-page, .q-page-container { background: var(--bg); }
 .q-card { background: var(--bg-panel); color: var(--text); }
 .q-list { background: transparent; }
@@ -92,7 +85,6 @@ body {
 .q-tab { color: var(--text-dim); }
 .q-tab--active { color: var(--gold); }
 .q-tab__indicator { background: var(--gold) !important; }
-
 .q-separator { background: var(--border); }
 .q-dialog__inner > .q-card { background: var(--bg-panel); }
 .q-banner { background: var(--bg-panel-2); color: var(--text); }
@@ -100,63 +92,55 @@ body {
 .q-checkbox__inner--falsy .q-checkbox__bg { border-color: var(--gold-dim); }
 .q-checkbox__inner--truthy .q-checkbox__bg { background: var(--gold) !important; border-color: var(--gold) !important; }
 .q-checkbox__svg { color: var(--bg) !important; }
-
-// Floating popups.
 .q-menu {
-  background: var(--bg-panel);
-  color: var(--text);
+  background: var(--bg-panel); color: var(--text);
   border: 1px solid var(--border);
   box-shadow: 0 8px 24px rgba(0,0,0,0.6);
 }
 .q-menu .q-item { color: var(--text); }
 .q-menu .q-item--active,
 .q-menu .q-item.q-router-link--active,
-.q-menu .q-item:hover {
-  color: var(--gold);
-  background: var(--bg-panel-2);
-}
+.q-menu .q-item:hover { color: var(--gold); background: var(--bg-panel-2); }
 .q-virtual-scroll__content { background: var(--bg-panel); }
-
 .text-grey-6, .text-grey-7, .text-grey-8 { color: var(--text-dim) !important; }
 
 
-// ── Mobile overrides (phones only, ≤600px) ────────────────────────────
-// Everything above this line is the untouched desktop baseline.
-// These rules are purely additive and activate only on narrow viewports.
+// ── Mobile overrides (≤600px) ──────────────────────────────────────────────────
+// Nothing here writes to Supabase. All tokens prefixed --mobile-* are
+// managed by DmToolsMobile via localStorage only.
 @media (max-width: 600px) {
 
-  // Tighten root tokens — the dynamic ones are overridden per-session
-  // by DmToolsMobile via CSS custom properties on :root.
   :root {
-    --body-card-size:       13px;
-    --body-session-size:    14px;
+    // Tighten typography defaults for small screens.
+    // These are overridden if the DM has set values in Supabase;
+    // the Supabase values still apply but at the reduced base.
     --section-heading-size: 10px;
   }
 
-  // Party & personal row: use the mobile spacing token
+  // Party & personal row: keep as wrapping row (not column) so the
+  // column-count formula in each card component controls layout.
   .party-section .row-wrap {
-    flex-direction: row;  // let cards flow into multi-col grid
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: var(--mobile-card-spacing, 8px);
+    gap: var(--mobile-card-spacing, 6px);
   }
 
-  // Vertical dividers become horizontal rules when stacked sections meet
-  .party-section .divider {
-    width: 100%;
-    height: var(--line-thickness);
-    align-self: auto;
-    margin: calc(4px * var(--scale, 1)) 0;
-  }
-
-  // Faction grid: stack faction columns vertically
+  // Faction grid: stack faction columns vertically (each is full-width).
   .factions-section .grid {
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: var(--mobile-card-spacing, 8px);
+    gap: var(--mobile-card-spacing, 6px);
   }
 
-  // Hide desktop zoom slider — pinch-zoom is native
+  // Background opacity: local mobile override, does not affect desktop.
+  // The .bg-image-layer opacity is set inline by MainLayout.vue using the
+  // Supabase value; we override it here with the mobile-local token.
+  .bg-image-layer {
+    opacity: var(--mobile-bg-opacity, 0.35) !important;
+  }
+
+  // Hide desktop zoom slider — pinch-zoom is native.
   .user-zoom-control { display: none !important; }
 }
