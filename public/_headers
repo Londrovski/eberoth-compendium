@@ -1,0 +1,21 @@
+# Cloudflare Pages _headers file.
+# Prevents stale index.html from being served while keeping hashed asset
+# files cached aggressively for performance. Without this, Cloudflare's
+# edge can hold the old index.html for hours after a deploy, which
+# means browsers keep loading old asset hashes that point at old code
+# even though new files exist on Cloudflare.
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Hashed asset files — safe to cache forever; the hash changes on
+# every code change so the URL itself busts the cache.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
