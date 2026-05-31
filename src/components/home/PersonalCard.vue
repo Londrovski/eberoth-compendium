@@ -1,18 +1,21 @@
 <template>
   <div class="personal-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
-    <EntityAvatar :entity="entity" :size="avatarSize" />
-    <div class="meta">
+    <div class="img-wrap">
+      <EntityAvatar :entity="entity" fill />
+      <ReorderArrows
+        v-if="viewer.isDM && reorderable"
+        :disable-up="isFirst"
+        :disable-down="isLast"
+        :vertical="false"
+        class="arrows-overlay"
+        @up="$emit('move-up')"
+        @down="$emit('move-down')"
+      />
+    </div>
+    <div class="footer">
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="sub" v-if="relationship">{{ relationship }}</div>
     </div>
-    <ReorderArrows
-      v-if="viewer.isDM && reorderable"
-      :disable-up="isFirst"
-      :disable-down="isLast"
-      :vertical="false"
-      @up="$emit('move-up')"
-      @down="$emit('move-down')"
-    />
   </div>
 </template>
 
@@ -41,10 +44,9 @@ const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
-const avatarSize = computed(() => Math.round(44 * layout.cardScale));
 const cardStyle = computed(() => ({
   '--scale': layout.cardScale,
-  padding: (8 * layout.cardScale) + 'px ' + (12 * layout.cardScale) + 'px'
+  width: Math.round(170 * layout.cardScale) + 'px'
 }));
 
 function open() { detail.open(props.entity.id); }
@@ -53,43 +55,77 @@ function open() { detail.open(props.entity.id); }
 <style scoped>
 .personal-card {
   display: flex;
-  align-items: center;
-  gap: calc(10px * var(--scale, 1));
+  flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: calc(6px * var(--scale, 1));
+  border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
 }
-.personal-card:hover { border-color: var(--gold-dim); }
+.personal-card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+}
 
 .personal-card.vis-restricted {
-  background: rgba(74,107,145,0.12);
+  background: rgba(74,107,145,0.10);
   border-color: var(--blue);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(74,107,145,0.35);
 }
 .personal-card.vis-dm-only {
-  background: rgba(139,58,58,0.14);
+  background: rgba(139,58,58,0.12);
   border-color: var(--red);
   box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
 .personal-card.is-glow {
   background: rgba(201,169,97,0.10);
   border-color: var(--gold);
-  box-shadow: 0 0 calc(10px * var(--scale, 1)) rgba(201,169,97,0.45);
+  box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(201,169,97,0.45);
 }
 
-.meta { display: flex; flex-direction: column; min-width: 0; }
+.img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--bg);
+  overflow: hidden;
+}
+.img-wrap :deep(.entity-avatar) {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: none;
+  border-radius: 0;
+}
+.img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
+.personal-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
+
+.arrows-overlay {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(11,9,5,0.6);
+  border-radius: 3px;
+}
+
+.footer {
+  padding: calc(8px * var(--scale, 1)) calc(10px * var(--scale, 1));
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
 .name {
-  font-weight: 500;
-  font-size: calc(0.85rem * var(--scale, 1));
+  font-size: calc(0.9rem * var(--scale, 1));
   color: var(--text);
+  letter-spacing: 0.03em;
   line-height: 1.2;
 }
 .sub {
   font-size: calc(0.7rem * var(--scale, 1));
   color: var(--text-dim);
   font-style: italic;
-  line-height: 1.2;
+  line-height: 1.3;
+  margin-top: 2px;
 }
 </style>
