@@ -35,7 +35,6 @@ const options = computed(() =>
 
 <style scoped>
 .view-as-select {
-  font-family: 'Cinzel', serif;
 }
 .view-as-select :deep(.q-field__control) {
   background: var(--bg-panel-2);
@@ -45,8 +44,6 @@ const options = computed(() =>
 .view-as-select :deep(.q-field__label) {
   color: var(--gold-dim);
   font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
 }
 .view-as-select :deep(.q-field__native),
 .view-as-select :deep(.q-field__input) { color: var(--gold); }
