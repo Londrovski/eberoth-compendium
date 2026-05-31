@@ -87,20 +87,36 @@ async function onMemberMoveDown(idx) {
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: calc(12px * var(--scale, 1)) calc(14px * var(--scale, 1));
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
+.faction-column:has(.faction-header.vis-restricted) {
+  background: rgba(74,107,145,0.08);
+  border-color: var(--blue);
+  box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(74,107,145,0.30);
+}
+.faction-column:has(.faction-header.vis-dm-only) {
+  background: rgba(139,58,58,0.10);
+  border-color: var(--red);
+  box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(139,58,58,0.35);
+}
+
 .faction-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: calc(10px * var(--faction-scale, 1));
-  padding-bottom: calc(10px * var(--faction-scale, 1));
+  padding: calc(8px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
   border-bottom: 1px solid var(--border);
+  border-radius: calc(3px * var(--scale, 1));
+  background: transparent;
 }
 
 .faction-header.vis-restricted {
+  background: rgba(74,107,145,0.18);
   border-bottom-color: var(--blue);
 }
 .faction-header.vis-dm-only {
+  background: rgba(139,58,58,0.22);
   border-bottom-color: var(--red);
 }
 
