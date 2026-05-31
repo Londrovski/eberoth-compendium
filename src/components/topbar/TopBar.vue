@@ -1,6 +1,6 @@
 <template>
   <q-header bordered class="eb-topbar">
-    <q-toolbar class="q-px-md">
+    <q-toolbar class="q-px-md eb-toolbar">
       <div class="row items-center q-gutter-sm brand">
         <img class="logo" :src="LOGO" alt="Eberoth" />
         <div class="brand-text">
@@ -65,28 +65,32 @@ async function onSignOut() {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
-.brand { gap: 10px; }
+.eb-toolbar {
+  min-height: 84px;
+}
+.brand { gap: 14px; }
 .logo {
-  width: 32px;
-  height: 32px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(201,169,97,0.45));
+  filter: drop-shadow(0 0 14px rgba(201,169,97,0.55));
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1; }
 .eberoth {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 28px;
   color: var(--gold);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-shadow:
-    0 0 12px rgba(201,169,97,0.55),
-    0 0 22px rgba(201,169,97,0.25);
+    0 0 14px rgba(201,169,97,0.55),
+    0 0 26px rgba(201,169,97,0.25);
 }
 .sub {
   color: var(--gold-dim);
-  font-size: 0.6rem;
-  margin-top: 2px;
+  font-size: 0.7rem;
+  margin-top: 4px;
+  letter-spacing: 0.04em;
 }
 .eb-tabs :deep(.q-tab) {
   color: var(--section-heading-color);
