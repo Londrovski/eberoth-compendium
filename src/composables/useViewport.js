@@ -1,19 +1,18 @@
 // useViewport — reactive viewport state. Singleton so all consumers
 // share one resize listener.
 //
-// isMobile is true when the window is at or below MOBILE_BREAKPOINT,
-// OR when the DM has flipped the "Mobile preview" toggle in DM Tools
+// isMobile is true when the window is at or below the active breakpoint,
+// OR when the DM has flipped the "Preview mobile" toggle in DM Tools
 // (so the desktop browser can simulate mobile layout for tuning).
 //
-// 600px is the proper phone-only breakpoint — anything wider is a
-// tablet or desktop and gets the full layout. The breakpoint was
-// originally 700px to match the legacy NotesPage media query, but
-// that was an internal layout concern, not a mobile/desktop split.
+// The breakpoint itself is DM-tunable via app_settings.mobile_layout
+// (key: `breakpoint`). Default 600 — true phone-only. Anything wider
+// is tablet/laptop/desktop and keeps the full layout.
 
 import { ref, computed, onScopeDispose } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
-export const MOBILE_BREAKPOINT = 600;
+export const DEFAULT_MOBILE_BREAKPOINT = 600;
 
 let _state = null;
 
@@ -38,7 +37,12 @@ export function useViewport() {
   const s = ensureState();
   const settings = useAppSettingsStore();
 
-  const naturallyMobile = computed(() => s.innerWidth.value <= MOBILE_BREAKPOINT);
+  const breakpoint = computed(() => {
+    const v = settings.mobile?.breakpoint;
+    return typeof v === 'number' && v > 0 ? v : DEFAULT_MOBILE_BREAKPOINT;
+  });
+
+  const naturallyMobile = computed(() => s.innerWidth.value <= breakpoint.value);
   const isMobile = computed(() => naturallyMobile.value || !!settings.mobilePreviewForce);
 
   onScopeDispose(() => {
@@ -48,6 +52,7 @@ export function useViewport() {
   return {
     width:           s.innerWidth,
     height:          s.innerHeight,
+    breakpoint,
     naturallyMobile,
     isMobile
   };
