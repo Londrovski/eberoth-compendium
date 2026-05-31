@@ -5,14 +5,15 @@
 // OR when the DM has flipped the "Mobile preview" toggle in DM Tools
 // (so the desktop browser can simulate mobile layout for tuning).
 //
-// The mobile-preview override reads from the app-settings store, so
-// flipping it on a desktop instantly re-flows the layout without a
-// resize event.
+// 600px is the proper phone-only breakpoint — anything wider is a
+// tablet or desktop and gets the full layout. The breakpoint was
+// originally 700px to match the legacy NotesPage media query, but
+// that was an internal layout concern, not a mobile/desktop split.
 
 import { ref, computed, onScopeDispose } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
-export const MOBILE_BREAKPOINT = 700;
+export const MOBILE_BREAKPOINT = 600;
 
 let _state = null;
 
