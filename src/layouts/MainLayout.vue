@@ -1,11 +1,5 @@
 <template>
   <q-layout view="hHh lpR fFf" class="app-shell">
-    <!-- Two-layer background:
-         1. solid colour painted to the whole viewport (DM-configurable)
-         2. optional image, centred in the area BELOW the topbar
-         The image layer respects opacity, gets centred down by
-         half the topbar height so its centre sits at the midpoint
-         of the visible area below the toolbar. -->
     <div
       class="bg-color-layer"
       :style="{ background: bg.bgColor || '#000000' }"
@@ -30,7 +24,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, watch, watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
 import TopBar from 'components/topbar/TopBar.vue';
 import DetailPanel from 'components/detail/DetailPanel.vue';
@@ -41,6 +35,7 @@ import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useAuthStore } from 'src/stores/auth';
 import { useUserPrefsStore } from 'src/stores/user-prefs';
+import { useViewport } from 'src/composables/useViewport';
 import { track } from 'src/composables/useUsageTracker';
 
 const dmHighlight = useDmHighlightStore();
@@ -48,18 +43,26 @@ const entities    = useEntitiesStore();
 const appSettings = useAppSettingsStore();
 const auth        = useAuthStore();
 const userPrefs   = useUserPrefsStore();
+const viewport    = useViewport();
 const route       = useRoute();
 
-const TOPBAR_H = 64;
+const TOPBAR_H_DESKTOP = 64;
+const TOPBAR_H_MOBILE_DEFAULT = 44;
 
 const HORIZON_URL = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/The%20Descending%20Horizon.png';
 const LOGO_URL    = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
 
 const bg = computed(() => appSettings.siteBackground);
 
+const topbarH = computed(() => {
+  return viewport.isMobile
+    ? (appSettings.mobile?.topbarHeight ?? TOPBAR_H_MOBILE_DEFAULT)
+    : TOPBAR_H_DESKTOP;
+});
+
 const bgImageStyle = computed(() => {
   const opacity = Math.max(0, Math.min(1, bg.value.opacity ?? 0.35));
-  const yOffset = `calc(50% + ${TOPBAR_H / 2}px)`;
+  const yOffset = `calc(50% + ${topbarH.value / 2}px)`;
   if (bg.value.mode === 'horizon') {
     return {
       backgroundImage: `url("${HORIZON_URL}")`,
@@ -73,7 +76,7 @@ const bgImageStyle = computed(() => {
     const pct = Math.round((bg.value.size ?? 0.8) * 100);
     return {
       backgroundImage: `url("${LOGO_URL}")`,
-      backgroundSize: `min(${pct}vw, calc(${pct}vh - ${(TOPBAR_H * pct) / 100}px))`,
+      backgroundSize: `min(${pct}vw, calc(${pct}vh - ${(topbarH.value * pct) / 100}px))`,
       backgroundPosition: `center ${yOffset}`,
       backgroundRepeat: 'no-repeat',
       opacity: String(opacity)
@@ -82,12 +85,21 @@ const bgImageStyle = computed(() => {
   return {};
 });
 
-const zoomStyle = computed(() => ({ zoom: String(userPrefs.userZoom || 1) }));
+const zoomStyle = computed(() => {
+  const z = viewport.isMobile
+    ? (userPrefs.userZoomMobile || 1)
+    : (userPrefs.userZoom || 1);
+  return { zoom: String(z) };
+});
+
+// Toggle html.is-mobile so the scoped SCSS rules in app.scss activate.
+watchEffect(() => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.classList.toggle('is-mobile', viewport.isMobile);
+});
 
 watch(() => auth.user?.email, () => { userPrefs.load(); });
 
-// page_view per route change. Fires for every named route inside the
-// authed shell. Tracker no-ops if signed-out or opted-out.
 watch(() => route.name, (name) => {
   if (!name) return;
   track('page_view', name, { path: route.path });
