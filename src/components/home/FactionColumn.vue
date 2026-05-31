@@ -90,12 +90,12 @@ async function onMemberMoveDown(idx) {
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .faction-column:has(.faction-header.vis-restricted) {
-  background: rgba(74,107,145,0.08);
+  background: #16202c;
   border-color: var(--blue);
   box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(74,107,145,0.30);
 }
 .faction-column:has(.faction-header.vis-dm-only) {
-  background: rgba(139,58,58,0.10);
+  background: #2a1717;
   border-color: var(--red);
   box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
@@ -112,11 +112,11 @@ async function onMemberMoveDown(idx) {
 }
 
 .faction-header.vis-restricted {
-  background: rgba(74,107,145,0.18);
+  background: #1f2c3a;
   border-bottom-color: var(--blue);
 }
 .faction-header.vis-dm-only {
-  background: rgba(139,58,58,0.22);
+  background: #3a1f1f;
   border-bottom-color: var(--red);
 }
 
