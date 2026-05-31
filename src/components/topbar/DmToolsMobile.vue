@@ -1,8 +1,5 @@
 <template>
   <div class="mb-block" @click.stop>
-    <!-- Diagnostic readout — tells the DM at a glance what mobile mode
-         thinks the viewport is, and why isMobile is or isn't true.
-         Updates live as the window resizes. -->
     <div class="diag" :class="{ active: viewport.isMobile }">
       <span class="diag-row">
         <span class="diag-k">Width</span>
@@ -43,7 +40,7 @@
       <div class="row-pair-label">Breakpoint</div>
       <Stepper
         :value="breakpoint"
-        :min="320" :max="1200" :step="20"
+        :min="320" :max="900" :step="20"
         suffix="px"
         @change="onBreakpoint"
       />
@@ -171,10 +168,7 @@ const Stepper = {
   color: var(--text-dim);
 }
 .diag.active { border-color: var(--gold-dim); }
-.diag-row {
-  display: flex;
-  justify-content: space-between;
-}
+.diag-row { display: flex; justify-content: space-between; }
 .diag-k { color: var(--text-dim); }
 .diag-v { color: var(--text); font-family: 'SF Mono', Menlo, monospace; }
 .diag-row.verdict { margin-top: 3px; padding-top: 3px; border-top: 1px dashed var(--border); }
