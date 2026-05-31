@@ -71,8 +71,6 @@ let suppressNextSelect = false;
 
 const activeTab = computed(() => state.tabs.find(t => t.id === state.activeId) || null);
 
-// Push the active tab's HTML into the editor DOM. Only called on load
-// and when the user switches tabs — never during typing.
 function syncEditorFromState() {
   if (!bodyEl.value) return;
   const html = activeTab.value ? (activeTab.value.html || '') : '';
@@ -82,8 +80,6 @@ function syncEditorFromState() {
 const picker = useMentionPicker({
   onInput(el) {
     if (activeTab.value) {
-      // Capture latest DOM state without writing back to the element
-      // (writing would reset the caret).
       activeTab.value.html = el.innerHTML;
       scheduleSave();
     }
@@ -305,13 +301,15 @@ onBeforeUnmount(() => {
 .note-body :deep(a.mention) {
   color: var(--bold-accent-color);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--gold-dim);
+  text-underline-offset: 2px;
   cursor: pointer;
   padding: 0 2px;
   border-radius: 2px;
 }
 .note-body :deep(a.mention:hover) {
   background: rgba(216,201,138,0.12);
-  text-decoration: underline;
+  text-decoration-color: var(--gold);
 }
 </style>
