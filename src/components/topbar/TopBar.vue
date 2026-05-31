@@ -38,6 +38,7 @@
           rel="noopener"
         />
         <template v-if="viewer.isDM">
+          <RealtimeDot />
           <DmToolsMenu />
           <ViewAsSelect />
         </template>
@@ -67,6 +68,7 @@ import { characterFromBucket } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 import UserZoomControl from 'components/topbar/UserZoomControl.vue';
+import RealtimeDot from 'components/topbar/RealtimeDot.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -95,33 +97,13 @@ const dndbeyondTitle = computed(() => {
   return name ? `Open ${name}'s D&D Beyond sheet` : 'Open D&D Beyond';
 });
 
-// Sign-out flow.
-//
-// Previously: router.push(landing) → await signOut(). That left a
-// visible frame where the view-as filter was still applied as routes
-// swapped, and a DM previewing a player would briefly see the
-// player-filtered home page before being kicked to landing. It also
-// felt like it took two clicks because the route push awaited
-// before the auth state actually cleared.
-//
-// Now: synchronously null out viewing-as + actualBucket so all
-// visibility computeds re-evaluate to "guest" instantly, then
-// replace() to landing (so back button can't return), then call
-// signOut without awaiting — the auth subscription will tidy up,
-// and we don't gate UI on the network round-trip.
 async function onSignOut() {
   if (signingOut.value) return;
   signingOut.value = true;
-  // 1. Wipe local auth state first so no component renders a
-  //    half-authenticated view during teardown.
   auth.viewingAs = null;
   auth.actualBucket = null;
   auth.user = null;
-  // 2. Navigate immediately. replace so the browser back button
-  //    doesn't drop the user back into the authed shell.
   router.replace({ name: 'landing' });
-  // 3. Fire-and-forget Supabase sign-out. The auth listener will
-  //    confirm the cleared state when it returns.
   auth.signOut().catch(() => {});
 }
 </script>
