@@ -1,6 +1,14 @@
 <template>
   <div class="detail-header row items-center q-pa-sm">
     <q-btn
+      v-if="detail.canGoBack.value && !editing"
+      flat dense no-caps icon="arrow_back"
+      label="Back"
+      class="action-btn"
+      :title="'Previous entry'"
+      @click="detail.back()"
+    />
+    <q-btn
       v-if="viewer.isDM && entity && !editing"
       flat dense no-caps icon="edit"
       label="Edit"
@@ -21,6 +29,7 @@
 
 <script setup>
 import { useViewer } from 'src/composables/useViewer';
+import { useEntityDetail } from 'src/composables/useEntityDetail';
 
 defineProps({
   entity:  { type: Object, default: null },
@@ -29,6 +38,7 @@ defineProps({
 defineEmits(['close', 'edit', 'cancel-edit']);
 
 const viewer = useViewer();
+const detail = useEntityDetail();
 </script>
 
 <style scoped>
