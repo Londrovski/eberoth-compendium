@@ -15,10 +15,10 @@ defineProps({
 
 <style scoped>
 .section-label {
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: 8px;
 }
 .facts-list {
@@ -30,9 +30,9 @@ defineProps({
   gap: 5px;
 }
 .facts-list li {
-  font-size: 0.9rem;
+  font-size: var(--body-card-size);
   line-height: 1.5;
-  color: var(--text);
+  color: var(--body-card-color);
   padding-left: 14px;
   position: relative;
 }
@@ -42,5 +42,5 @@ defineProps({
   left: 0;
   color: var(--gold-dim);
 }
-.facts-list li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
+.facts-list li :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
 </style>
