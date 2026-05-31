@@ -84,18 +84,12 @@ async function onSignOut() {
     0 0 22px rgba(201,169,97,0.25);
 }
 .sub {
-  font-family: 'Cinzel', serif;
   color: var(--gold-dim);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
   font-size: 0.6rem;
   margin-top: 2px;
 }
 .eb-tabs :deep(.q-tab) {
   color: var(--text-dim);
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   font-size: 0.7rem;
 }
 .eb-tabs :deep(.q-tab--active) { color: var(--gold); }
@@ -104,8 +98,6 @@ async function onSignOut() {
 .role-chip {
   color: var(--gold-dim);
   border-color: var(--gold-dim);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
   font-size: 0.65rem;
 }
 .lock-btn { color: var(--gold-dim); }
