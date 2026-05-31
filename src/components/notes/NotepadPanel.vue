@@ -292,8 +292,10 @@ onBeforeUnmount(() => {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+/* Placeholder text is DM-editable via DM Tools → Placeholders.
+   The var is emitted pre-quoted by app-settings store. */
 .note-body:empty:before {
-  content: "Write whatever you'll need to remember...";
+  content: var(--placeholder-notepad, "Write your notes here. Use @ to link.");
   color: var(--text-dim);
   font-style: italic;
   pointer-events: none;
