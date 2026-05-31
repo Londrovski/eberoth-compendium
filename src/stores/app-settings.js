@@ -19,10 +19,16 @@ const DEFAULT_EXTERNALS = {
 };
 
 const DEFAULT_BACKGROUND = {
-  mode: 'none',          // 'none' | 'horizon' | 'logo'
+  mode: 'none',
   opacity: 0.35,
   size: 0.8,
-  bgColor: '#000000'     // base colour painted behind the image
+  bgColor: '#000000'
+};
+
+const DEFAULT_LINES = {
+  thickness: 2,      // px — master border thickness
+  color:     '#8a7544',
+  spacing:   16      // px — gap between cards / faction columns
 };
 
 const DEFAULTS = {
@@ -36,7 +42,8 @@ const DEFAULTS = {
   typo_section_heading: DEFAULT_TYPOGRAPHY.section_heading,
   external_zoom_url:        DEFAULT_EXTERNALS.zoom,
   external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond,
-  site_background:          DEFAULT_BACKGROUND
+  site_background:          DEFAULT_BACKGROUND,
+  site_lines:               DEFAULT_LINES
 };
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -54,6 +61,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     externalZoomUrl: '',
     externalDndbeyondUrls: { ...DEFAULT_EXTERNALS.dndbeyond },
     siteBackground: { ...DEFAULT_BACKGROUND },
+    siteLines: { ...DEFAULT_LINES },
     _subscribed: false,
     _channel: null
   }),
@@ -121,7 +129,14 @@ export const useAppSettingsStore = defineStore('appSettings', {
           bgColor: value?.bgColor ?? DEFAULT_BACKGROUND.bgColor
         };
       }
-      if (key.startsWith('typo_') && typeof document !== 'undefined') {
+      if (key === 'site_lines') {
+        this.siteLines = {
+          thickness: value?.thickness ?? DEFAULT_LINES.thickness,
+          color:     value?.color     ?? DEFAULT_LINES.color,
+          spacing:   value?.spacing   ?? DEFAULT_LINES.spacing
+        };
+      }
+      if ((key.startsWith('typo_') || key === 'site_lines') && typeof document !== 'undefined') {
         this.applyCssVars();
       }
     },
@@ -137,6 +152,10 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--section-heading-color',   t.sectionHeading.color);
       root.style.setProperty('--section-heading-size',    t.sectionHeading.size + 'px');
       root.style.setProperty('--section-heading-spacing', t.sectionHeading.letterSpacing + 'px');
+      const l = this.siteLines;
+      root.style.setProperty('--line-thickness', (l.thickness ?? 2) + 'px');
+      root.style.setProperty('--line-color',     l.color || '#8a7544');
+      root.style.setProperty('--card-spacing',   (l.spacing ?? 16) + 'px');
     },
     async setCardScale(scale) {
       this.cardScale = scale;
@@ -210,6 +229,16 @@ export const useAppSettingsStore = defineStore('appSettings', {
       };
       this.siteBackground = next;
       await appSettingsApi.setKey('site_background', next);
+    },
+    async setSiteLines(patch) {
+      const next = {
+        thickness: patch?.thickness ?? this.siteLines.thickness,
+        color:     patch?.color     ?? this.siteLines.color,
+        spacing:   patch?.spacing   ?? this.siteLines.spacing
+      };
+      this.siteLines = next;
+      this.applyCssVars();
+      await appSettingsApi.setKey('site_lines', next);
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);
