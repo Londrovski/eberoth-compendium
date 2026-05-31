@@ -8,7 +8,6 @@
       :contenteditable="authed"
       spellcheck="true"
       ref="bodyEl"
-      data-placeholder="Personal notes about this entity. Only you can see these."
       @blur="flush"
     ></div>
     <div class="status" :class="{ saving }">
@@ -124,8 +123,9 @@ const relativeSaved = computed(() => {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+/* Placeholder driven by DM Tools → Placeholders. */
 .notes-input:empty:before {
-  content: attr(data-placeholder);
+  content: var(--placeholder-detail-notes, "Personal notes about this entity. Only you can see these.");
   color: var(--text-dim);
   font-style: italic;
   pointer-events: none;
