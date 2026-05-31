@@ -42,12 +42,23 @@ import SessionsListPanel from 'components/notes/SessionsListPanel.vue';
 const STORAGE_KEY = 'eberoth.notesDrawerWidth';
 const DEFAULT_WIDTH = 340;
 const MIN = 240;
-const MAX = 600;
+// Hard cap above any viewport so the dynamic % cap dominates.
+const ABS_MAX = 1200;
 
 const drawerWidth = ref(DEFAULT_WIDTH);
 const dragging = ref(false);
 
-function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
+// Dynamic max: ~60% of the viewport width. Lets the user push the
+// drawer past the midpoint if they want (was previously stuck around
+// 1/3 of a wide screen because of the static 600px cap).
+function dynamicMax() {
+  if (typeof window === 'undefined') return ABS_MAX;
+  return Math.min(ABS_MAX, Math.floor(window.innerWidth * 0.60));
+}
+
+function clamp(v) {
+  return Math.max(MIN, Math.min(dynamicMax(), v));
+}
 
 function loadWidth() {
   try {
@@ -93,18 +104,26 @@ function resetWidth() {
   saveWidth();
 }
 
-onMounted(loadWidth);
+function onWindowResize() {
+  drawerWidth.value = clamp(drawerWidth.value);
+}
+
+onMounted(() => {
+  loadWidth();
+  window.addEventListener('resize', onWindowResize);
+});
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onDragMove);
   window.removeEventListener('mouseup', onDragEnd);
+  window.removeEventListener('resize', onWindowResize);
 });
 </script>
 
 <style scoped>
 .notes-page {
-  height: calc(100vh - 50px);
+  height: calc(100vh - 84px);
   padding: 0;
-  background: var(--bg);
+  background: transparent;
 }
 .notes-layout {
   display: flex;
