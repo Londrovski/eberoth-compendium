@@ -29,7 +29,7 @@ const visClass = useVisibilityIndicator(props.entity.id);
 
 const cardStyle = computed(() => ({
   '--scale': layout.cardScale,
-  width: Math.round(200 * layout.cardScale) + 'px'
+  width: Math.round(180 * layout.cardScale) + 'px'
 }));
 
 function open() { detail.open(props.entity.id); }
