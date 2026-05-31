@@ -73,24 +73,24 @@ const tagNames = computed(() => {
 }
 
 .section-label {
-  font-size: 0.65rem;
-  letter-spacing: 2.5px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: 6px;
 }
 .info-block { min-width: 0; }
 .info-label {
-  font-size: 0.65rem;
-  letter-spacing: 1.5px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
   color: var(--text-dim);
   margin-bottom: 2px;
 }
 .info-value {
-  font-size: 0.9rem;
-  color: var(--text);
+  font-size: var(--body-card-size);
+  color: var(--body-card-color);
   font-weight: 500;
 }
-.tag-text { color: var(--gold-bright); }
+.tag-text { color: var(--bold-accent-color); }
 </style>
