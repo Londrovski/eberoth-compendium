@@ -164,6 +164,10 @@ async function onUnpin() {
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
 }
+.personal-card.is-glow .footer        { background: rgba(201,169,97,0.18); border-top-color: var(--gold-dim); }
+.personal-card.vis-restricted .footer { background: rgba(74,107,145,0.22);  border-top-color: var(--blue); }
+.personal-card.vis-dm-only .footer    { background: rgba(139,58,58,0.25);   border-top-color: var(--red); }
+
 .name {
   font-size: var(--body-card-size);
   color: var(--body-card-color);
