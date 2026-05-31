@@ -178,7 +178,7 @@ async function onMemberMoveDown(idx) {
 */
 .faction-name {
   font-weight: 500;
-  font-size: calc(var(--header-avatar-px, 40px) * 0.8);
+  font-size: calc(var(--header-avatar-px, 40px) * 0.5);
   color: var(--gold);
   line-height: 1.15;
   letter-spacing: 0.04em;
