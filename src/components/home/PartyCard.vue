@@ -37,8 +37,10 @@ function open() { detail.open(props.entity.id); }
 
 <style scoped>
 .party-card {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: block;
+  width: 180px;
+  aspect-ratio: 3 / 4;
   background: var(--bg-card);
   border: 1px solid var(--gold-dim);
   border-radius: calc(4px * var(--scale, 1));
@@ -70,8 +72,8 @@ function open() { detail.open(props.entity.id); }
 }
 
 .img-wrap {
-  width: 100%;
-  aspect-ratio: 3 / 4;
+  position: absolute;
+  inset: 0;
   background: var(--bg);
   overflow: hidden;
 }
@@ -86,9 +88,15 @@ function open() { detail.open(props.entity.id); }
 .party-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
 
 .footer {
-  padding: calc(10px * var(--scale, 1)) calc(12px * var(--scale, 1));
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-panel);
   border-top: 1px solid var(--border);
+  padding: calc(8px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
+  min-height: calc(36px * var(--scale, 1));
 }
 .name {
   font-size: var(--body-card-size);
