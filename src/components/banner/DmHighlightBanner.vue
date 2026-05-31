@@ -28,6 +28,7 @@
 
 <script setup>
 import { computed, ref, watch, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useDmHighlightStore } from 'src/stores/dm-highlight';
 import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
@@ -38,10 +39,9 @@ const store    = useDmHighlightStore();
 const viewer   = useViewer();
 const detail   = useEntityDetail();
 const sessions = useSessionDetail();
+const router   = useRouter();
+const route    = useRoute();
 
-// One banner-instance per (createdAt) pulse. Dismissals + timeout are
-// keyed off it so re-highlighting (new createdAt) resets everyone's
-// state automatically.
 const dismissedKey = ref(null);
 const timeoutFired = ref(null);
 let timer = null;
@@ -55,7 +55,6 @@ const visible = computed(() => {
   return true;
 });
 
-// Whenever a new pulse arrives, reset dismissals and start a fresh 30s timer.
 watch(highlightKey, (k) => {
   if (timer) { clearTimeout(timer); timer = null; }
   if (!k) return;
@@ -70,13 +69,28 @@ function onDismiss() {
 
 async function onView() {
   const k = highlightKey.value;
+
   if (store.kind === 'entity') {
+    // Make sure the user is on the home page when the entity panel
+    // opens so the context behind it makes sense. The DetailPanel is
+    // global so it would technically open from /notes too, but the
+    // brief flicker of routing keeps the UX consistent.
+    if (route.name !== 'home') {
+      await router.push({ name: 'home' });
+    }
     detail.open(store.targetId);
   } else if (store.kind === 'session') {
+    // Session panel is now globally mounted in MainLayout so we don't
+    // *need* to be on /notes, but it makes the player's surrounding
+    // context match the content.
+    if (route.name !== 'notes') {
+      await router.push({ name: 'notes' });
+    }
     const all = await sessionsApi.fetchAll();
     const s = all.find(x => x.id === store.targetId);
     if (s) sessions.open(s);
   }
+
   dismissedKey.value = k;
 }
 </script>
@@ -84,7 +98,7 @@ async function onView() {
 <style scoped>
 .dm-highlight-banner {
   position: fixed;
-  top: 60px;
+  top: 96px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;
