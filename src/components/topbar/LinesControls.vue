@@ -28,6 +28,15 @@
         @change="onSpacing"
       />
     </div>
+    <div class="row-pair">
+      <div class="row-pair-label">Faction box opacity</div>
+      <Stepper
+        :value="boxOpacityPct"
+        :min="0" :max="100" :step="5"
+        suffix="%"
+        @change="onBoxOpacity"
+      />
+    </div>
     <button class="reset-btn" @click="reset">Reset lines</button>
   </div>
 </template>
@@ -37,13 +46,22 @@ import { h, computed } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
 const layout = useAppSettingsStore();
-const thickness = computed(() => layout.siteLines.thickness ?? 2);
-const color     = computed(() => layout.siteLines.color || '#8a7544');
-const spacing   = computed(() => layout.siteLines.spacing ?? 16);
+const thickness     = computed(() => layout.siteLines.thickness ?? 2);
+const color         = computed(() => layout.siteLines.color || '#8a7544');
+const spacing       = computed(() => layout.siteLines.spacing ?? 16);
+const boxOpacityPct = computed(() => Math.round((layout.siteLines.boxOpacity ?? 1) * 100));
 
-function onThickness(v) { layout.setSiteLines({ thickness: v }); }
-function onSpacing(v)   { layout.setSiteLines({ spacing: v }); }
-function reset()        { layout.setSiteLines({ thickness: 2, color: '#8a7544', spacing: 16 }); }
+function onThickness(v)  { layout.setSiteLines({ thickness: v }); }
+function onSpacing(v)    { layout.setSiteLines({ spacing: v }); }
+function onBoxOpacity(v) { layout.setSiteLines({ boxOpacity: v / 100 }); }
+function reset() {
+  layout.setSiteLines({
+    thickness: 2,
+    color: '#8a7544',
+    spacing: 16,
+    boxOpacity: 1
+  });
+}
 
 let colorTimer = null;
 function onColor(e) {
