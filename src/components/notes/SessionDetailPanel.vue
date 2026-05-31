@@ -130,15 +130,11 @@ watch(
 .close-btn:hover { color: var(--gold); }
 
 .session-detail-number {
-  font-family: 'Cinzel', serif;
   font-size: 11px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
   color: var(--gold-dim);
   text-align: center;
 }
 .session-detail-title {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   text-align: center;
   font-size: 22px;
   font-weight: 400;
@@ -166,10 +162,7 @@ watch(
   margin-bottom: 16px;
 }
 .player-body-label {
-  font-family: 'Cinzel', serif;
   font-size: 10px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
   color: var(--gold-dim);
   margin-bottom: 6px;
 }
@@ -185,10 +178,7 @@ watch(
   margin-bottom: 16px;
 }
 .session-summary-label {
-  font-family: 'Cinzel', serif;
   font-size: 10px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
   color: var(--gold-dim);
   margin-bottom: 6px;
 }
@@ -204,10 +194,7 @@ watch(
 .session-summary-list li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
 
 .session-detail-part-label {
-  font-family: 'Cinzel', serif;
   font-size: 11px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
   color: var(--gold-dim);
   margin: 18px 0 8px;
   padding-bottom: 6px;
