@@ -34,43 +34,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import ThreadsPanel from 'components/notes/ThreadsPanel.vue';
 import NotepadPanel from 'components/notes/NotepadPanel.vue';
 import SessionsListPanel from 'components/notes/SessionsListPanel.vue';
+import { useUserPrefsStore } from 'src/stores/user-prefs';
 
-const STORAGE_KEY = 'eberoth.notesDrawerWidth';
 const DEFAULT_WIDTH = 340;
 const MIN = 240;
-// Hard cap above any viewport so the dynamic % cap dominates.
 const ABS_MAX = 1200;
 
-const drawerWidth = ref(DEFAULT_WIDTH);
+const prefs = useUserPrefsStore();
 const dragging = ref(false);
 
-// Dynamic max: ~60% of the viewport width. Lets the user push the
-// drawer past the midpoint if they want (was previously stuck around
-// 1/3 of a wide screen because of the static 600px cap).
 function dynamicMax() {
   if (typeof window === 'undefined') return ABS_MAX;
   return Math.min(ABS_MAX, Math.floor(window.innerWidth * 0.60));
 }
+function clamp(v) { return Math.max(MIN, Math.min(dynamicMax(), v)); }
 
-function clamp(v) {
-  return Math.max(MIN, Math.min(dynamicMax(), v));
-}
+const drawerWidth = computed(() => clamp(prefs.notesDrawerWidth || DEFAULT_WIDTH));
 
-function loadWidth() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const n = raw ? parseInt(raw, 10) : NaN;
-    if (Number.isFinite(n)) drawerWidth.value = clamp(n);
-  } catch {}
-}
-
-function saveWidth() {
-  try { localStorage.setItem(STORAGE_KEY, String(drawerWidth.value)); } catch {}
-}
+// During drag we update a local ref for snappy UX, then commit to
+// the store on drag-end which schedules the server save.
+const dragWidth = ref(null);
 
 let startX = 0;
 let startW = 0;
@@ -79,6 +66,7 @@ function onDragStart(e) {
   dragging.value = true;
   startX = e.clientX;
   startW = drawerWidth.value;
+  dragWidth.value = startW;
   document.body.style.cursor = 'col-resize';
   document.body.style.userSelect = 'none';
   window.addEventListener('mousemove', onDragMove);
@@ -87,29 +75,33 @@ function onDragStart(e) {
 
 function onDragMove(e) {
   const next = clamp(startW + (e.clientX - startX));
-  drawerWidth.value = next;
+  // Update store live so the aside re-renders; the debounced save
+  // inside the store batches network writes.
+  prefs.setNotesDrawerWidth(next);
 }
 
 function onDragEnd() {
   dragging.value = false;
+  dragWidth.value = null;
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
   window.removeEventListener('mousemove', onDragMove);
   window.removeEventListener('mouseup', onDragEnd);
-  saveWidth();
 }
 
 function resetWidth() {
-  drawerWidth.value = DEFAULT_WIDTH;
-  saveWidth();
+  prefs.setNotesDrawerWidth(DEFAULT_WIDTH);
 }
 
 function onWindowResize() {
-  drawerWidth.value = clamp(drawerWidth.value);
+  // Re-clamp in case the viewport shrunk past the saved width.
+  const next = clamp(prefs.notesDrawerWidth || DEFAULT_WIDTH);
+  if (next !== prefs.notesDrawerWidth) prefs.setNotesDrawerWidth(next);
 }
 
+// Make sure prefs are loaded on mount (covers a hard-refresh into /notes).
 onMounted(() => {
-  loadWidth();
+  prefs.load();
   window.addEventListener('resize', onWindowResize);
 });
 onBeforeUnmount(() => {
@@ -117,6 +109,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('mouseup', onDragEnd);
   window.removeEventListener('resize', onWindowResize);
 });
+
+// Re-clamp if the stored value drifts above the new dynamic max
+// (e.g. on a sign-in event that brings down a larger saved width).
+watch(() => prefs.notesDrawerWidth, () => onWindowResize());
 </script>
 
 <style scoped>
