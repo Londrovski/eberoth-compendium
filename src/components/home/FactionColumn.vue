@@ -1,5 +1,5 @@
 <template>
-  <div class="faction-column" :class="{ 'is-mobile': viewport.isMobile }" :style="colStyle">
+  <div class="faction-column" :style="colStyle">
     <div class="faction-header" :class="visClass">
       <div class="header-main" @click="openFaction">
         <EntityAvatar :entity="faction" :size="headerSize" class="faction-avatar" />
@@ -38,7 +38,6 @@ import ReorderArrows from 'components/shared/ReorderArrows.vue';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewer } from 'src/composables/useViewer';
-import { useViewport } from 'src/composables/useViewport';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
 import { swapMembershipOrder } from 'src/api/reorder';
@@ -53,12 +52,11 @@ defineEmits(['move-up', 'move-down']);
 const entities = useEntitiesStore();
 const layout   = useAppSettingsStore();
 const viewer   = useViewer();
-const viewport = useViewport();
 const detail   = useEntityDetail();
 const visClass = useVisibilityIndicator(props.faction.id);
 
 const members = computed(() => entities.membersOf(props.faction.id));
-const headerSize = computed(() => Math.round((viewport.isMobile ? 32 : 40) * layout.factionScale));
+const headerSize = computed(() => Math.round(40 * layout.factionScale));
 const colStyle = computed(() => ({
   '--faction-scale': layout.factionScale,
   '--scale': layout.cardScale,
@@ -82,7 +80,6 @@ async function onMemberMoveDown(idx) {
 </script>
 
 <style scoped>
-/* Desktop column hugs N cards (default 2). */
 .faction-column {
   --col-pad-x: calc(14px * var(--scale, 1));
   --col-pad-y: calc(12px * var(--scale, 1));
@@ -101,14 +98,6 @@ async function onMemberMoveDown(idx) {
   border-radius: 4px;
   padding: var(--col-pad-y) var(--col-pad-x);
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-/* Mobile: full-width block, internal grid uses --cards-per-row-mobile. */
-.faction-column.is-mobile {
-  --col-pad-x: 10px;
-  --col-pad-y: 10px;
-  width: 100%;
-  gap: 8px;
-  padding: var(--col-pad-y) var(--col-pad-x);
 }
 .faction-column:has(.faction-header.vis-restricted) {
   background: var(--faction-box-bg-restricted);
@@ -132,7 +121,6 @@ async function onMemberMoveDown(idx) {
   background: transparent;
   min-width: 0;
 }
-.faction-column.is-mobile .faction-header { padding: 4px 6px; }
 
 .faction-header.vis-restricted {
   background: #1f2c3a;
@@ -166,9 +154,7 @@ async function onMemberMoveDown(idx) {
   word-break: normal;
   hyphens: auto;
 }
-.faction-column.is-mobile .faction-name { font-size: 0.95rem; }
 
-/* Desktop member grid: wraps inside the N-card-wide column. */
 .member-grid {
   width: 100%;
   display: flex;
@@ -176,12 +162,6 @@ async function onMemberMoveDown(idx) {
   gap: var(--card-spacing);
   align-items: flex-start;
   justify-content: flex-start;
-}
-/* Mobile member grid: fixed N-up grid. */
-.faction-column.is-mobile .member-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--cards-per-row-mobile, 3), 1fr);
-  gap: var(--card-spacing-mobile);
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
