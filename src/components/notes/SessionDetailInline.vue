@@ -80,20 +80,15 @@ onMounted(async () => {
   border-radius: 4px;
 }
 .player-body-label {
-  font-family: 'Cinzel Decorative', serif;
   font-size: 0.75rem;
   color: #8a6017;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   margin-bottom: 4px;
 }
 .player-body-text { font-size: 0.95rem; line-height: 1.5; }
 
 .block-label, .part-label {
-  font-family: 'Cinzel Decorative', serif;
   font-size: 0.85rem;
   color: #6b4f2e;
-  letter-spacing: 0.04em;
   margin-bottom: 6px;
 }
 
