@@ -1,13 +1,21 @@
 <template>
   <div class="mb-block" @click.stop>
+    <!-- Diagnostic readout — shows which signals are firing.
+         pointer:coarse + hover:none = the real mobile signal.
+         UA is a sanity-check fallback. Breakpoint is informational
+         only; mobile detection no longer relies on width. -->
     <div class="diag" :class="{ active: viewport.isMobile }">
       <span class="diag-row">
         <span class="diag-k">Width</span>
         <span class="diag-v">{{ viewport.width }}px</span>
       </span>
       <span class="diag-row">
-        <span class="diag-k">Breakpoint</span>
-        <span class="diag-v">{{ viewport.breakpoint }}px</span>
+        <span class="diag-k">Touch / no-hover</span>
+        <span class="diag-v">{{ viewport.mediaMobile ? 'YES' : 'no' }}</span>
+      </span>
+      <span class="diag-row">
+        <span class="diag-k">Mobile UA</span>
+        <span class="diag-v">{{ viewport.uaMobile ? 'YES' : 'no' }}</span>
       </span>
       <span class="diag-row">
         <span class="diag-k">Preview force</span>
@@ -34,16 +42,6 @@
           @click="setPreview(false)"
         >Off</button>
       </div>
-    </div>
-
-    <div class="row-pair">
-      <div class="row-pair-label">Breakpoint</div>
-      <Stepper
-        :value="breakpoint"
-        :min="320" :max="900" :step="20"
-        suffix="px"
-        @change="onBreakpoint"
-      />
     </div>
 
     <div class="row-pair">
@@ -117,7 +115,6 @@ import { useViewport } from 'src/composables/useViewport';
 const layout = useAppSettingsStore();
 const viewport = useViewport();
 
-const breakpoint    = computed(() => layout.mobile?.breakpoint ?? 600);
 const cardScalePct  = computed(() => Math.round((layout.mobile?.cardScale ?? 0.55) * 100));
 const cardSpacing   = computed(() => layout.mobile?.cardSpacing ?? 10);
 const cardsPerRow   = computed(() => layout.mobile?.cardsPerRow ?? 3);
@@ -125,7 +122,6 @@ const topbarHeight  = computed(() => layout.mobile?.topbarHeight ?? 44);
 const wordmarkSize  = computed(() => layout.mobile?.wordmarkSize ?? 22);
 const bodyCardSize  = computed(() => layout.mobile?.bodyCardSize ?? 12);
 
-function onBreakpoint(v)   { layout.setMobile({ breakpoint: v }); }
 function onCardScale(v)    { layout.setMobile({ cardScale: v / 100 }); }
 function onCardSpacing(v)  { layout.setMobile({ cardSpacing: v }); }
 function onCardsPerRow(v)  { layout.setMobile({ cardsPerRow: v }); }
