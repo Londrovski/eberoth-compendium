@@ -31,6 +31,7 @@
 
 <script setup>
 import { computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import TopBar from 'components/topbar/TopBar.vue';
 import DetailPanel from 'components/detail/DetailPanel.vue';
 import SessionDetailPanel from 'components/notes/SessionDetailPanel.vue';
@@ -40,14 +41,16 @@ import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useAuthStore } from 'src/stores/auth';
 import { useUserPrefsStore } from 'src/stores/user-prefs';
+import { track } from 'src/composables/useUsageTracker';
 
 const dmHighlight = useDmHighlightStore();
 const entities    = useEntitiesStore();
 const appSettings = useAppSettingsStore();
 const auth        = useAuthStore();
 const userPrefs   = useUserPrefsStore();
+const route       = useRoute();
 
-const TOPBAR_H = 64;  // px — keep in sync with .eb-toolbar min-height
+const TOPBAR_H = 64;
 
 const HORIZON_URL = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/The%20Descending%20Horizon.png';
 const LOGO_URL    = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
@@ -56,9 +59,6 @@ const bg = computed(() => appSettings.siteBackground);
 
 const bgImageStyle = computed(() => {
   const opacity = Math.max(0, Math.min(1, bg.value.opacity ?? 0.35));
-  // Shift the image's vertical centre down by half the topbar so the
-  // image is centred on the area BELOW the topbar instead of the
-  // whole viewport.
   const yOffset = `calc(50% + ${TOPBAR_H / 2}px)`;
   if (bg.value.mode === 'horizon') {
     return {
@@ -71,9 +71,6 @@ const bgImageStyle = computed(() => {
   }
   if (bg.value.mode === 'logo') {
     const pct = Math.round((bg.value.size ?? 0.8) * 100);
-    // For the logo we want the size based on the smaller VISIBLE
-    // dimension below the topbar — width is unchanged, but height
-    // available is `100vh - TOPBAR_H`.
     return {
       backgroundImage: `url("${LOGO_URL}")`,
       backgroundSize: `min(${pct}vw, calc(${pct}vh - ${(TOPBAR_H * pct) / 100}px))`,
@@ -88,6 +85,13 @@ const bgImageStyle = computed(() => {
 const zoomStyle = computed(() => ({ zoom: String(userPrefs.userZoom || 1) }));
 
 watch(() => auth.user?.email, () => { userPrefs.load(); });
+
+// page_view per route change. Fires for every named route inside the
+// authed shell. Tracker no-ops if signed-out or opted-out.
+watch(() => route.name, (name) => {
+  if (!name) return;
+  track('page_view', name, { path: route.path });
+}, { immediate: true });
 
 onMounted(async () => {
   await Promise.all([
