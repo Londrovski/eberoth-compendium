@@ -23,8 +23,6 @@ defineEmits(['update:modelValue']);
 .edit-section { margin-bottom: 1.25rem; }
 .section-label {
   font-size: 0.7rem;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
   color: #8a7148;
   margin-bottom: 8px;
 }
