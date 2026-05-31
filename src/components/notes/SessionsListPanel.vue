@@ -26,27 +26,24 @@
 
     <div v-else class="sessions-empty">No sessions yet.</div>
 
-    <SessionDetailPanel
-      v-model="dialogOpen"
-      :session="selected"
-    />
+    <SessionDetailPanel />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import * as sessionsApi from 'src/api/sessions';
+import { useSessionDetail } from 'src/composables/useSessionDetail';
 import SessionDetailPanel from 'components/notes/SessionDetailPanel.vue';
 
 const sessions = ref([]);
 const loading  = ref(true);
 const error    = ref(null);
-const dialogOpen = ref(false);
-const selected = ref(null);
+
+const sessionDetail = useSessionDetail();
 
 function open(s) {
-  selected.value = s;
-  dialogOpen.value = true;
+  sessionDetail.open(s);
 }
 
 onMounted(async () => {
