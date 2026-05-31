@@ -27,9 +27,6 @@ const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
-// Card geometry: 180px wide × cardScale. Image is 3:4 (180 × 240),
-// footer reserves 2 lines (~44px) underneath. Total card height is
-// fixed; name overflow > 2 lines pushes footer up into the image.
 const W = 180;
 const FOOTER = 44;
 
@@ -112,6 +109,10 @@ function open() { detail.open(props.entity.id); }
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
 }
+.party-card.is-glow .footer        { background: rgba(201,169,97,0.18); border-top-color: var(--gold-dim); }
+.party-card.vis-restricted .footer { background: rgba(74,107,145,0.22);  border-top-color: var(--blue); }
+.party-card.vis-dm-only .footer    { background: rgba(139,58,58,0.25);   border-top-color: var(--red); }
+
 .name {
   font-size: var(--body-card-size);
   color: var(--gold);
