@@ -2,10 +2,14 @@
   <transition name="slide-down">
     <div v-if="visible" class="dm-highlight-banner">
       <span class="banner-spark">✦</span>
-      <span class="banner-text">
+      <span class="banner-text" v-if="viewer.isDM.value">
+        You have highlighted <strong>{{ store.targetLabel }}</strong> for the players
+      </span>
+      <span class="banner-text" v-else>
         The DM is highlighting <strong>{{ store.targetLabel }}</strong>
       </span>
       <q-btn
+        v-if="!viewer.isDM.value"
         flat dense no-caps
         label="View"
         class="banner-btn"
@@ -26,19 +30,18 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useDmHighlightStore } from 'src/stores/dm-highlight';
 import { useViewer } from 'src/composables/useViewer';
-import { useEntitiesStore } from 'src/stores/entities';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useSessionDetail } from 'src/composables/useSessionDetail';
 import * as sessionsApi from 'src/api/sessions';
 
 const store    = useDmHighlightStore();
 const viewer   = useViewer();
-const entities = useEntitiesStore();
 const detail   = useEntityDetail();
 const sessions = useSessionDetail();
 
-// Player-side state. dismissedKey lets a player ignore a specific
-// highlight (per createdAt timestamp). 30s auto-timeout per highlight.
+// One banner-instance per (createdAt) pulse. Dismissals + timeout are
+// keyed off it so re-highlighting (new createdAt) resets everyone's
+// state automatically.
 const dismissedKey = ref(null);
 const timeoutFired = ref(null);
 let timer = null;
@@ -46,19 +49,18 @@ let timer = null;
 const highlightKey = computed(() => store.createdAt || null);
 
 const visible = computed(() => {
-  if (viewer.isDM.value) return false;
   if (!store.isActive) return false;
   if (dismissedKey.value === highlightKey.value) return false;
   if (timeoutFired.value === highlightKey.value) return false;
   return true;
 });
 
-// Whenever a new highlight arrives, reset dismissals and start a fresh timer.
+// Whenever a new pulse arrives, reset dismissals and start a fresh 30s timer.
 watch(highlightKey, (k) => {
   if (timer) { clearTimeout(timer); timer = null; }
   if (!k) return;
   timer = setTimeout(() => { timeoutFired.value = k; timer = null; }, 30000);
-});
+}, { immediate: true });
 
 onUnmounted(() => { if (timer) clearTimeout(timer); });
 
@@ -71,13 +73,10 @@ async function onView() {
   if (store.kind === 'entity') {
     detail.open(store.targetId);
   } else if (store.kind === 'session') {
-    // SessionDetail needs the full session object, not just an id.
-    // We hit the cache via the existing API.
     const all = await sessionsApi.fetchAll();
     const s = all.find(x => x.id === store.targetId);
     if (s) sessions.open(s);
   }
-  // Dismiss for this player only.
   dismissedKey.value = k;
 }
 </script>
