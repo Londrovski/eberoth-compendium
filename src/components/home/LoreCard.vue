@@ -2,6 +2,31 @@
   <div class="lore-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
+      <q-btn
+        v-if="viewer.isDM"
+        flat round dense
+        icon="link"
+        size="xs"
+        class="dm-action"
+        :title="'Pin to a player'"
+        @click.stop
+      >
+        <q-menu auto-close>
+          <q-list dense>
+            <q-item
+              v-for="p in pinnablePlayers"
+              :key="p.id"
+              clickable
+              @click="pinTo(p.id)"
+            >
+              <q-item-section>{{ p.short_name || p.name }}</q-item-section>
+            </q-item>
+            <q-item v-if="!pinnablePlayers.length" disable>
+              <q-item-section class="text-grey-7">No players</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
       <ReorderArrows
         v-if="viewer.isDM && reorderable"
         :disable-up="isFirst"
@@ -25,9 +50,11 @@ import EntityAvatar from 'components/shared/EntityAvatar.vue';
 import ReorderArrows from 'components/shared/ReorderArrows.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewer } from 'src/composables/useViewer';
+import { useEntitiesStore } from 'src/stores/entities';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
+import * as personalsApi from 'src/api/personals';
 
 const props = defineProps({
   entity:      { type: Object, required: true },
@@ -39,6 +66,7 @@ defineEmits(['move-up', 'move-down']);
 
 const layout = useAppSettingsStore();
 const viewer = useViewer();
+const entities = useEntitiesStore();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
@@ -59,6 +87,25 @@ const cardStyle = computed(() => {
 });
 
 function open() { detail.open(props.entity.id); }
+
+// All players. The dedupe in PartyAndPersonalRow means this card is
+// already known not to be pinned to any of them, so we don't need to
+// filter further.
+const pinnablePlayers = computed(() => entities.players);
+
+async function pinTo(playerId) {
+  // sort_order: append at the end of that player's existing personals.
+  const existing = entities.personalsOf(playerId);
+  const nextOrder = existing.length
+    ? Math.max(...existing.map(r => r.sort_order || 0)) + 1
+    : 0;
+  await personalsApi.upsert({
+    entity_id: props.entity.id,
+    player_id: playerId,
+    relationship: '',
+    sort_order: nextOrder
+  });
+}
 </script>
 
 <style scoped>
@@ -112,6 +159,20 @@ function open() { detail.open(props.entity.id); }
 }
 .img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
 .lore-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
+
+.dm-action {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(11,9,5,0.7);
+  color: var(--gold);
+  border-radius: 3px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.lore-card:hover .dm-action { opacity: 1; }
+.dm-action:hover { color: var(--gold-bright); }
 
 .arrows-overlay {
   position: absolute;
