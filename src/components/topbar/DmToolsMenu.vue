@@ -63,10 +63,7 @@ function setPersonals(v) { layout.setShowPersonals(v); }
 <style scoped>
 .dm-btn {
   color: var(--gold-dim);
-  font-family: 'Cinzel', serif;
-  letter-spacing: 1px;
   font-size: 11px;
-  text-transform: uppercase;
 }
 .dm-btn:hover { color: var(--gold); }
 
@@ -76,13 +73,9 @@ function setPersonals(v) { layout.setShowPersonals(v); }
   color: var(--text);
   padding: 10px 14px;
   min-width: 230px;
-  font-family: 'Cinzel', serif;
 }
 .dm-label {
-  font-family: 'Cinzel', serif;
   font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--gold-dim);
   margin-bottom: 4px;
 }
@@ -96,8 +89,6 @@ function setPersonals(v) { layout.setShowPersonals(v); }
   border-radius: 3px;
   font-family: inherit;
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   cursor: pointer;
 }
 .pill:hover { color: var(--gold); border-color: var(--gold-dim); }
