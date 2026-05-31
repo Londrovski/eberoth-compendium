@@ -116,13 +116,13 @@ function open() { detail.open(props.entity.id); }
   text-align: center;
 }
 .name {
-  font-size: calc(1rem * var(--scale, 1));
-  color: var(--text);
+  font-size: var(--body-card-size);
+  color: var(--body-card-color);
   letter-spacing: 0.03em;
   line-height: 1.2;
 }
 .sub {
-  font-size: calc(0.75rem * var(--scale, 1));
+  font-size: calc(var(--body-card-size) - 3px);
   color: var(--text-dim);
   font-style: italic;
   line-height: 1.3;
