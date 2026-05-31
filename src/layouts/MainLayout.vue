@@ -1,10 +1,21 @@
 <template>
   <q-layout view="hHh lpR fFf" class="app-shell">
+    <!-- Two-layer background:
+         1. solid colour painted to the whole viewport (DM-configurable)
+         2. optional image, centred in the area BELOW the topbar
+         The image layer respects opacity, gets centred down by
+         half the topbar height so its centre sits at the midpoint
+         of the visible area below the toolbar. -->
+    <div
+      class="bg-color-layer"
+      :style="{ background: bg.bgColor || '#000000' }"
+      aria-hidden="true"
+    ></div>
     <div
       v-if="bg.mode !== 'none'"
-      class="bg-layer"
+      class="bg-image-layer"
       :class="'mode-' + bg.mode"
-      :style="bgStyle"
+      :style="bgImageStyle"
       aria-hidden="true"
     ></div>
 
@@ -36,28 +47,37 @@ const appSettings = useAppSettingsStore();
 const auth        = useAuthStore();
 const userPrefs   = useUserPrefsStore();
 
+const TOPBAR_H = 64;  // px — keep in sync with .eb-toolbar min-height
+
 const HORIZON_URL = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/The%20Descending%20Horizon.png';
 const LOGO_URL    = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
 
 const bg = computed(() => appSettings.siteBackground);
 
-const bgStyle = computed(() => {
+const bgImageStyle = computed(() => {
   const opacity = Math.max(0, Math.min(1, bg.value.opacity ?? 0.35));
+  // Shift the image's vertical centre down by half the topbar so the
+  // image is centred on the area BELOW the topbar instead of the
+  // whole viewport.
+  const yOffset = `calc(50% + ${TOPBAR_H / 2}px)`;
   if (bg.value.mode === 'horizon') {
     return {
       backgroundImage: `url("${HORIZON_URL}")`,
       backgroundSize: 'cover',
-      backgroundPosition: 'center',
+      backgroundPosition: `center ${yOffset}`,
       backgroundRepeat: 'no-repeat',
       opacity: String(opacity)
     };
   }
   if (bg.value.mode === 'logo') {
     const pct = Math.round((bg.value.size ?? 0.8) * 100);
+    // For the logo we want the size based on the smaller VISIBLE
+    // dimension below the topbar — width is unchanged, but height
+    // available is `100vh - TOPBAR_H`.
     return {
       backgroundImage: `url("${LOGO_URL}")`,
-      backgroundSize: `min(${pct}vw, ${pct}vh)`,
-      backgroundPosition: 'center',
+      backgroundSize: `min(${pct}vw, calc(${pct}vh - ${(TOPBAR_H * pct) / 100}px))`,
+      backgroundPosition: `center ${yOffset}`,
       backgroundRepeat: 'no-repeat',
       opacity: String(opacity)
     };
@@ -65,15 +85,8 @@ const bgStyle = computed(() => {
   return {};
 });
 
-// Per-user zoom. Apply via the non-standard `zoom` CSS property —
-// works in Chromium and Safari, the players' actual browsers. Falls
-// back to no-op in Firefox without breaking layout.
-const zoomStyle = computed(() => ({
-  zoom: String(userPrefs.userZoom || 1)
-}));
+const zoomStyle = computed(() => ({ zoom: String(userPrefs.userZoom || 1) }));
 
-// Reload prefs whenever the auth user changes (sign in, sign out,
-// view-as is irrelevant here because viewingAs doesn't change `user`).
 watch(() => auth.user?.email, () => { userPrefs.load(); });
 
 onMounted(async () => {
@@ -91,17 +104,18 @@ onMounted(async () => {
 
 <style scoped>
 .app-shell {
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
 }
 
-.bg-layer {
+.bg-color-layer,
+.bg-image-layer {
   position: fixed;
   inset: 0;
-  z-index: 0;
   pointer-events: none;
-  background-color: var(--bg);
 }
+.bg-color-layer { z-index: 0; }
+.bg-image-layer { z-index: 0; }
 
 .page-container {
   position: relative;
