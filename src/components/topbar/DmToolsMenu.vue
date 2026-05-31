@@ -35,6 +35,11 @@
 
       <q-separator class="sep" />
 
+      <div class="dm-label">Background</div>
+      <BackgroundControls />
+
+      <q-separator class="sep" />
+
       <div class="dm-label">Typography</div>
       <TypographyControls />
 
@@ -56,6 +61,7 @@
 import { ref } from 'vue';
 import CardScaleControls from 'components/topbar/CardScaleControls.vue';
 import TypographyControls from 'components/topbar/TypographyControls.vue';
+import BackgroundControls from 'components/topbar/BackgroundControls.vue';
 import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
