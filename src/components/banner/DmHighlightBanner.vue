@@ -42,23 +42,45 @@ const sessions = useSessionDetail();
 const router   = useRouter();
 const route    = useRoute();
 
+const LIFETIME_MS = 30_000;
+
+// Per-pulse dismissal state. Keyed by created_at so a brand new
+// pulse from the DM cancels any previous dismissal.
 const dismissedKey = ref(null);
 const timeoutFired = ref(null);
 let timer = null;
 
 const highlightKey = computed(() => store.createdAt || null);
 
+// Milliseconds until the current pulse should be considered expired,
+// measured against the server-side created_at. Negative = already
+// expired (stale row loaded on page refresh — never show it).
+const msUntilExpiry = computed(() => {
+  if (!highlightKey.value) return 0;
+  const created = Date.parse(highlightKey.value);
+  if (Number.isNaN(created)) return LIFETIME_MS;
+  return LIFETIME_MS - (Date.now() - created);
+});
+
 const visible = computed(() => {
   if (!store.isActive) return false;
   if (dismissedKey.value === highlightKey.value) return false;
   if (timeoutFired.value === highlightKey.value) return false;
+  // Stale on mount — server says this pulse is already past its
+  // 30s lifetime, so suppress it immediately.
+  if (msUntilExpiry.value <= 0) return false;
   return true;
 });
 
 watch(highlightKey, (k) => {
   if (timer) { clearTimeout(timer); timer = null; }
   if (!k) return;
-  timer = setTimeout(() => { timeoutFired.value = k; timer = null; }, 30000);
+  const remaining = msUntilExpiry.value;
+  if (remaining <= 0) {
+    timeoutFired.value = k;
+    return;
+  }
+  timer = setTimeout(() => { timeoutFired.value = k; timer = null; }, remaining);
 }, { immediate: true });
 
 onUnmounted(() => { if (timer) clearTimeout(timer); });
@@ -70,19 +92,16 @@ function onDismiss() {
 async function onView() {
   const k = highlightKey.value;
 
+  // Dismiss for this viewer immediately so the banner can't linger
+  // while the router is mid-transition.
+  dismissedKey.value = k;
+
   if (store.kind === 'entity') {
-    // Make sure the user is on the home page when the entity panel
-    // opens so the context behind it makes sense. The DetailPanel is
-    // global so it would technically open from /notes too, but the
-    // brief flicker of routing keeps the UX consistent.
     if (route.name !== 'home') {
       await router.push({ name: 'home' });
     }
     detail.open(store.targetId);
   } else if (store.kind === 'session') {
-    // Session panel is now globally mounted in MainLayout so we don't
-    // *need* to be on /notes, but it makes the player's surrounding
-    // context match the content.
     if (route.name !== 'notes') {
       await router.push({ name: 'notes' });
     }
@@ -90,8 +109,6 @@ async function onView() {
     const s = all.find(x => x.id === store.targetId);
     if (s) sessions.open(s);
   }
-
-  dismissedKey.value = k;
 }
 </script>
 
