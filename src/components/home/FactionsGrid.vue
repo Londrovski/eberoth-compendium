@@ -65,7 +65,7 @@ function onMoveDown(id) { layout.moveFactionDown(id); }
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: calc(16px * var(--scale, 1));
+  gap: var(--card-spacing);
 }
 @media (max-width: 900px) {
   .grid { grid-template-columns: repeat(2, 1fr); }
