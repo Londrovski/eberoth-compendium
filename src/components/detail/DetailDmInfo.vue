@@ -73,7 +73,6 @@ const tagNames = computed(() => {
 }
 
 .section-label {
-  font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -82,7 +81,6 @@ const tagNames = computed(() => {
 }
 .info-block { min-width: 0; }
 .info-label {
-  font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 1.5px;
   text-transform: uppercase;
