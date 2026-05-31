@@ -1,5 +1,10 @@
 <template>
-  <div class="party-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
+  <div
+    class="party-card"
+    :class="[visClass, { 'is-glow': glow, 'is-mobile': viewport.isMobile }]"
+    :style="cardStyle"
+    @click="open"
+  >
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
     </div>
@@ -17,6 +22,7 @@ import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
+import { useViewport } from 'src/composables/useViewport';
 
 const props = defineProps({
   entity: { type: Object, required: true }
@@ -26,11 +32,20 @@ const layout = useAppSettingsStore();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
+const viewport = useViewport();
 
 const W = 180;
 const FOOTER = 44;
 
 const cardStyle = computed(() => {
+  if (viewport.isMobile) {
+    // On mobile the card fills its grid cell. The image takes the
+    // image-h portion; footer overlays the bottom with a min-height.
+    return {
+      '--scale': layout.cardScale,
+      '--mobile-footer-h': '38px'
+    };
+  }
   const w = W * layout.cardScale;
   const imgH = w * 4 / 3;
   return {
@@ -57,13 +72,19 @@ function open() { detail.open(props.entity.id); }
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 14px rgba(201, 169, 97, 0.12);
 }
+.party-card.is-mobile {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-width: 1px;
+  border-radius: 4px;
+}
 .party-card:hover {
   border-color: var(--gold);
   transform: translateY(-3px);
   box-shadow: 0 8px 28px rgba(201, 169, 97, 0.25);
 }
+.party-card.is-mobile:hover { transform: none; }
 
-/* Glow / visibility states override only colour, not thickness. */
 .party-card.vis-restricted {
   background: rgba(74,107,145,0.10);
   border-color: var(--blue);
@@ -89,6 +110,10 @@ function open() { detail.open(props.entity.id); }
   background: var(--bg);
   overflow: hidden;
 }
+.party-card.is-mobile .img-wrap {
+  inset: 0;
+  height: auto;
+}
 .img-wrap :deep(.entity-avatar) {
   width: 100%;
   height: 100%;
@@ -113,6 +138,11 @@ function open() { detail.open(props.entity.id); }
   flex-direction: column;
   justify-content: center;
 }
+.party-card.is-mobile .footer {
+  min-height: var(--mobile-footer-h, 38px);
+  padding: 4px 6px;
+  border-top-width: 1px;
+}
 .party-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .party-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
 .party-card.vis-dm-only .footer    { background: #3a1f1f; border-top-color: var(--red); }
@@ -123,11 +153,18 @@ function open() { detail.open(props.entity.id); }
   letter-spacing: 0.04em;
   line-height: 1.2;
 }
+.party-card.is-mobile .name {
+  font-size: var(--body-card-size-mobile);
+  letter-spacing: 0.02em;
+}
 .sub {
   font-size: calc(var(--body-card-size) - 3px);
   color: var(--text-dim);
   font-style: italic;
   line-height: 1.3;
   margin-top: 2px;
+}
+.party-card.is-mobile .sub {
+  font-size: calc(var(--body-card-size-mobile) - 2px);
 }
 </style>
