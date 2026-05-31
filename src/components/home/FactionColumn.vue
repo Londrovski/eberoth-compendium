@@ -13,7 +13,7 @@
         @down="$emit('move-down', faction.id)"
       />
     </div>
-    <div class="member-list" v-if="members.length">
+    <div class="member-grid" v-if="members.length">
       <MemberCard
         v-for="(row, idx) in members"
         :key="row.entity.id"
@@ -56,7 +56,7 @@ const detail   = useEntityDetail();
 const visClass = useVisibilityIndicator(props.faction.id);
 
 const members = computed(() => entities.membersOf(props.faction.id));
-const headerSize = computed(() => Math.round(30 * layout.factionScale));
+const headerSize = computed(() => Math.round(40 * layout.factionScale));
 const colStyle = computed(() => ({
   '--faction-scale': layout.factionScale,
   '--scale': layout.cardScale
@@ -82,18 +82,18 @@ async function onMemberMoveDown(idx) {
 .faction-column {
   display: flex;
   flex-direction: column;
-  gap: calc(8px * var(--scale, 1));
+  gap: calc(12px * var(--scale, 1));
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: calc(10px * var(--scale, 1)) calc(12px * var(--scale, 1));
+  padding: calc(12px * var(--scale, 1)) calc(14px * var(--scale, 1));
 }
 .faction-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: calc(8px * var(--faction-scale, 1));
-  padding-bottom: calc(8px * var(--faction-scale, 1));
+  gap: calc(10px * var(--faction-scale, 1));
+  padding-bottom: calc(10px * var(--faction-scale, 1));
   border-bottom: 1px solid var(--border);
 }
 
@@ -107,7 +107,7 @@ async function onMemberMoveDown(idx) {
 .header-main {
   display: flex;
   align-items: center;
-  gap: calc(8px * var(--faction-scale, 1));
+  gap: calc(10px * var(--faction-scale, 1));
   cursor: pointer;
   flex: 1;
   min-width: 0;
@@ -115,14 +115,18 @@ async function onMemberMoveDown(idx) {
 .header-main:hover .faction-name { color: var(--gold-bright); }
 .faction-name {
   font-weight: 500;
-  font-size: calc(1rem * var(--faction-scale, 1));
+  font-size: calc(1.1rem * var(--faction-scale, 1));
   color: var(--gold);
   line-height: 1.2;
+  letter-spacing: 0.04em;
 }
-.member-list {
-  display: flex;
-  flex-direction: column;
-  gap: calc(6px * var(--scale, 1));
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: calc(10px * var(--scale, 1));
+}
+@media (max-width: 500px) {
+  .member-grid { grid-template-columns: 1fr; }
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
