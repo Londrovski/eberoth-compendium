@@ -30,7 +30,7 @@ const kindLabel = computed(() => KIND_LABEL[props.entity.kind] || props.entity.k
 .identity { padding: 0 0 8px; }
 .avatar-wrap {
   width: 100%;
-  max-width: 400px;
+  max-width: 300px;
 }
 .name {
   font-size: 1.6rem;
