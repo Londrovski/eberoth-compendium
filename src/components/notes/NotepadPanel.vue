@@ -39,19 +39,22 @@
         class="note-body"
         :contenteditable="authed"
         spellcheck="true"
-        @input="onBodyInput"
         @blur="flush"
         v-html="activeBodyHtml"
         ref="bodyEl"
       ></div>
     </div>
+
+    <MentionPicker :picker="picker" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useAuthStore } from 'src/stores/auth';
 import { fetchNotepad, saveNotepad, newTab } from 'src/api/notepad';
+import { useMentionPicker } from 'src/composables/useMentionPicker';
+import MentionPicker from 'components/shared/MentionPicker.vue';
 
 const auth = useAuthStore();
 const authed = computed(() => !!auth.user);
@@ -66,6 +69,18 @@ let suppressNextSelect = false;
 const activeTab = computed(() => state.tabs.find(t => t.id === state.activeId) || null);
 const activeBodyHtml = computed(() => (activeTab.value ? activeTab.value.html || '' : ''));
 
+// Mention picker — `onInput` fires whenever the editor changes,
+// either from a normal keystroke or after we insert a mention HTML
+// fragment. We use that to capture the new innerHTML for save.
+const picker = useMentionPicker({
+  onInput(el) {
+    if (activeTab.value) {
+      activeTab.value.html = el.innerHTML;
+      scheduleSave();
+    }
+  }
+});
+
 async function flush() {
   if (!authed.value) return;
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
@@ -79,12 +94,6 @@ function scheduleSave() {
   if (!authed.value) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 1200);
-}
-
-function onBodyInput() {
-  if (!activeTab.value || !bodyEl.value) return;
-  activeTab.value.html = bodyEl.value.innerHTML;
-  scheduleSave();
 }
 
 function onTabClick(tab) {
@@ -167,6 +176,11 @@ onMounted(async () => {
   state.activeId = loaded.activeId;
   await nextTick();
   if (bodyEl.value && activeTab.value) bodyEl.value.innerHTML = activeTab.value.html || '';
+  if (bodyEl.value) picker.bind(bodyEl.value);
+});
+
+onBeforeUnmount(() => {
+  if (bodyEl.value) picker.unbind(bodyEl.value);
 });
 </script>
 
@@ -277,5 +291,17 @@ onMounted(async () => {
   color: var(--text-dim);
   font-style: italic;
   pointer-events: none;
+}
+.note-body :deep(a.mention) {
+  color: var(--bold-accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.note-body :deep(a.mention:hover) {
+  background: rgba(216,201,138,0.12);
+  text-decoration: underline;
 }
 </style>
