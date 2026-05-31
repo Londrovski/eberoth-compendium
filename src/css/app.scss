@@ -30,6 +30,16 @@
   --c-voss:    #3d6b3a;
   --c-gorrund: #b8932e;
   --c-halvorn: #5a3a8a;
+
+  // DM-tunable typography (overridden at runtime by app-settings store).
+  --body-card-color:        #e8e2d4;
+  --body-card-size:         14px;
+  --body-session-color:     #c9bfa9;
+  --body-session-size:      15px;
+  --bold-accent-color:      #d8c98a;
+  --section-heading-color:  #8a7544;
+  --section-heading-size:   11px;
+  --section-heading-spacing: 3px;
 }
 
 html, body { height: 100%; background: var(--bg); }
