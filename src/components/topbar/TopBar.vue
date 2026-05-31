@@ -1,8 +1,7 @@
 <template>
   <q-header bordered class="eb-topbar">
     <q-toolbar class="q-px-md eb-toolbar">
-      <div class="row items-center q-gutter-md brand">
-        <img class="logo" :src="LOGO" alt="Eberoth" />
+      <div class="row items-center brand">
         <span class="eberoth">Eberoth</span>
       </div>
 
@@ -68,8 +67,6 @@ import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 import UserZoomControl from 'components/topbar/UserZoomControl.vue';
 
-const LOGO = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
-
 const router = useRouter();
 const auth = useAuthStore();
 const viewer = useViewer();
@@ -108,24 +105,18 @@ async function onSignOut() {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
-.eb-toolbar { min-height: 84px; }
+.eb-toolbar { min-height: 64px; }
 .brand { gap: 16px; }
-.logo {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 14px rgba(201,169,97,0.55));
-}
 .eberoth {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 700;
-  font-size: 44px;
+  font-size: 34px;
   color: var(--gold);
   letter-spacing: 0.05em;
   line-height: 1;
   text-shadow:
-    0 0 16px rgba(201,169,97,0.6),
-    0 0 30px rgba(201,169,97,0.3);
+    0 0 14px rgba(201,169,97,0.55),
+    0 0 26px rgba(201,169,97,0.25);
 }
 .eb-tabs :deep(.q-tab) {
   color: var(--section-heading-color);
