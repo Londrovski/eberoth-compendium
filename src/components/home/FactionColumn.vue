@@ -58,11 +58,8 @@ const visClass = useVisibilityIndicator(props.faction.id);
 const members = computed(() => entities.membersOf(props.faction.id));
 
 // --- Mobile header scale ---------------------------------------------------
-// We read the CSS custom property at runtime so the avatar <div> (which has
-// its size set via an inline style prop) also shrinks. CSS :deep() selectors
-// cannot override an inline style, so the scale must come through JS.
-const isMobile = ref(false);
-const mobileHeaderScale = ref(0.7); // matches CSS default
+const isMobile         = ref(false);
+const mobileHeaderScale = ref(0.7);
 
 let mq = null;
 function readScale() {
@@ -77,7 +74,6 @@ onMounted(() => {
   isMobile.value = mq.matches;
   if (isMobile.value) readScale();
   mq.addEventListener('change', onMqChange);
-  // Re-read whenever the DM changes the slider (token is updated on :root)
   window.addEventListener('eb-faction-header-scale', readScale);
 });
 onUnmounted(() => {
@@ -89,17 +85,19 @@ function onMqChange(e) {
   if (e.matches) readScale();
 }
 
-// Pass the correctly-scaled pixel size straight into EntityAvatar's :size prop
+// Pixel size passed into EntityAvatar :size — scales the whole avatar box.
 const headerSize = computed(() => {
   const base = Math.round(40 * layout.factionScale);
-  if (isMobile.value) return Math.round(base * mobileHeaderScale.value);
-  return base;
+  return isMobile.value ? Math.round(base * mobileHeaderScale.value) : base;
 });
 
+// colStyle feeds CSS vars into the template, including --header-avatar-px
+// so the faction-name font can be expressed as a fraction of the avatar height.
 const colStyle = computed(() => ({
-  '--faction-scale':  layout.factionScale,
-  '--scale':          layout.cardScale,
-  '--cards-per-row':  layout.factionCardsPerRow || 2
+  '--faction-scale':     layout.factionScale,
+  '--scale':             layout.cardScale,
+  '--cards-per-row':     layout.factionCardsPerRow || 2,
+  '--header-avatar-px':  headerSize.value + 'px'
 }));
 
 function openFaction() { detail.open(props.faction.id); }
@@ -171,11 +169,18 @@ async function onMemberMoveDown(idx) {
 }
 .header-main:hover .faction-name { color: var(--gold-bright); }
 .faction-avatar { flex: 0 0 auto; }
+
+/*
+  Font size is expressed as a fraction of the avatar height.
+  --header-avatar-px is set in colStyle (JS) so it always matches
+  the actual rendered avatar size on both desktop and mobile.
+  0.8 * avatar height gives text that sits comfortably next to the image.
+*/
 .faction-name {
   font-weight: 500;
-  font-size: calc(1.05rem * var(--faction-scale, 1));
+  font-size: calc(var(--header-avatar-px, 40px) * 0.8);
   color: var(--gold);
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: 0.04em;
   flex: 1 1 auto;
   min-width: 0;
@@ -209,22 +214,13 @@ async function onMemberMoveDown(idx) {
     gap: var(--mobile-card-spacing, 6px);
     padding: 8px;
   }
-
-  /*
-    Header gap, padding, and font scale via --mobile-faction-header-scale.
-    The avatar border-box itself is sized by JS (headerSize computed prop
-    reads the token and passes it as :size to EntityAvatar), so no :deep
-    overrides are needed for the avatar dimensions.
-  */
+  /* Gap and padding scale with the header. Font already tracks avatar via
+     --header-avatar-px so no separate font override is needed here. */
   .faction-header {
     gap:     calc(6px * var(--mobile-faction-header-scale, 0.7));
     padding: calc(6px * var(--mobile-faction-header-scale, 0.7))
              calc(8px * var(--mobile-faction-header-scale, 0.7));
   }
-  .faction-name {
-    font-size: calc(0.95rem * var(--mobile-faction-header-scale, 0.7)) !important;
-  }
-
   .member-grid {
     gap: var(--mobile-card-spacing, 6px);
   }
