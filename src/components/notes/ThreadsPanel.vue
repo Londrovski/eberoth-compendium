@@ -17,12 +17,15 @@
           class="thread"
           :class="{ done: t.done }"
         >
-          <input
-            type="checkbox"
-            v-model="t.done"
-            class="thread-check"
-            @change="persist"
-          />
+          <label class="check-wrap" :title="'Mark complete'">
+            <input
+              type="checkbox"
+              v-model="t.done"
+              class="thread-check"
+              @change="persist"
+            />
+            <span class="check-box" />
+          </label>
           <span
             class="text"
             contenteditable="true"
@@ -66,9 +69,6 @@ function persist() {
   }, 300);
 }
 
-// Mention picker hooked to whichever .text span the caret is in.
-// `onInput` mutates the matching thread's `text` field — but we do
-// NOT write that value back to the DOM during typing.
 const picker = useMentionPicker({
   onInput(el) {
     const idx = parseInt(el.getAttribute('data-idx'), 10);
@@ -82,10 +82,6 @@ const picker = useMentionPicker({
 function onTextBlur(i, e) {
   const v = (e.target.innerHTML || '').trim() || '(untitled)';
   threads.value[i].text = v;
-  // Don't write back to e.target on blur either — it's the same DOM
-  // that just produced the value. Writing would still be OK at blur
-  // since the user isn't typing, but skipping it keeps the caret
-  // experience consistent.
   persist();
 }
 
@@ -110,10 +106,6 @@ function randomId() {
   return 'th_' + Math.random().toString(36).slice(2, 10);
 }
 
-// Push the current thread.text values into each .text DOM node.
-// Only called on initial load + when rows are added/removed so newly
-// inserted rows pick up their text. Skips the row the user is
-// currently typing in (it has the active selection).
 function syncEditorsFromState() {
   if (!listEl.value) return;
   const focusedEl = document.activeElement;
@@ -214,13 +206,54 @@ onBeforeUnmount(() => { unbindAll(); });
 }
 .thread:focus-within { border-color: var(--gold-dim); }
 .thread.done .text { color: var(--text-dim); text-decoration: line-through; }
-.thread-check {
-  margin-top: 3px;
-  accent-color: var(--gold-dim);
-  cursor: pointer;
+
+/* Custom gold-dim checkbox.
+   The native input is visually hidden and the styled .check-box span
+   takes its place. accent-color isn't reliable across browsers, this is. */
+.check-wrap {
+  position: relative;
+  display: inline-flex;
   width: 14px;
   height: 14px;
+  margin-top: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
+.thread-check {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.check-box {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--gold-dim);
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  display: inline-block;
+  position: relative;
+}
+.thread-check:hover + .check-box { border-color: var(--gold); }
+.thread-check:checked + .check-box {
+  background: var(--gold-dim);
+  border-color: var(--gold-dim);
+}
+/* Checkmark drawn with two borders on a rotated ::after. */
+.thread-check:checked + .check-box::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 .thread .text {
   flex: 1;
   outline: none;
@@ -233,14 +266,16 @@ onBeforeUnmount(() => { unbindAll(); });
 .thread .text :deep(a.mention) {
   color: var(--bold-accent-color);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--gold-dim);
+  text-underline-offset: 2px;
   cursor: pointer;
   padding: 0 2px;
   border-radius: 2px;
 }
 .thread .text :deep(a.mention:hover) {
   background: rgba(216,201,138,0.12);
-  text-decoration: underline;
+  text-decoration-color: var(--gold);
 }
 .thread .del {
   background: transparent;
