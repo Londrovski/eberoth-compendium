@@ -190,9 +190,9 @@ async function pinTo(playerId) {
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
 }
-.lore-card.is-glow .footer        { background: rgba(201,169,97,0.18); border-top-color: var(--gold-dim); }
-.lore-card.vis-restricted .footer { background: rgba(74,107,145,0.22);  border-top-color: var(--blue); }
-.lore-card.vis-dm-only .footer    { background: rgba(139,58,58,0.25);   border-top-color: var(--red); }
+.lore-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
+.lore-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
+.lore-card.vis-dm-only .footer    { background: #3a1f1f; border-top-color: var(--red); }
 
 .name {
   font-size: var(--body-card-size);
