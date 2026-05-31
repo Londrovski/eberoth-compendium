@@ -101,8 +101,6 @@ onMounted(async () => {
 .drawer-header {
   padding: 12px 14px 8px;
   font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--gold);
   font-weight: bold;
   border-bottom: 1px solid var(--border);
@@ -110,7 +108,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  font-family: 'Cinzel', serif;
 }
 .hdr-btn {
   background: transparent;
