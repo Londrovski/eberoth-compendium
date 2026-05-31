@@ -1,7 +1,7 @@
 <template>
   <div class="notepad-panel">
     <header class="drawer-header">
-      <span>Notes</span>
+      <span class="hdr-title">Notes</span>
       <span class="status" :class="{ saving }">
         <template v-if="!authed">Sign in</template>
         <template v-else-if="saving">Saving...</template>
@@ -181,14 +181,18 @@ onMounted(async () => {
 
 .drawer-header {
   padding: 12px 14px 8px;
-  font-size: 11px;
-  color: var(--gold);
-  font-weight: bold;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+}
+.hdr-title {
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
+  font-weight: bold;
 }
 .drawer-header .status {
   font-size: 10px;
