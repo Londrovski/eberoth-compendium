@@ -27,10 +27,23 @@ const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
-const cardStyle = computed(() => ({
-  '--scale': layout.cardScale,
-  width: Math.round(180 * layout.cardScale) + 'px'
-}));
+// Card geometry: 180px wide × cardScale. Image is 3:4 (180 × 240),
+// footer reserves 2 lines (~44px) underneath. Total card height is
+// fixed; name overflow > 2 lines pushes footer up into the image.
+const W = 180;
+const FOOTER = 44;
+
+const cardStyle = computed(() => {
+  const w = W * layout.cardScale;
+  const imgH = w * 4 / 3;
+  return {
+    '--scale': layout.cardScale,
+    width: Math.round(w) + 'px',
+    height: Math.round(imgH + FOOTER * layout.cardScale) + 'px',
+    '--img-h': Math.round(imgH) + 'px',
+    '--footer-h': Math.round(FOOTER * layout.cardScale) + 'px'
+  };
+});
 
 function open() { detail.open(props.entity.id); }
 </script>
@@ -39,8 +52,6 @@ function open() { detail.open(props.entity.id); }
 .party-card {
   position: relative;
   display: block;
-  width: 180px;
-  aspect-ratio: 3 / 4;
   background: var(--bg-card);
   border: 1px solid var(--gold-dim);
   border-radius: calc(4px * var(--scale, 1));
@@ -73,7 +84,10 @@ function open() { detail.open(props.entity.id); }
 
 .img-wrap {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--img-h);
   background: var(--bg);
   overflow: hidden;
 }
@@ -92,11 +106,11 @@ function open() { detail.open(props.entity.id); }
   left: 0;
   right: 0;
   bottom: 0;
+  min-height: var(--footer-h);
   background: var(--bg-panel);
   border-top: 1px solid var(--border);
-  padding: calc(8px * var(--scale, 1)) calc(10px * var(--scale, 1));
+  padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
-  min-height: calc(36px * var(--scale, 1));
 }
 .name {
   font-size: var(--body-card-size);
