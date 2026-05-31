@@ -15,7 +15,6 @@ defineProps({
 
 <style scoped>
 .section-label {
-  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
   letter-spacing: 2px;
   text-transform: uppercase;
