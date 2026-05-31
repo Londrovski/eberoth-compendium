@@ -11,7 +11,6 @@
     <template v-else>
       <PartyAndPersonalRow />
       <FactionsGrid />
-      <LoreRow />
     </template>
   </q-page>
 </template>
@@ -22,7 +21,6 @@ import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import PartyAndPersonalRow from 'components/home/PartyAndPersonalRow.vue';
 import FactionsGrid from 'components/home/FactionsGrid.vue';
-import LoreRow from 'components/home/LoreRow.vue';
 
 const entities = useEntitiesStore();
 const appSettings = useAppSettingsStore();
