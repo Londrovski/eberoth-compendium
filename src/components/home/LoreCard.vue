@@ -88,13 +88,9 @@ const cardStyle = computed(() => {
 
 function open() { detail.open(props.entity.id); }
 
-// All players. The dedupe in PartyAndPersonalRow means this card is
-// already known not to be pinned to any of them, so we don't need to
-// filter further.
 const pinnablePlayers = computed(() => entities.players);
 
 async function pinTo(playerId) {
-  // sort_order: append at the end of that player's existing personals.
   const existing = entities.personalsOf(playerId);
   const nextOrder = existing.length
     ? Math.max(...existing.map(r => r.sort_order || 0)) + 1
@@ -194,6 +190,10 @@ async function pinTo(playerId) {
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
 }
+.lore-card.is-glow .footer        { background: rgba(201,169,97,0.18); border-top-color: var(--gold-dim); }
+.lore-card.vis-restricted .footer { background: rgba(74,107,145,0.22);  border-top-color: var(--blue); }
+.lore-card.vis-dm-only .footer    { background: rgba(139,58,58,0.25);   border-top-color: var(--red); }
+
 .name {
   font-size: var(--body-card-size);
   color: var(--gold);
