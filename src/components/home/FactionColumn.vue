@@ -55,12 +55,14 @@ const viewer   = useViewer();
 const detail   = useEntityDetail();
 const visClass = useVisibilityIndicator(props.faction.id);
 
-const members = computed(() => entities.membersOf(props.faction.id));
+const members    = computed(() => entities.membersOf(props.faction.id));
+// Desktop: avatar size driven by factionScale.
+// Mobile: avatar size driven by --mobile-faction-header-scale (set by DmToolsMobile).
 const headerSize = computed(() => Math.round(40 * layout.factionScale));
-const colStyle = computed(() => ({
-  '--faction-scale': layout.factionScale,
-  '--scale': layout.cardScale,
-  '--cards-per-row': layout.factionCardsPerRow || 2
+const colStyle   = computed(() => ({
+  '--faction-scale':  layout.factionScale,
+  '--scale':          layout.cardScale,
+  '--cards-per-row':  layout.factionCardsPerRow || 2
 }));
 
 function openFaction() { detail.open(props.faction.id); }
@@ -68,14 +70,12 @@ function openFaction() { detail.open(props.faction.id); }
 async function onMemberMoveUp(idx) {
   if (idx <= 0) return;
   await swapMembershipOrder(props.faction.id,
-    members.value[idx].entity.id,
-    members.value[idx - 1].entity.id);
+    members.value[idx].entity.id, members.value[idx - 1].entity.id);
 }
 async function onMemberMoveDown(idx) {
   if (idx >= members.value.length - 1) return;
   await swapMembershipOrder(props.faction.id,
-    members.value[idx].entity.id,
-    members.value[idx + 1].entity.id);
+    members.value[idx].entity.id, members.value[idx + 1].entity.id);
 }
 </script>
 
@@ -164,10 +164,10 @@ async function onMemberMoveDown(idx) {
 }
 
 /*
-  Mobile: column fills full width.
-  Member cards inside use --mobile-faction-cols (1/2/3) and
-  --mobile-card-spacing, both set by DmToolsMobile.
-  Image height mirrors PartyCard's padding-bottom ratio approach.
+  Mobile overrides.
+  --mobile-faction-header-scale controls the header size independently
+  of the card grid. Defaults to 0.7 (smaller than desktop) but the DM
+  can step it up/down via DmToolsMobile.
 */
 @media (max-width: 600px) {
   .faction-column {
@@ -175,18 +175,33 @@ async function onMemberMoveDown(idx) {
     min-width: unset !important;
     max-width: 100% !important;
     flex: 0 0 100%;
-    /* Use the mobile spacing token instead of the desktop one */
-    gap: var(--mobile-card-spacing, 8px);
-    padding: 10px;
+    gap: var(--mobile-card-spacing, 6px);
+    padding: 8px;
   }
+
+  /* Header: scale avatar, font, and padding by --mobile-faction-header-scale */
+  .faction-header {
+    gap:     calc(6px  * var(--mobile-faction-header-scale, 0.7));
+    padding: calc(6px  * var(--mobile-faction-header-scale, 0.7))
+             calc(8px  * var(--mobile-faction-header-scale, 0.7));
+  }
+  .faction-avatar :deep(img),
+  .faction-avatar :deep(.entity-avatar) {
+    width:  calc(40px * var(--mobile-faction-header-scale, 0.7)) !important;
+    height: calc(40px * var(--mobile-faction-header-scale, 0.7)) !important;
+  }
+  .faction-name {
+    font-size: calc(0.95rem * var(--mobile-faction-header-scale, 0.7)) !important;
+  }
+
+  /* Member grid */
   .member-grid {
-    gap: var(--mobile-card-spacing, 8px);
+    gap: var(--mobile-card-spacing, 6px);
   }
-  /* Member cards: same formula as party cards but driven by --mobile-faction-cols */
   .member-grid :deep(.member-card) {
     width: calc(
-      (100% - (var(--mobile-faction-cols, 2) - 1) * var(--mobile-card-spacing, 8px))
-      / var(--mobile-faction-cols, 2)
+      (100% - (var(--mobile-faction-cols, 3) - 1) * var(--mobile-card-spacing, 6px))
+      / var(--mobile-faction-cols, 3)
     ) !important;
     height: auto !important;
     flex-shrink: 0;
@@ -203,7 +218,7 @@ async function onMemberMoveDown(idx) {
   .member-grid :deep(.footer) {
     position: relative !important;
     min-height: unset !important;
-    padding: 6px 8px !important;
+    padding: 5px 6px !important;
   }
 }
 </style>

@@ -1,16 +1,27 @@
 <template>
   <section class="party-section" :style="sectionStyle">
     <div class="section-label">The Party &amp; Lore</div>
+
+    <!--
+      Desktop: party cards, then a divider, then personal/lore cards with group labels.
+      Mobile: everything flows into one continuous grid — no dividers, no group chips.
+      The v-if / class toggles are driven purely by CSS via .mobile-hide / .mobile-show.
+    -->
     <div class="row-wrap">
+
+      <!-- Party cards -->
       <PartyCard v-for="pc in players" :key="pc.id" :entity="pc" />
 
-      <template v-if="hasAnyPersonals">
-        <div class="divider" aria-hidden="true"></div>
+      <!-- Divider between party and personals — hidden on mobile -->
+      <div v-if="hasAnyPersonals" class="divider mobile-hide" aria-hidden="true"></div>
 
+      <template v-if="hasAnyPersonals">
+        <!-- DM grouped view: player name chip + their personals -->
         <template v-if="showGroupedView">
           <template v-for="pc in players" :key="'g-' + pc.id">
             <template v-if="personalsOf(pc.id).length">
-              <div class="group-chip">{{ pc.short_name || pc.name }}:</div>
+              <!-- group chip: hidden on mobile -->
+              <div class="group-chip mobile-hide">{{ pc.short_name || pc.name }}:</div>
               <PersonalCard
                 v-for="(row, idx) in personalsOf(pc.id)"
                 :key="pc.id + '-' + row.entity.id"
@@ -27,6 +38,7 @@
           </template>
         </template>
 
+        <!-- Player's own personal cards (non-DM view) -->
         <template v-else>
           <PersonalCard
             v-for="row in myPersonals"
@@ -38,19 +50,21 @@
         </template>
       </template>
 
-      <template v-if="orphanCards.length">
-        <div class="divider" aria-hidden="true"></div>
-        <LoreCard
-          v-for="(l, idx) in orphanCards"
-          :key="'lore-' + l.id"
-          :entity="l"
-          :reorderable="true"
-          :is-first="idx === 0"
-          :is-last="idx === orphanCards.length - 1"
-          @move-up="onLoreMoveUp(idx)"
-          @move-down="onLoreMoveDown(idx)"
-        />
-      </template>
+      <!-- Divider before orphan lore — hidden on mobile -->
+      <div v-if="orphanCards.length" class="divider mobile-hide" aria-hidden="true"></div>
+
+      <!-- Orphan lore cards -->
+      <LoreCard
+        v-for="(l, idx) in orphanCards"
+        :key="'lore-' + l.id"
+        :entity="l"
+        :reorderable="true"
+        :is-first="idx === 0"
+        :is-last="idx === orphanCards.length - 1"
+        @move-up="onLoreMoveUp(idx)"
+        @move-down="onLoreMoveDown(idx)"
+      />
+
     </div>
   </section>
 </template>
@@ -140,20 +154,20 @@ async function onLoreMoveDown(idx) {
   color: var(--section-heading-color);
   margin-bottom: calc(14px * var(--scale, 1));
 }
-
-/* Desktop: horizontal flex with wrapping */
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
   gap: var(--card-spacing);
   align-items: flex-start;
 }
+/* Desktop vertical divider */
 .divider {
   width: var(--line-thickness);
   align-self: stretch;
   background: var(--line-color);
   margin: 0 calc(8px * var(--scale, 1));
 }
+/* Desktop group label */
 .group-chip {
   align-self: flex-start;
   font-size: calc(0.7rem * var(--scale, 1));
@@ -167,29 +181,15 @@ async function onLoreMoveDown(idx) {
   margin-top: calc(80px * var(--scale, 1));
 }
 
-/*
-  Mobile: keep flex-direction ROW so cards flow into a multi-column grid.
-  The cards themselves have a CSS-computed width based on --mobile-party-cols.
-  The divider flips from a vertical bar to a horizontal rule.
-*/
 @media (max-width: 600px) {
+  /* All cards in one continuous grid — no breaks, no labels */
   .row-wrap {
-    /* Stay as row — cards will wrap automatically by their computed width */
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--mobile-card-spacing, 6px);
   }
-  .divider {
-    /* Full-width horizontal separator between groups */
-    width: 100%;
-    height: var(--line-thickness);
-    align-self: auto;
-    margin: calc(4px * var(--scale, 1)) 0;
-  }
-  .group-chip {
-    margin-top: calc(12px * var(--scale, 1));
-    width: 100%;   /* force the label onto its own line */
-  }
+  /* Hide dividers and group chips entirely on mobile */
+  .mobile-hide { display: none !important; }
 }
 </style>

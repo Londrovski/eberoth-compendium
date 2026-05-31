@@ -1,27 +1,19 @@
 <!--
-  DmToolsMobile — root panel rendered inside the TopBar DM slide-out.
-  Each control is a small focused sub-component in ./dm-mobile/.
+  DmToolsMobile — root panel, wires up all sub-controls.
+  Sub-components live in ./dm-mobile/ — edit each one independently.
 
   Controls:
-    • Party cards per row   (1 / 2 / 3)  → --mobile-party-cols
-    • Faction cards per row (1 / 2 / 3)  → --mobile-faction-cols
-    • Card gap              (2–24 px)     → --mobile-card-spacing
-    • Card image ratio      (4 presets)   → --mobile-card-ratio
-    • Personal cards        (Show / Hide)
-    • Background opacity    (0–100 %)
-    • Quick add             (faction / NPC / lore)
+    • Party cards per row          (1/2/3)     → --mobile-party-cols
+    • Faction cards per row        (1/2/3)     → --mobile-faction-cols
+    • Faction header size          (40–150%)   → --mobile-faction-header-scale
+    • Card gap                     (2–24 px)   → --mobile-card-spacing
+    • Card image ratio             (4 presets) → --mobile-card-ratio
+    • Personal cards               (Show/Hide)
+    • Background opacity           (0–100 %)
+    • Quick add                    (faction/NPC/lore)
 
-  All layout prefs are stored in localStorage and applied instantly as
-  CSS custom properties on :root so every card responds without a reload.
-
-  NOTE: "card scale" (cardScale in app-settings) is intentionally NOT
-  exposed here. On mobile the card width is driven entirely by the
-  column-count CSS formula, which ignores cardScale. If cardScale was
-  changed via the old desktop slider and saved to the DB, cards would
-  look different sizes because the formula divides 100% by the col count
-  but the individual card's --desktop-w is still computed from cardScale.
-  To guarantee uniform sizing across the party section, DmToolsMobile
-  resets cardScale to 1 on mount when running on a mobile viewport.
+  cardScale is reset to 1 on mount so all party-section cards have
+  a uniform base size (the CSS column formula overrides JS sizing).
 -->
 <template>
   <div class="dm-mobile">
@@ -37,6 +29,12 @@
       label="Faction cards per row"
       v-model="mobileFactionCols"
       @update:modelValue="setFactionCols"
+    />
+    <div class="sep" />
+
+    <MobileFactionHeaderControl
+      v-model="factionHeaderScale"
+      @update:modelValue="setFactionHeaderScale"
     />
     <div class="sep" />
 
@@ -81,12 +79,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
-import NewEntityDialog      from 'components/topbar/NewEntityDialog.vue';
-import MobileColControl     from 'components/topbar/dm-mobile/MobileColControl.vue';
-import MobileStepControl    from 'components/topbar/dm-mobile/MobileStepControl.vue';
-import MobileToggleControl  from 'components/topbar/dm-mobile/MobileToggleControl.vue';
-import MobileRatioControl   from 'components/topbar/dm-mobile/MobileRatioControl.vue';
-import MobileQuickAdd       from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
+import NewEntityDialog           from 'components/topbar/NewEntityDialog.vue';
+import MobileColControl          from 'components/topbar/dm-mobile/MobileColControl.vue';
+import MobileStepControl         from 'components/topbar/dm-mobile/MobileStepControl.vue';
+import MobileToggleControl       from 'components/topbar/dm-mobile/MobileToggleControl.vue';
+import MobileRatioControl        from 'components/topbar/dm-mobile/MobileRatioControl.vue';
+import MobileQuickAdd            from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
+import MobileFactionHeaderControl from 'components/topbar/dm-mobile/MobileFactionHeaderControl.vue';
 
 const layout = useAppSettingsStore();
 const adding = ref(null);
@@ -112,6 +111,17 @@ function setFactionCols(n) {
   mobileFactionCols.value = n;
   localStorage.setItem(FACTION_KEY, String(n));
   css('--mobile-faction-cols', n);
+}
+
+// ── Faction header scale ──────────────────────────────────────────────────────
+const HEADER_SCALE_KEY = 'eb_mobile_faction_header_scale';
+const factionHeaderScale = ref(
+  parseFloat(localStorage.getItem(HEADER_SCALE_KEY) || '0.7')
+);
+function setFactionHeaderScale(v) {
+  factionHeaderScale.value = v;
+  localStorage.setItem(HEADER_SCALE_KEY, String(v));
+  css('--mobile-faction-header-scale', v);
 }
 
 // ── Card gap ────────────────────────────────────────────────────────────────
@@ -142,19 +152,17 @@ function setOpacity(pct) { layout.setSiteBackground({ opacity: pct / 100 }); }
 // ── Quick add ───────────────────────────────────────────────────────────────
 function openAdd(kind) { adding.value = kind; }
 
-// ── Apply stored values on mount + reset cardScale to 1 on mobile ───────────
+// ── Apply all stored values on mount ──────────────────────────────────────
 onMounted(() => {
-  css('--mobile-party-cols',   mobilePartyCols.value);
-  css('--mobile-faction-cols', mobileFactionCols.value);
-  css('--mobile-card-spacing', cardSpacing.value + 'px');
-  css('--mobile-card-ratio',   cardRatio.value);
+  css('--mobile-party-cols',          mobilePartyCols.value);
+  css('--mobile-faction-cols',        mobileFactionCols.value);
+  css('--mobile-faction-header-scale', factionHeaderScale.value);
+  css('--mobile-card-spacing',        cardSpacing.value + 'px');
+  css('--mobile-card-ratio',          cardRatio.value);
 
-  // Reset cardScale to 1 so all mobile cards have the same base size.
-  // The CSS column-count formula determines actual width; cardScale only
-  // matters on desktop where the JS-computed --desktop-w is used.
-  if (layout.cardScale !== 1) {
-    layout.setCardScale(1);
-  }
+  // Normalise cardScale to 1: the CSS col-count formula drives mobile
+  // card width, so JS-computed scaling would make cards unequal sizes.
+  if (layout.cardScale !== 1) layout.setCardScale(1);
 });
 </script>
 
