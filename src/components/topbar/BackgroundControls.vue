@@ -9,6 +9,17 @@
       </select>
     </div>
 
+    <div class="row-pair">
+      <div class="row-pair-label">Base colour</div>
+      <input
+        type="color"
+        class="swatch"
+        :value="bg.bgColor || '#000000'"
+        @input="onColor($event)"
+        :title="'Colour painted behind the image'"
+      />
+    </div>
+
     <div class="row-pair" v-if="bg.mode !== 'none'">
       <div class="row-pair-label">Opacity</div>
       <Stepper
@@ -46,9 +57,19 @@ const sizePct    = computed(() => Math.round((bg.value.size    ?? 0.80) * 100));
 function onMode(e)    { layout.setSiteBackground({ mode: e.target.value }); }
 function onOpacity(v) { layout.setSiteBackground({ opacity: v / 100 }); }
 function onSize(v)    { layout.setSiteBackground({ size: v / 100 }); }
-function reset()      { layout.setSiteBackground({ mode: 'none', opacity: 0.35, size: 0.8 }); }
+function reset()      { layout.setSiteBackground({ mode: 'none', opacity: 0.35, size: 0.8, bgColor: '#000000' }); }
 
-// Tiny inline stepper.
+// Debounced colour writes so the native picker scrubbing doesn't
+// hammer Supabase.
+let colorTimer = null;
+function onColor(e) {
+  const next = e.target.value;
+  // Update local immediately so the swatch UI keeps up.
+  layout.siteBackground = { ...layout.siteBackground, bgColor: next };
+  clearTimeout(colorTimer);
+  colorTimer = setTimeout(() => layout.setSiteBackground({ bgColor: next }), 250);
+}
+
 const Stepper = {
   props: ['value', 'min', 'max', 'step', 'suffix'],
   emits: ['change'],
@@ -92,6 +113,16 @@ const Stepper = {
   padding: 3px 6px;
 }
 .select:focus { outline: none; border-color: var(--gold-dim); }
+.swatch {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+.swatch:hover { border-color: var(--gold-dim); }
 :deep(.stepper) {
   display: inline-flex;
   align-items: center;
