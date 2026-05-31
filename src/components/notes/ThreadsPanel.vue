@@ -9,6 +9,8 @@
       <div v-if="!authed" class="threads-empty">Sign in to track threads.</div>
 
       <template v-else>
+        <!-- No v-html on .text — assigning innerHTML imperatively in
+             nextTick after the row mounts. Otherwise typing resets caret. -->
         <div
           v-for="(t, i) in threads"
           :key="t.id"
@@ -25,8 +27,8 @@
             class="text"
             contenteditable="true"
             spellcheck="false"
-            v-html="t.text"
             :data-idx="i"
+            :data-thread-id="t.id"
             @blur="onTextBlur(i, $event)"
             @keydown.enter.prevent="$event.target.blur()"
           ></span>
@@ -64,7 +66,9 @@ function persist() {
   }, 300);
 }
 
-// Shared mention picker for whichever .text span the user is in.
+// Mention picker hooked to whichever .text span the caret is in.
+// `onInput` mutates the matching thread's `text` field — but we do
+// NOT write that value back to the DOM during typing.
 const picker = useMentionPicker({
   onInput(el) {
     const idx = parseInt(el.getAttribute('data-idx'), 10);
@@ -78,7 +82,10 @@ const picker = useMentionPicker({
 function onTextBlur(i, e) {
   const v = (e.target.innerHTML || '').trim() || '(untitled)';
   threads.value[i].text = v;
-  e.target.innerHTML = v;
+  // Don't write back to e.target on blur either — it's the same DOM
+  // that just produced the value. Writing would still be OK at blur
+  // since the user isn't typing, but skipping it keeps the caret
+  // experience consistent.
   persist();
 }
 
@@ -91,13 +98,11 @@ function add() {
     position: threads.value.length
   });
   persist();
-  nextTick(() => bindAll());
 }
 
 function remove(thread) {
   threads.value = threads.value.filter(x => x.id !== thread.id);
   persist();
-  nextTick(() => bindAll());
 }
 
 function randomId() {
@@ -105,8 +110,24 @@ function randomId() {
   return 'th_' + Math.random().toString(36).slice(2, 10);
 }
 
-// We bind the mention picker to each .text span. Re-bind whenever
-// threads change so newly-created rows participate.
+// Push the current thread.text values into each .text DOM node.
+// Only called on initial load + when rows are added/removed so newly
+// inserted rows pick up their text. Skips the row the user is
+// currently typing in (it has the active selection).
+function syncEditorsFromState() {
+  if (!listEl.value) return;
+  const focusedEl = document.activeElement;
+  const nodes = Array.from(listEl.value.querySelectorAll('.text'));
+  nodes.forEach(el => {
+    if (el === focusedEl) return;
+    const idx = parseInt(el.getAttribute('data-idx'), 10);
+    if (!Number.isInteger(idx)) return;
+    const t = threads.value[idx];
+    const html = (t && t.text) || '';
+    if (el.innerHTML !== html) el.innerHTML = html;
+  });
+}
+
 let boundEls = [];
 function bindAll() {
   unbindAll();
@@ -119,11 +140,16 @@ function unbindAll() {
   boundEls = [];
 }
 
-watch(() => threads.value.length, () => { nextTick(() => bindAll()); });
+watch(() => threads.value.length, async () => {
+  await nextTick();
+  syncEditorsFromState();
+  bindAll();
+});
 
 onMounted(async () => {
   if (authed.value) threads.value = await fetchThreads();
   await nextTick();
+  syncEditorsFromState();
   bindAll();
 });
 onBeforeUnmount(() => { unbindAll(); });
