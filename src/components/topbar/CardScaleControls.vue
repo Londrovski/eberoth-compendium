@@ -48,14 +48,10 @@ function dec() {
 <style scoped>
 .scale-row { color: var(--text); }
 .lbl {
-  font-family: 'Cinzel', serif;
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--text-dim);
 }
 .pct {
-  font-family: 'Cinzel', serif;
   font-size: 12px;
   color: var(--gold);
 }
