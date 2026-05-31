@@ -107,11 +107,8 @@ async function onSubmit() {
   margin: 0;
 }
 .landing-compendium {
-  font-family: 'Cinzel', serif;
   font-size: 13px;
   color: var(--gold-dim);
-  letter-spacing: 6px;
-  text-transform: uppercase;
   padding-bottom: 18px;
 }
 .landing-tag {
@@ -151,10 +148,7 @@ async function onSubmit() {
   border: 1px solid var(--gold-dim);
   color: var(--bg);
   padding: 9px 0;
-  font-family: 'Cinzel', serif;
   font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   cursor: pointer;
   border-radius: 3px;
 }
