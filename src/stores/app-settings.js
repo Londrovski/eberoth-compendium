@@ -1,6 +1,5 @@
 // DM-controlled global config store. Source of truth: Supabase
-// app_settings table. We subscribe to Realtime so any DM change
-// propagates live to every connected client.
+// app_settings table.
 
 import { defineStore } from 'pinia';
 import { supabase } from 'boot/supabase';
@@ -41,9 +40,10 @@ const DEFAULT_PLACEHOLDERS = {
   enabled:      true
 };
 
-// Mobile-specific defaults. Tuned for ~360-414px phone screens.
-// `breakpoint` controls the width below which mobile mode kicks in.
+// Mobile-specific defaults. `enabled` is a kill-switch: when false,
+// mobile mode is OFF no matter what useViewport's detection says.
 const DEFAULT_MOBILE = {
+  enabled:        false,
   breakpoint:     600,
   cardScale:      0.55,
   cardSpacing:    10,
@@ -212,6 +212,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
       }
       if (key === 'mobile_layout') {
         this.mobile = {
+          enabled:      value?.enabled === true,
           breakpoint:   clampInt(value?.breakpoint,   320, 1200, DEFAULT_MOBILE.breakpoint),
           cardScale:    clampNum(value?.cardScale,    0.3, 1.2,  DEFAULT_MOBILE.cardScale),
           cardSpacing:  clampInt(value?.cardSpacing,  2,   40,   DEFAULT_MOBILE.cardSpacing),
@@ -369,6 +370,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     },
     async setMobile(patch) {
       const next = {
+        enabled:      patch?.enabled      !== undefined ? !!patch.enabled : (this.mobile.enabled === true),
         breakpoint:   patch?.breakpoint   ?? this.mobile.breakpoint   ?? DEFAULT_MOBILE.breakpoint,
         cardScale:    patch?.cardScale    ?? this.mobile.cardScale    ?? DEFAULT_MOBILE.cardScale,
         cardSpacing:  patch?.cardSpacing  ?? this.mobile.cardSpacing  ?? DEFAULT_MOBILE.cardSpacing,
