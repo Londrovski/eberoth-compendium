@@ -99,7 +99,6 @@ async function onPersonalMoveDown(playerId, idx) {
   border-bottom: 1px solid var(--border);
 }
 .section-label {
-  font-family: 'Cinzel', serif;
   font-size: calc(0.7rem * var(--scale, 1));
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -119,7 +118,6 @@ async function onPersonalMoveDown(playerId, idx) {
   margin: 0 calc(6px * var(--scale, 1));
 }
 .group-chip {
-  font-family: 'Cinzel', serif;
   font-size: calc(0.7rem * var(--scale, 1));
   font-weight: 500;
   color: var(--gold-dim);
@@ -128,7 +126,5 @@ async function onPersonalMoveDown(playerId, idx) {
   border: 1px solid var(--border);
   border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 </style>
