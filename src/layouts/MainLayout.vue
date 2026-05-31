@@ -1,7 +1,5 @@
 <template>
   <q-layout view="hHh lpR fFf" class="app-shell">
-    <!-- Fixed full-viewport background. Sits below everything via z-index.
-         Doesn't scroll, fills via cover (horizon) or % of smaller dim (logo). -->
     <div
       v-if="bg.mode !== 'none'"
       class="bg-layer"
@@ -11,7 +9,7 @@
     ></div>
 
     <TopBar />
-    <q-page-container class="page-container">
+    <q-page-container class="page-container" :style="zoomStyle">
       <router-view />
     </q-page-container>
     <DetailPanel />
@@ -21,15 +19,7 @@
 </template>
 
 <script setup>
-// Main layout. Topbar + a router-view + global panels mounted once so
-// any component (including the DM Highlight banner) can open them
-// regardless of which page the user is currently on.
-//
-// Also paints the optional DM-controlled background layer behind
-// everything. The pages set a transparent background (`q-page`
-// override below) so the bg shows through; cards remain solid so
-// they read as panels floating over the image.
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import TopBar from 'components/topbar/TopBar.vue';
 import DetailPanel from 'components/detail/DetailPanel.vue';
 import SessionDetailPanel from 'components/notes/SessionDetailPanel.vue';
@@ -37,10 +27,14 @@ import DmHighlightBanner from 'components/banner/DmHighlightBanner.vue';
 import { useDmHighlightStore } from 'src/stores/dm-highlight';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useAppSettingsStore } from 'src/stores/app-settings';
+import { useAuthStore } from 'src/stores/auth';
+import { useUserPrefsStore } from 'src/stores/user-prefs';
 
 const dmHighlight = useDmHighlightStore();
 const entities    = useEntitiesStore();
 const appSettings = useAppSettingsStore();
+const auth        = useAuthStore();
+const userPrefs   = useUserPrefsStore();
 
 const HORIZON_URL = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/The%20Descending%20Horizon.png';
 const LOGO_URL    = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
@@ -50,9 +44,6 @@ const bg = computed(() => appSettings.siteBackground);
 const bgStyle = computed(() => {
   const opacity = Math.max(0, Math.min(1, bg.value.opacity ?? 0.35));
   if (bg.value.mode === 'horizon') {
-    // `cover` scales the image so it fills the smaller dimension and
-    // overflows the larger one, guaranteeing no black bars. Fixed
-    // attachment keeps the bg locked while the page scrolls.
     return {
       backgroundImage: `url("${HORIZON_URL}")`,
       backgroundSize: 'cover',
@@ -62,14 +53,9 @@ const bgStyle = computed(() => {
     };
   }
   if (bg.value.mode === 'logo') {
-    // For the logo we use the smaller viewport dimension as the basis
-    // and apply the size %. `contain`-equivalent behaviour by setting
-    // both background-size and centering.
     const pct = Math.round((bg.value.size ?? 0.8) * 100);
     return {
       backgroundImage: `url("${LOGO_URL}")`,
-      // Size based on the smaller dim: use min(Wvw, Hvh) via two
-      // declarations — `min()` works in modern browsers.
       backgroundSize: `min(${pct}vw, ${pct}vh)`,
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
@@ -79,11 +65,23 @@ const bgStyle = computed(() => {
   return {};
 });
 
+// Per-user zoom. Apply via the non-standard `zoom` CSS property —
+// works in Chromium and Safari, the players' actual browsers. Falls
+// back to no-op in Firefox without breaking layout.
+const zoomStyle = computed(() => ({
+  zoom: String(userPrefs.userZoom || 1)
+}));
+
+// Reload prefs whenever the auth user changes (sign in, sign out,
+// view-as is irrelevant here because viewingAs doesn't change `user`).
+watch(() => auth.user?.email, () => { userPrefs.load(); });
+
 onMounted(async () => {
   await Promise.all([
     entities.load(),
     appSettings.load(),
-    dmHighlight.load()
+    dmHighlight.load(),
+    userPrefs.load()
   ]);
   entities.subscribeRealtime();
   appSettings.subscribeRealtime();
@@ -102,16 +100,9 @@ onMounted(async () => {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Hard-coded against the page background so the opacity stays
-     true even when the image has transparency. */
   background-color: var(--bg);
 }
-.bg-layer.mode-horizon,
-.bg-layer.mode-logo {
-  /* The inline style overrides image / size / position / opacity. */
-}
 
-/* Pages need to be transparent for the bg-layer to show through. */
 .page-container {
   position: relative;
   z-index: 1;
