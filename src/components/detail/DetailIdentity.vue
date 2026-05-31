@@ -27,12 +27,10 @@ const kindLabel = computed(() => KIND_LABEL[props.entity.kind] || props.entity.k
 <style scoped>
 .identity { padding: 8px 0; }
 .name {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 1.6rem;
   font-weight: 500;
   line-height: 1.2;
   color: var(--gold);
-  letter-spacing: 0.03em;
 }
 .sub {
   font-size: 0.95rem;
@@ -41,7 +39,6 @@ const kindLabel = computed(() => KIND_LABEL[props.entity.kind] || props.entity.k
   max-width: 100%;
 }
 .kind {
-  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
   letter-spacing: 3px;
   text-transform: uppercase;
