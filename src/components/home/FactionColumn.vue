@@ -2,7 +2,7 @@
   <div class="faction-column" :style="colStyle">
     <div class="faction-header" :class="visClass">
       <div class="header-main" @click="openFaction">
-        <EntityAvatar :entity="faction" :size="headerSize" />
+        <EntityAvatar :entity="faction" :size="headerSize" class="faction-avatar" />
         <div class="faction-name">{{ faction.short_name || faction.name }}</div>
       </div>
       <ReorderArrows
@@ -80,19 +80,22 @@ async function onMemberMoveDown(idx) {
 
 <style scoped>
 /*
-  Faction-column width hugs one member card:
-    width = card width (--card-w) + 2 * horizontal padding.
-  The column scales with cardScale via the padding terms and --card-w
-  itself, so making cards smaller naturally makes columns thinner.
-
-  Members inside stack vertically (member-grid is a flex column) — the
-  row-level packing happens at the FactionsGrid layer.
+  Layout strategy:
+    width  = 2 * card width + card spacing + 2 * column padding
+    members wrap inside via flex-wrap (2-up rows by default, more rows as
+    the faction grows)
+    header is a flex row that allows the name to wrap rather than
+    overflow the box
+  Everything scales off --card-w (driven by the DM card-scale slider),
+  so shrinking cards shrinks columns proportionally and the outer
+  FactionsGrid can fit more columns per row.
 */
 .faction-column {
   --col-pad-x: calc(14px * var(--scale, 1));
   --col-pad-y: calc(12px * var(--scale, 1));
-  width: calc(var(--card-w, 180px) + 2 * var(--col-pad-x));
+  width: calc(2 * var(--card-w, 180px) + var(--card-spacing) + 2 * var(--col-pad-x));
   flex: 0 0 auto;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: calc(12px * var(--scale, 1));
@@ -122,6 +125,7 @@ async function onMemberMoveDown(idx) {
   border-bottom: var(--line-thickness) solid var(--line-color);
   border-radius: calc(3px * var(--scale, 1));
   background: transparent;
+  min-width: 0;
 }
 
 .faction-header.vis-restricted {
@@ -138,22 +142,32 @@ async function onMemberMoveDown(idx) {
   align-items: center;
   gap: calc(10px * var(--faction-scale, 1));
   cursor: pointer;
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 0;       /* allow text to shrink/wrap */
 }
 .header-main:hover .faction-name { color: var(--gold-bright); }
+.faction-avatar { flex: 0 0 auto; }
 .faction-name {
   font-weight: 500;
-  font-size: calc(1.1rem * var(--faction-scale, 1));
+  font-size: calc(1.05rem * var(--faction-scale, 1));
   color: var(--gold);
   line-height: 1.2;
   letter-spacing: 0.04em;
+  /* Wrap inside the box rather than push past the right edge. */
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
 }
+
 .member-grid {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--card-spacing);
-  align-items: stretch;
+  align-items: flex-start;
+  justify-content: center;
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
