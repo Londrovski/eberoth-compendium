@@ -74,21 +74,21 @@ const otherBodies = computed(() => {
 
 <style scoped>
 .section-label {
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: 6px;
 }
 .shared p, .viewer-body p, .other-body-content p {
-  font-size: 0.95rem;
+  font-size: var(--body-card-size);
   line-height: 1.6;
-  color: var(--text);
+  color: var(--body-card-color);
   margin: 0 0 0.8em 0;
 }
 .shared :deep(strong),
 .viewer-body :deep(strong),
-.other-body-content :deep(strong) { color: var(--gold-bright); font-weight: 600; }
+.other-body-content :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
 .viewer-body {
   padding: 10px 12px;
   background: rgba(201,169,97,0.08);
