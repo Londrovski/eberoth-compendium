@@ -1,7 +1,9 @@
 <template>
   <div class="identity column items-center text-center q-mb-md">
-    <EntityAvatar :entity="entity" :size="120" />
-    <div class="name q-mt-sm">{{ entity.name }}</div>
+    <div class="avatar-wrap">
+      <EntityAvatar :entity="entity" fill />
+    </div>
+    <div class="name q-mt-md">{{ entity.name }}</div>
     <div class="sub q-mt-xs" v-if="entity.sub">{{ entity.sub }}</div>
     <div class="kind q-mt-xs">{{ kindLabel }}</div>
   </div>
@@ -25,7 +27,11 @@ const kindLabel = computed(() => KIND_LABEL[props.entity.kind] || props.entity.k
 </script>
 
 <style scoped>
-.identity { padding: 8px 0; }
+.identity { padding: 0 0 8px; }
+.avatar-wrap {
+  width: 100%;
+  max-width: 100%;
+}
 .name {
   font-size: 1.6rem;
   font-weight: 500;
