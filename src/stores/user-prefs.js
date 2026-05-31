@@ -5,6 +5,7 @@
 // Current prefs:
 //   notesDrawerWidth  number   px width of the notes-page resizer
 //   userZoom          number   page-wide zoom multiplier (1 = 100%)
+//   usageDisabled     boolean  if true, suppress usage_events writes
 //
 // On change we debounce-save (1s) so dragging a slider doesn't
 // hammer the DB.
@@ -15,7 +16,8 @@ import * as api from 'src/api/user-prefs';
 
 const DEFAULTS = {
   notesDrawerWidth: 340,
-  userZoom: 1.0
+  userZoom: 1.0,
+  usageDisabled: false
 };
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -24,14 +26,11 @@ export const useUserPrefsStore = defineStore('userPrefs', {
   state: () => ({
     notesDrawerWidth: DEFAULTS.notesDrawerWidth,
     userZoom: DEFAULTS.userZoom,
+    usageDisabled: DEFAULTS.usageDisabled,
     _loadedFor: null,
     _saveTimer: null
   }),
   actions: {
-    /**
-     * Load prefs for the currently-signed-in user. Safe to call
-     * repeatedly — it only re-fetches when the bucket changes.
-     */
     async load() {
       const auth = useAuthStore();
       const email = auth.user?.email || null;
@@ -43,6 +42,7 @@ export const useUserPrefsStore = defineStore('userPrefs', {
         const prefs = row?.prefs || {};
         this.notesDrawerWidth = prefs.notesDrawerWidth ?? DEFAULTS.notesDrawerWidth;
         this.userZoom         = prefs.userZoom         ?? DEFAULTS.userZoom;
+        this.usageDisabled    = !!prefs.usageDisabled;
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('[userPrefs] load failed', e);
@@ -53,6 +53,7 @@ export const useUserPrefsStore = defineStore('userPrefs', {
     _applyDefaults() {
       this.notesDrawerWidth = DEFAULTS.notesDrawerWidth;
       this.userZoom         = DEFAULTS.userZoom;
+      this.usageDisabled    = DEFAULTS.usageDisabled;
       this.applyCssVars();
     },
     applyCssVars() {
@@ -71,7 +72,8 @@ export const useUserPrefsStore = defineStore('userPrefs', {
         try {
           await api.upsertMine(email, {
             notesDrawerWidth: this.notesDrawerWidth,
-            userZoom: this.userZoom
+            userZoom: this.userZoom,
+            usageDisabled: this.usageDisabled
           });
         } catch (e) {
           // eslint-disable-next-line no-console
@@ -90,6 +92,10 @@ export const useUserPrefsStore = defineStore('userPrefs', {
     },
     resetZoom() {
       this.setUserZoom(DEFAULTS.userZoom);
+    },
+    setUsageDisabled(v) {
+      this.usageDisabled = !!v;
+      this._scheduleSave();
     }
   }
 });
