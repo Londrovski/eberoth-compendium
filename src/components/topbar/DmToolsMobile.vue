@@ -1,5 +1,27 @@
 <template>
   <div class="mb-block" @click.stop>
+    <!-- Diagnostic readout — tells the DM at a glance what mobile mode
+         thinks the viewport is, and why isMobile is or isn't true.
+         Updates live as the window resizes. -->
+    <div class="diag" :class="{ active: viewport.isMobile }">
+      <span class="diag-row">
+        <span class="diag-k">Width</span>
+        <span class="diag-v">{{ viewport.width }}px</span>
+      </span>
+      <span class="diag-row">
+        <span class="diag-k">Breakpoint</span>
+        <span class="diag-v">{{ viewport.breakpoint }}px</span>
+      </span>
+      <span class="diag-row">
+        <span class="diag-k">Preview force</span>
+        <span class="diag-v">{{ layout.mobilePreviewForce ? 'On' : 'Off' }}</span>
+      </span>
+      <span class="diag-row verdict">
+        <span class="diag-k">Mobile mode</span>
+        <span class="diag-v">{{ viewport.isMobile ? 'YES' : 'NO' }}</span>
+      </span>
+    </div>
+
     <div class="row-pair">
       <div class="row-pair-label">Preview mobile</div>
       <div class="row items-center q-gutter-xs">
@@ -15,6 +37,16 @@
           @click="setPreview(false)"
         >Off</button>
       </div>
+    </div>
+
+    <div class="row-pair">
+      <div class="row-pair-label">Breakpoint</div>
+      <Stepper
+        :value="breakpoint"
+        :min="320" :max="1200" :step="20"
+        suffix="px"
+        @change="onBreakpoint"
+      />
     </div>
 
     <div class="row-pair">
@@ -83,9 +115,12 @@
 <script setup>
 import { h, computed } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
+import { useViewport } from 'src/composables/useViewport';
 
 const layout = useAppSettingsStore();
+const viewport = useViewport();
 
+const breakpoint    = computed(() => layout.mobile?.breakpoint ?? 600);
 const cardScalePct  = computed(() => Math.round((layout.mobile?.cardScale ?? 0.55) * 100));
 const cardSpacing   = computed(() => layout.mobile?.cardSpacing ?? 10);
 const cardsPerRow   = computed(() => layout.mobile?.cardsPerRow ?? 3);
@@ -93,6 +128,7 @@ const topbarHeight  = computed(() => layout.mobile?.topbarHeight ?? 44);
 const wordmarkSize  = computed(() => layout.mobile?.wordmarkSize ?? 22);
 const bodyCardSize  = computed(() => layout.mobile?.bodyCardSize ?? 12);
 
+function onBreakpoint(v)   { layout.setMobile({ breakpoint: v }); }
 function onCardScale(v)    { layout.setMobile({ cardScale: v / 100 }); }
 function onCardSpacing(v)  { layout.setMobile({ cardSpacing: v }); }
 function onCardsPerRow(v)  { layout.setMobile({ cardsPerRow: v }); }
@@ -121,6 +157,30 @@ const Stepper = {
 
 <style scoped>
 .mb-block { display: flex; flex-direction: column; gap: 6px; }
+
+.diag {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.diag.active { border-color: var(--gold-dim); }
+.diag-row {
+  display: flex;
+  justify-content: space-between;
+}
+.diag-k { color: var(--text-dim); }
+.diag-v { color: var(--text); font-family: 'SF Mono', Menlo, monospace; }
+.diag-row.verdict { margin-top: 3px; padding-top: 3px; border-top: 1px dashed var(--border); }
+.diag-row.verdict .diag-k { color: var(--gold-dim); }
+.diag-row.verdict .diag-v { color: var(--gold); }
+
 .row-pair {
   display: grid;
   grid-template-columns: 1fr auto;
