@@ -89,8 +89,10 @@ async function onSignOut() {
   margin-top: 2px;
 }
 .eb-tabs :deep(.q-tab) {
-  color: var(--text-dim);
-  font-size: 0.7rem;
+  color: var(--section-heading-color);
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
 }
 .eb-tabs :deep(.q-tab--active) { color: var(--gold); }
 .eb-tabs :deep(.q-tab__indicator) { background: var(--gold) !important; }
