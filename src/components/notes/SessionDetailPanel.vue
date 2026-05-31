@@ -21,10 +21,9 @@
           v-if="viewer.isDM && session"
           flat dense no-caps
           icon="auto_awesome"
-          :label="isHighlighted ? 'Highlighted' : 'Highlight'"
+          label="Highlight"
           class="highlight-btn"
-          :class="{ active: isHighlighted }"
-          :title="isHighlighted ? 'This is currently highlighted to players' : 'Push this session to all players'"
+          :title="'Send this session to all players'"
           @click="onHighlight"
         />
         <q-btn flat round dense icon="close" class="close-btn" @click="close" />
@@ -107,18 +106,11 @@ const loading = ref(false);
 const error = ref(null);
 const full = ref({ summary: [], parts: [], body: null });
 
-const isHighlighted = computed(() =>
-  dmHighlight.isActive &&
-  dmHighlight.kind === 'session' &&
-  dmHighlight.targetId === session.value?.id
-);
-
 function close() { sessionDetail.close(); }
 
 function onHighlight() {
   if (!session.value) return;
-  if (isHighlighted.value) dmHighlight.clear();
-  else dmHighlight.setSession(session.value);
+  dmHighlight.setSession(session.value);
 }
 
 watch(
@@ -176,11 +168,6 @@ watch(
   letter-spacing: 1px;
 }
 .highlight-btn:hover { color: var(--gold-bright); }
-.highlight-btn.active {
-  color: var(--gold-bright);
-  background: rgba(201,169,97,0.14);
-  border-radius: 3px;
-}
 .close-btn {
   position: absolute;
   top: 10px;
