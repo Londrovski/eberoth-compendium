@@ -50,7 +50,7 @@ function open() { detail.open(props.entity.id); }
   position: relative;
   display: block;
   background: var(--bg-card);
-  border: 1px solid var(--gold-dim);
+  border: var(--line-thickness) solid var(--line-color);
   border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
   overflow: hidden;
@@ -63,6 +63,7 @@ function open() { detail.open(props.entity.id); }
   box-shadow: 0 8px 28px rgba(201, 169, 97, 0.25);
 }
 
+/* Glow / visibility states override only colour, not thickness. */
 .party-card.vis-restricted {
   background: rgba(74,107,145,0.10);
   border-color: var(--blue);
@@ -105,7 +106,7 @@ function open() { detail.open(props.entity.id); }
   bottom: 0;
   min-height: var(--footer-h);
   background: var(--bg-panel);
-  border-top: 1px solid var(--border);
+  border-top: var(--line-thickness) solid var(--line-color);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
   display: flex;
