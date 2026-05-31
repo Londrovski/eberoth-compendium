@@ -8,6 +8,15 @@
   >
     <q-card class="session-card column">
       <header class="card-head">
+        <q-btn
+          v-if="sessionDetail.canGoBack.value"
+          flat dense no-caps
+          icon="arrow_back"
+          label="Back"
+          class="back-btn"
+          :title="'Previous session'"
+          @click="sessionDetail.back()"
+        />
         <q-btn flat round dense icon="close" class="close-btn" @click="close" />
         <div v-if="session" class="session-detail-number">Session {{ session.number }}</div>
         <h2 v-if="session" class="session-detail-title">{{ session.title || ('Session ' + session.number) }}</h2>
@@ -69,28 +78,30 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import * as sessionsApi from 'src/api/sessions';
+import { useSessionDetail } from 'src/composables/useSessionDetail';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  session:    { type: Object, default: null }
-});
-const emit = defineEmits(['update:modelValue']);
+const sessionDetail = useSessionDetail();
 
 const openModel = computed({
-  get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v)
+  get: () => sessionDetail.isOpen.value,
+  set: (v) => { if (!v) close(); }
 });
+
+const session = computed(() => sessionDetail.currentSession.value);
 
 const loading = ref(false);
 const error = ref(null);
 const full = ref({ summary: [], parts: [], body: null });
 
-function close() { emit('update:modelValue', false); }
+function close() { sessionDetail.close(); }
 
 watch(
-  () => [props.modelValue, props.session?.id],
-  async ([open, id]) => {
-    if (!open || !id) return;
+  () => session.value?.id,
+  async (id) => {
+    if (!id) {
+      full.value = { summary: [], parts: [], body: null };
+      return;
+    }
     loading.value = true;
     error.value = null;
     try {
@@ -123,6 +134,14 @@ watch(
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
 }
+.back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.back-btn:hover { color: var(--gold); }
 .close-btn {
   position: absolute;
   top: 10px;
