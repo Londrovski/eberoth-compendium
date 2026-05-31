@@ -106,18 +106,14 @@ watch(
 </script>
 
 <style scoped>
-/* Softer reading colour just for this panel.
-   --text site-wide is #e8e2d4 (high contrast); --read is a warmer, less glaring tone. */
+/* Reading colour + size are driven by the DM Typography panel via
+   --body-session-color / --body-session-size and --bold-accent-color. */
 .session-card {
-  --read:        #c9bfa9;
-  --read-strong: #d8c98a;
-  --read-mute:   #8a8170;
-
   width: 460px;
   max-width: 100vw;
   height: 100vh;
   background: var(--bg-panel);
-  color: var(--read);
+  color: var(--body-session-color);
   border-left: 1px solid var(--border);
 }
 
@@ -136,8 +132,10 @@ watch(
 .close-btn:hover { color: var(--gold); }
 
 .session-detail-number {
-  font-size: 11px;
-  color: var(--gold-dim);
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
   text-align: center;
 }
 .session-detail-title {
@@ -151,14 +149,14 @@ watch(
 .card-body { padding: 20px 24px 28px; }
 
 .session-row-summary {
-  color: var(--read-mute);
+  color: var(--text-dim);
   font-style: italic;
-  font-size: 14px;
+  font-size: calc(var(--body-session-size) - 1px);
   margin-bottom: 18px;
   text-align: center;
   line-height: 1.65;
 }
-.session-row-summary :deep(strong) { color: var(--read-strong); font-style: normal; font-weight: 600; }
+.session-row-summary :deep(strong) { color: var(--bold-accent-color); font-style: normal; font-weight: 600; }
 
 .player-body {
   border-left: 3px solid var(--gold-dim);
@@ -168,16 +166,18 @@ watch(
   margin-bottom: 18px;
 }
 .player-body-label {
-  font-size: 10px;
-  color: var(--gold-dim);
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
   margin-bottom: 6px;
 }
 .player-body-text {
-  font-size: 14px;
+  font-size: var(--body-session-size);
   line-height: 1.75;
-  color: var(--read);
+  color: var(--body-session-color);
 }
-.player-body-text :deep(strong) { color: var(--read-strong); font-weight: 600; }
+.player-body-text :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
 
 .session-summary-box {
   background: rgba(201,169,97,0.04);
@@ -188,45 +188,49 @@ watch(
   margin-bottom: 18px;
 }
 .session-summary-label {
-  font-size: 10px;
-  color: var(--gold-dim);
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
   margin-bottom: 6px;
 }
 .session-summary-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin: 0; }
 .session-summary-list li {
-  color: var(--read);
-  font-size: 14px;
+  color: var(--body-session-color);
+  font-size: var(--body-session-size);
   line-height: 1.65;
   padding-left: 14px;
   position: relative;
 }
 .session-summary-list li::before { content: '—'; position: absolute; left: 0; color: var(--gold-dim); }
-.session-summary-list li :deep(strong) { color: var(--read-strong); font-weight: 600; }
+.session-summary-list li :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
 
 .session-detail-part-label {
-  font-size: 11px;
-  color: var(--gold-dim);
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
   margin: 22px 0 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
 .session-block-para {
-  color: var(--read);
-  font-size: 15px;
+  color: var(--body-session-color);
+  font-size: var(--body-session-size);
   line-height: 1.85;
   margin: 0 0 12px 0;
 }
-.session-block-para :deep(strong) { color: var(--read-strong); font-weight: 600; }
+.session-block-para :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
 .session-block-highlight {
-  color: var(--read-strong);
-  font-size: 15px;
+  color: var(--bold-accent-color);
+  font-size: var(--body-session-size);
   font-weight: 600;
   line-height: 1.6;
   margin: 14px 0 8px;
 }
 .session-block-takeaway {
-  color: var(--read-strong);
-  font-size: 14px;
+  color: var(--bold-accent-color);
+  font-size: calc(var(--body-session-size) - 1px);
   font-weight: 600;
   line-height: 1.7;
   padding-left: 14px;
@@ -249,12 +253,12 @@ watch(
   padding: 0;
 }
 .session-block-testimonies li {
-  color: var(--read);
-  font-size: 14px;
+  color: var(--body-session-color);
+  font-size: calc(var(--body-session-size) - 1px);
   line-height: 1.7;
 }
-.session-block-testimonies li :deep(strong) { color: var(--read-strong); font-weight: 600; }
-.testimony-name { color: var(--read-strong); font-weight: 600; }
+.session-block-testimonies li :deep(strong) { color: var(--bold-accent-color); font-weight: 600; }
+.testimony-name { color: var(--bold-accent-color); font-weight: 600; }
 
-.empty-note { color: var(--read-mute); font-size: 13px; font-style: italic; text-align: center; padding: 16px 0; }
+.empty-note { color: var(--text-dim); font-size: 13px; font-style: italic; text-align: center; padding: 16px 0; }
 </style>
