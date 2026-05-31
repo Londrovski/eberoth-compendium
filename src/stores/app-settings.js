@@ -47,6 +47,9 @@ const DEFAULTS = {
   site_lines:               DEFAULT_LINES
 };
 
+// Card geometry — must match the constants in the card components.
+const CARD_BASE_W = 180;
+
 // Faction box base colours (in sync with the previous hardcoded ones).
 const BOX_BASE = {
   default:    { r: 26, g: 24, b: 20 },   // ~#1a1814 (var(--bg-panel))
@@ -150,7 +153,9 @@ export const useAppSettingsStore = defineStore('appSettings', {
           boxOpacity: value?.boxOpacity ?? DEFAULT_LINES.boxOpacity
         };
       }
-      if ((key.startsWith('typo_') || key === 'site_lines') && typeof document !== 'undefined') {
+      if (typeof document !== 'undefined') {
+        // Card-width var depends on card_scale; faction-box vars depend
+        // on site_lines. Cheap to just re-apply on every row.
         this.applyCssVars();
       }
     },
@@ -174,9 +179,12 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--faction-box-bg',            rgba(BOX_BASE.default,    a));
       root.style.setProperty('--faction-box-bg-restricted', rgba(BOX_BASE.restricted, a));
       root.style.setProperty('--faction-box-bg-dm',         rgba(BOX_BASE.dmOnly,     a));
+      // Card width — single source of truth for column sizing.
+      root.style.setProperty('--card-w', Math.round(CARD_BASE_W * (this.cardScale || 1)) + 'px');
     },
     async setCardScale(scale) {
       this.cardScale = scale;
+      this.applyCssVars();
       await appSettingsApi.setKey('card_scale', { scale });
     },
     async setFactionScale(scale) {
