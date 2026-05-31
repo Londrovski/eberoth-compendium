@@ -134,14 +134,16 @@ const relativeSaved = computed(() => {
 .notes-input :deep(a.mention) {
   color: var(--bold-accent-color);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--gold-dim);
+  text-underline-offset: 2px;
   cursor: pointer;
   padding: 0 2px;
   border-radius: 2px;
 }
 .notes-input :deep(a.mention:hover) {
   background: rgba(216,201,138,0.12);
-  text-decoration: underline;
+  text-decoration-color: var(--gold);
 }
 .status {
   font-size: 0.7rem;
