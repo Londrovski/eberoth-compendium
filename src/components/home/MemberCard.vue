@@ -156,6 +156,9 @@ function open() { detail.open(props.entity.id); }
   border-top: 1px solid var(--border);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .member-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .member-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
