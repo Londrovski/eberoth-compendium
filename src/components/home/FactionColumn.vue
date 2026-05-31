@@ -114,12 +114,10 @@ async function onMemberMoveDown(idx) {
 }
 .header-main:hover .faction-name { color: var(--gold-bright); }
 .faction-name {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 500;
   font-size: calc(1rem * var(--faction-scale, 1));
   color: var(--gold);
   line-height: 1.2;
-  letter-spacing: 0.04em;
 }
 .member-list {
   display: flex;
