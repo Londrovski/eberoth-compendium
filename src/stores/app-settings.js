@@ -32,6 +32,8 @@ const DEFAULT_LINES = {
   boxOpacity: 1.0      // 0..1 — faction box infill opacity
 };
 
+const DEFAULT_FACTION_CARDS_PER_ROW = 2;
+
 const DEFAULTS = {
   card_scale:        { scale: 1.0 },
   faction_scale:     { scale: 1.0 },
@@ -44,7 +46,8 @@ const DEFAULTS = {
   external_zoom_url:        DEFAULT_EXTERNALS.zoom,
   external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond,
   site_background:          DEFAULT_BACKGROUND,
-  site_lines:               DEFAULT_LINES
+  site_lines:               DEFAULT_LINES,
+  faction_cards_per_row:    { n: DEFAULT_FACTION_CARDS_PER_ROW }
 };
 
 // Card geometry — must match the constants in the card components.
@@ -60,6 +63,12 @@ const BOX_BASE = {
 function rgba({ r, g, b }, a) {
   const alpha = Math.max(0, Math.min(1, Number(a) || 0));
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function clampInt(v, min, max, fallback) {
+  const n = parseInt(v, 10);
+  if (Number.isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
 }
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -78,6 +87,7 @@ export const useAppSettingsStore = defineStore('appSettings', {
     externalDndbeyondUrls: { ...DEFAULT_EXTERNALS.dndbeyond },
     siteBackground: { ...DEFAULT_BACKGROUND },
     siteLines: { ...DEFAULT_LINES },
+    factionCardsPerRow: DEFAULT_FACTION_CARDS_PER_ROW,
     _subscribed: false,
     _channel: null
   }),
@@ -153,6 +163,9 @@ export const useAppSettingsStore = defineStore('appSettings', {
           boxOpacity: value?.boxOpacity ?? DEFAULT_LINES.boxOpacity
         };
       }
+      if (key === 'faction_cards_per_row') {
+        this.factionCardsPerRow = clampInt(value?.n, 1, 4, DEFAULT_FACTION_CARDS_PER_ROW);
+      }
       if (typeof document !== 'undefined') {
         // Card-width var depends on card_scale; faction-box vars depend
         // on site_lines. Cheap to just re-apply on every row.
@@ -181,6 +194,8 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--faction-box-bg-dm',         rgba(BOX_BASE.dmOnly,     a));
       // Card width — single source of truth for column sizing.
       root.style.setProperty('--card-w', Math.round(CARD_BASE_W * (this.cardScale || 1)) + 'px');
+      // Faction layout — how many member cards fit per row inside each box.
+      root.style.setProperty('--cards-per-row', this.factionCardsPerRow || DEFAULT_FACTION_CARDS_PER_ROW);
     },
     async setCardScale(scale) {
       this.cardScale = scale;
@@ -266,6 +281,12 @@ export const useAppSettingsStore = defineStore('appSettings', {
       this.siteLines = next;
       this.applyCssVars();
       await appSettingsApi.setKey('site_lines', next);
+    },
+    async setFactionCardsPerRow(n) {
+      const clamped = clampInt(n, 1, 4, DEFAULT_FACTION_CARDS_PER_ROW);
+      this.factionCardsPerRow = clamped;
+      this.applyCssVars();
+      await appSettingsApi.setKey('faction_cards_per_row', { n: clamped });
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);
