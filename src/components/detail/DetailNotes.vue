@@ -1,11 +1,12 @@
 <template>
   <section class="notes-section q-mt-md">
     <div class="section-label">Your notes</div>
+    <!-- No v-html: writing to the element while it's focused resets the
+         caret. We push HTML in imperatively on load. -->
     <div
       class="notes-input"
       :contenteditable="authed"
       spellcheck="true"
-      v-html="html"
       ref="bodyEl"
       data-placeholder="Personal notes about this entity. Only you can see these."
       @blur="flush"
@@ -33,16 +34,15 @@ const props = defineProps({
 const auth = useAuthStore();
 const authed = computed(() => !!auth.user);
 
-const html = ref('');
 const saving = ref(false);
 const lastSavedAt = ref(null);
 const bodyEl = ref(null);
 let saveTimer = null;
 let loadedFor = null;
+let currentHtml = '';
 
 const picker = useMentionPicker({
-  onInput(el) {
-    html.value = el.innerHTML;
+  onInput(/* el */) {
     debouncedSave();
   }
 });
@@ -51,22 +51,19 @@ async function load(id) {
   if (!authed.value) return;
   loadedFor = id;
   const v = await notesApi.fetch(id);
-  if (loadedFor === id) {
-    html.value = v || '';
-    lastSavedAt.value = v ? new Date() : null;
-    await nextTick();
-    if (bodyEl.value) bodyEl.value.innerHTML = html.value;
-  }
+  if (loadedFor !== id) return;
+  currentHtml = v || '';
+  lastSavedAt.value = v ? new Date() : null;
+  await nextTick();
+  if (bodyEl.value) bodyEl.value.innerHTML = currentHtml;
 }
 
 async function flush() {
   if (!authed.value) return;
+  if (bodyEl.value) currentHtml = bodyEl.value.innerHTML;
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  // Pull the latest html in case the picker just inserted a mention
-  // after the last keystroke.
-  if (bodyEl.value) html.value = bodyEl.value.innerHTML;
   saving.value = true;
-  await notesApi.save(props.entityId, html.value || '');
+  await notesApi.save(props.entityId, currentHtml || '');
   saving.value = false;
   lastSavedAt.value = new Date();
 }
@@ -78,8 +75,9 @@ function debouncedSave() {
 }
 
 watch(() => props.entityId, async (id) => {
-  html.value = '';
+  currentHtml = '';
   lastSavedAt.value = null;
+  if (bodyEl.value) bodyEl.value.innerHTML = '';
   if (id) await load(id);
 }, { immediate: false });
 
