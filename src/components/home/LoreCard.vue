@@ -1,10 +1,5 @@
 <template>
-  <div
-    class="lore-card"
-    :class="[visClass, { 'is-glow': glow, 'is-mobile': viewport.isMobile }]"
-    :style="cardStyle"
-    @click="open"
-  >
+  <div class="lore-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
       <q-btn
@@ -55,7 +50,6 @@ import EntityAvatar from 'components/shared/EntityAvatar.vue';
 import ReorderArrows from 'components/shared/ReorderArrows.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewer } from 'src/composables/useViewer';
-import { useViewport } from 'src/composables/useViewport';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
@@ -72,7 +66,6 @@ defineEmits(['move-up', 'move-down']);
 
 const layout = useAppSettingsStore();
 const viewer = useViewer();
-const viewport = useViewport();
 const entities = useEntitiesStore();
 const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
@@ -82,12 +75,6 @@ const W = 180;
 const FOOTER = 44;
 
 const cardStyle = computed(() => {
-  if (viewport.isMobile) {
-    return {
-      '--scale': layout.cardScale,
-      '--mobile-footer-h': '38px'
-    };
-  }
   const w = W * layout.cardScale;
   const imgH = w * 4 / 3;
   return {
@@ -128,18 +115,11 @@ async function pinTo(playerId) {
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
 }
-.lore-card.is-mobile {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-width: 1px;
-  border-radius: 4px;
-}
 .lore-card:hover {
   border-color: var(--gold);
   transform: translateY(-3px);
   box-shadow: 0 6px 22px rgba(201,169,97,0.2);
 }
-.lore-card.is-mobile:hover { transform: none; }
 
 .lore-card.vis-restricted {
   background: rgba(74,107,145,0.10);
@@ -166,7 +146,6 @@ async function pinTo(playerId) {
   background: var(--bg);
   overflow: hidden;
 }
-.lore-card.is-mobile .img-wrap { inset: 0; height: auto; }
 .img-wrap :deep(.entity-avatar) {
   width: 100%;
   height: 100%;
@@ -189,7 +168,6 @@ async function pinTo(playerId) {
   transition: opacity 0.15s ease, color 0.15s ease;
 }
 .lore-card:hover .dm-action { opacity: 1; }
-.lore-card.is-mobile .dm-action { opacity: 1; }
 .dm-action:hover { color: var(--gold-bright); }
 
 .arrows-overlay {
@@ -215,11 +193,6 @@ async function pinTo(playerId) {
   flex-direction: column;
   justify-content: center;
 }
-.lore-card.is-mobile .footer {
-  min-height: var(--mobile-footer-h, 38px);
-  padding: 4px 6px;
-  border-top-width: 1px;
-}
 .lore-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .lore-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
 .lore-card.vis-dm-only .footer    { background: #3a1f1f; border-top-color: var(--red); }
@@ -230,10 +203,6 @@ async function pinTo(playerId) {
   letter-spacing: 0.04em;
   line-height: 1.2;
 }
-.lore-card.is-mobile .name {
-  font-size: var(--body-card-size-mobile);
-  letter-spacing: 0.02em;
-}
 .sub {
   font-size: calc(var(--body-card-size) - 3px);
   color: var(--text-dim);
@@ -241,5 +210,4 @@ async function pinTo(playerId) {
   line-height: 1.3;
   margin-top: 2px;
 }
-.lore-card.is-mobile .sub { font-size: calc(var(--body-card-size-mobile) - 2px); }
 </style>
