@@ -85,10 +85,10 @@ const relativeSaved = computed(() => {
 
 <style scoped>
 .section-label {
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: 6px;
 }
 .notes-input {
@@ -98,8 +98,8 @@ const relativeSaved = computed(() => {
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 10px 12px;
-  color: var(--text);
-  font-size: 14px;
+  color: var(--body-card-color);
+  font-size: var(--body-card-size);
   line-height: 1.55;
   outline: none;
   resize: vertical;
