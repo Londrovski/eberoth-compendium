@@ -115,7 +115,7 @@ function open() { detail.open(props.entity.id); }
   text-align: center;
 }
 .name {
-  font-size: calc(0.95rem * var(--scale, 1));
+  font-size: calc(1rem * var(--scale, 1));
   color: var(--gold);
   letter-spacing: 0.04em;
   line-height: 1.2;
