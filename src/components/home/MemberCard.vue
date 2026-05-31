@@ -1,5 +1,5 @@
 <template>
-  <div class="member-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
+  <div class="member-card" :class="[visClass, { 'is-glow': glow }]" :style="desktopStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
       <div class="badge" v-if="otherCount > 0" :title="otherFactionsTitle">+{{ otherCount }}</div>
@@ -50,15 +50,16 @@ const visClass = useVisibilityIndicator(props.entity.id);
 const W = 180;
 const FOOTER = 44;
 
-const cardStyle = computed(() => {
+// Desktop sizing only — overridden entirely by CSS on mobile.
+const desktopStyle = computed(() => {
   const w = W * layout.cardScale;
   const imgH = w * 4 / 3;
   return {
-    '--scale': layout.cardScale,
-    width: Math.round(w) + 'px',
-    height: Math.round(imgH + FOOTER * layout.cardScale) + 'px',
-    '--img-h': Math.round(imgH) + 'px',
-    '--footer-h': Math.round(FOOTER * layout.cardScale) + 'px'
+    '--scale':     layout.cardScale,
+    '--img-h':     Math.round(imgH) + 'px',
+    '--footer-h':  Math.round(FOOTER * layout.cardScale) + 'px',
+    '--desktop-w': Math.round(w) + 'px',
+    '--desktop-h': Math.round(imgH + FOOTER * layout.cardScale) + 'px'
   };
 });
 
@@ -83,13 +84,14 @@ function open() { detail.open(props.entity.id); }
   cursor: pointer;
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+  width:  var(--desktop-w, 180px);
+  height: var(--desktop-h, 284px);
 }
 .member-card:hover {
   border-color: var(--gold-dim);
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
-
 .member-card.vis-restricted {
   background: rgba(74,107,145,0.10);
   border-color: var(--blue);
@@ -108,27 +110,21 @@ function open() { detail.open(props.entity.id); }
 
 .img-wrap {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--img-h);
+  top: 0; left: 0; right: 0;
+  height: var(--img-h, 240px);
   background: var(--bg);
   overflow: hidden;
 }
 .img-wrap :deep(.entity-avatar) {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   aspect-ratio: auto;
-  border: none;
-  border-radius: 0;
+  border: none; border-radius: 0;
 }
 .img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
 .member-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
 
 .badge {
-  position: absolute;
-  top: 4px;
-  left: 4px;
+  position: absolute; top: 4px; left: 4px;
   font-size: calc(0.65rem * var(--scale, 1));
   color: var(--gold);
   padding: 2px calc(6px * var(--scale, 1));
@@ -138,9 +134,7 @@ function open() { detail.open(props.entity.id); }
   z-index: 1;
 }
 .arrows-overlay {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  position: absolute; top: 4px; right: 4px;
   background: rgba(11,9,5,0.6);
   border-radius: 3px;
   z-index: 1;
@@ -148,33 +142,46 @@ function open() { detail.open(props.entity.id); }
 
 .footer {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  min-height: var(--footer-h);
+  left: 0; right: 0; bottom: 0;
+  min-height: var(--footer-h, 44px);
   background: var(--bg-panel);
   border-top: var(--line-thickness) solid var(--line-color);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: flex; flex-direction: column; justify-content: center;
 }
 .member-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .member-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
 .member-card.vis-dm-only .footer    { background: #3a1f1f; border-top-color: var(--red); }
 
-.name {
-  font-size: var(--body-card-size);
-  color: var(--gold);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-}
-.role {
-  font-size: calc(var(--body-card-size) - 3px);
-  color: var(--text-dim);
-  font-style: italic;
-  line-height: 1.3;
-  margin-top: 2px;
+.name { font-size: var(--body-card-size); color: var(--gold); letter-spacing: 0.02em; line-height: 1.2; }
+.role { font-size: calc(var(--body-card-size) - 3px); color: var(--text-dim); font-style: italic; line-height: 1.3; margin-top: 2px; }
+
+/* ── Mobile ── same pattern as PartyCard: CSS takes over from JS ──────────── */
+@media (max-width: 600px) {
+  .member-card {
+    width: calc(
+      (100% - (var(--mobile-faction-cols, 3) - 1) * var(--mobile-card-spacing, 6px))
+      / var(--mobile-faction-cols, 3)
+    ) !important;
+    height: auto !important;
+    flex-shrink: 0;
+  }
+  .img-wrap {
+    position: relative !important;
+    height: 0 !important;
+    padding-bottom: var(--mobile-card-ratio, 133%) !important;
+  }
+  .img-wrap :deep(.entity-avatar) {
+    position: absolute !important;
+    inset: 0 !important;
+  }
+  .footer {
+    position: relative !important;
+    min-height: unset !important;
+    padding: 5px 6px !important;
+  }
+  .name { font-size: 11px !important; }
+  .role { font-size: 10px !important; }
 }
 </style>

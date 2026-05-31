@@ -1,5 +1,5 @@
 <template>
-  <div class="party-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
+  <div class="party-card" :class="[visClass, { 'is-glow': glow }]" :style="desktopStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
     </div>
@@ -30,15 +30,18 @@ const visClass = useVisibilityIndicator(props.entity.id);
 const W = 180;
 const FOOTER = 44;
 
-const cardStyle = computed(() => {
+// Desktop only: JS-driven fixed-pixel sizing based on cardScale.
+// On mobile these are overridden entirely by CSS (see @media block below).
+const desktopStyle = computed(() => {
   const w = W * layout.cardScale;
   const imgH = w * 4 / 3;
   return {
-    '--scale': layout.cardScale,
-    width: Math.round(w) + 'px',
-    height: Math.round(imgH + FOOTER * layout.cardScale) + 'px',
-    '--img-h': Math.round(imgH) + 'px',
-    '--footer-h': Math.round(FOOTER * layout.cardScale) + 'px'
+    '--scale':    layout.cardScale,
+    '--img-h':    Math.round(imgH) + 'px',
+    '--footer-h': Math.round(FOOTER * layout.cardScale) + 'px',
+    // The width/height props are applied only on desktop via the @media guard
+    '--desktop-w': Math.round(w) + 'px',
+    '--desktop-h': Math.round(imgH + FOOTER * layout.cardScale) + 'px'
   };
 });
 
@@ -56,6 +59,9 @@ function open() { detail.open(props.entity.id); }
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 14px rgba(201, 169, 97, 0.12);
+  /* Desktop: use the JS-computed vars */
+  width:  var(--desktop-w, 180px);
+  height: var(--desktop-h, 284px);
 }
 .party-card:hover {
   border-color: var(--gold);
@@ -81,7 +87,7 @@ function open() { detail.open(props.entity.id); }
 .img-wrap {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: var(--img-h);
+  height: var(--img-h, 240px);
   background: var(--bg);
   overflow: hidden;
 }
@@ -96,7 +102,7 @@ function open() { detail.open(props.entity.id); }
 .footer {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  min-height: var(--footer-h);
+  min-height: var(--footer-h, 44px);
   background: var(--bg-panel);
   border-top: var(--line-thickness) solid var(--line-color);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
@@ -122,22 +128,21 @@ function open() { detail.open(props.entity.id); }
 }
 
 /*
-  Mobile layout.
-  --mobile-party-cols : 1 | 2 | 3   (set by DmToolsMobile, persisted in localStorage)
-  --mobile-card-spacing : Npx       (set by DmToolsMobile)
-  --mobile-card-ratio   : %         (padding-bottom trick for responsive height)
+  ── Mobile layout ────────────────────────────────────────────────────────────
+  On mobile the JS-injected fixed pixel width/height is completely replaced.
+  Cards share the row equally based on --mobile-party-cols.
+  We do NOT use the inline-style width/height here — the CSS vars
+  --desktop-w / --desktop-h are ignored and CSS takes over with !important.
 */
 @media (max-width: 600px) {
   .party-card {
-    /* Override the JS-injected fixed pixel width */
     width: calc(
-      (100% - (var(--mobile-party-cols, 2) - 1) * var(--mobile-card-spacing, 8px))
-      / var(--mobile-party-cols, 2)
+      (100% - (var(--mobile-party-cols, 3) - 1) * var(--mobile-card-spacing, 6px))
+      / var(--mobile-party-cols, 3)
     ) !important;
     height: auto !important;
     flex-shrink: 0;
   }
-  /* Responsive image height via padding-bottom trick */
   .img-wrap {
     position: relative !important;
     height: 0 !important;
@@ -147,11 +152,12 @@ function open() { detail.open(props.entity.id); }
     position: absolute !important;
     inset: 0 !important;
   }
-  /* Footer returns to normal flow */
   .footer {
     position: relative !important;
     min-height: unset !important;
-    padding: 6px 8px !important;
+    padding: 5px 6px !important;
   }
+  .name  { font-size: 11px !important; }
+  .sub   { font-size: 10px !important; }
 }
 </style>

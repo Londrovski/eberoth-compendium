@@ -1,6 +1,8 @@
 <template>
   <q-page class="notes-page">
-    <div class="notes-layout">
+
+    <!-- ── Desktop layout: side drawer + resizer + sessions pane ── -->
+    <div class="notes-layout desktop-layout">
       <aside class="drawer" :style="{ width: drawerWidth + 'px' }">
         <section class="drawer-section threads">
           <ThreadsPanel />
@@ -32,6 +34,31 @@
         </div>
       </main>
     </div>
+
+    <!-- ── Mobile layout: stacked panels ── -->
+    <div class="mobile-layout">
+
+      <!-- Threads -->
+      <section class="mob-section mob-threads">
+        <ThreadsPanel />
+      </section>
+
+      <!-- Notes -->
+      <section class="mob-section mob-notes">
+        <NotepadPanel />
+      </section>
+
+      <!-- Divider + Sessions link -->
+      <div class="mob-sessions-divider">
+        <span class="mob-sessions-label">Sessions</span>
+        <span class="mob-sessions-sub">A record of what has passed.</span>
+      </div>
+      <section class="mob-section mob-sessions">
+        <SessionsListPanel />
+      </section>
+
+    </div>
+
   </q-page>
 </template>
 
@@ -71,8 +98,7 @@ function onDragStart(e) {
 }
 
 function onDragMove(e) {
-  const next = clamp(startW + (e.clientX - startX));
-  prefs.setNotesDrawerWidth(next);
+  prefs.setNotesDrawerWidth(clamp(startW + (e.clientX - startX)));
 }
 
 function onDragEnd() {
@@ -83,43 +109,37 @@ function onDragEnd() {
   window.removeEventListener('mouseup', onDragEnd);
 }
 
-function resetWidth() {
-  prefs.setNotesDrawerWidth(DEFAULT_WIDTH);
-}
+function resetWidth() { prefs.setNotesDrawerWidth(DEFAULT_WIDTH); }
 
 function onWindowResize() {
   const next = clamp(prefs.notesDrawerWidth || DEFAULT_WIDTH);
   if (next !== prefs.notesDrawerWidth) prefs.setNotesDrawerWidth(next);
 }
 
-onMounted(() => {
-  prefs.load();
-  window.addEventListener('resize', onWindowResize);
-});
+onMounted(() => { prefs.load(); window.addEventListener('resize', onWindowResize); });
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onDragMove);
   window.removeEventListener('mouseup', onDragEnd);
   window.removeEventListener('resize', onWindowResize);
 });
-
-watch(() => prefs.notesDrawerWidth, () => onWindowResize());
+watch(() => prefs.notesDrawerWidth, onWindowResize);
 </script>
 
 <style scoped>
-/* Notes page sits on top of the global topbar background. Without an
-   opaque surface the home background bleeds through the resizer column
-   and the main-pane gutters. Paint the whole page on --bg. */
 .notes-page {
   height: calc(100vh - 64px);
   padding: 0;
   background: var(--bg);
 }
-.notes-layout {
+
+/* ── Desktop layout ─────────────────────────────────────────────────────── */
+.desktop-layout {
   display: flex;
   height: 100%;
   width: 100%;
   background: var(--bg);
 }
+.mobile-layout { display: none; }
 
 .drawer {
   flex-shrink: 0;
@@ -136,11 +156,6 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
 .drawer-section.threads { flex: 0 0 auto; max-height: 45%; }
 .drawer-section.notes   { flex: 1 1 auto; border-top: 1px solid var(--border); min-height: 0; }
 
-/* Resizer — now opaque + obviously draggable.
-   8px solid bar, gold-dim borders on both edges so it reads as a
-   distinct seam at rest, with a 3-dot grip in the middle. Hover and
-   drag states amplify the gold. The ::before extends the hit area
-   ±4px so users don't have to land precisely on the bar. */
 .resizer {
   flex: 0 0 8px;
   cursor: col-resize;
@@ -151,45 +166,30 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
   transition: background 0.15s ease, border-color 0.15s ease;
   z-index: 1;
 }
-.resizer::before {
-  content: '';
-  position: absolute;
-  inset: 0 -4px;
-}
-.resizer:hover,
-.resizer.dragging {
+.resizer::before { content: ''; position: absolute; inset: 0 -4px; }
+.resizer:hover, .resizer.dragging {
   background: rgba(201, 169, 97, 0.18);
   border-color: var(--gold);
 }
-
 .resizer-grip {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: flex; flex-direction: column; gap: 4px;
   pointer-events: none;
 }
 .resizer-grip span {
-  display: block;
-  width: 4px;
-  height: 4px;
+  display: block; width: 4px; height: 4px;
   border-radius: 50%;
   background: var(--gold-dim);
   transition: background 0.15s ease, transform 0.15s ease;
 }
 .resizer:hover .resizer-grip span,
-.resizer.dragging .resizer-grip span {
-  background: var(--gold);
-  transform: scale(1.15);
-}
+.resizer.dragging .resizer-grip span { background: var(--gold); transform: scale(1.15); }
 
 .main-pane {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   min-width: 0;
   background: var(--bg);
 }
@@ -197,9 +197,7 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
   padding: 14px 18px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
+  display: flex; align-items: baseline; gap: 14px;
 }
 .head-label {
   font-size: var(--section-heading-size);
@@ -207,21 +205,62 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
   text-transform: uppercase;
   color: var(--section-heading-color);
 }
-.head-sub {
-  font-size: 12px;
-  color: var(--text-dim);
-  font-style: italic;
-}
-.main-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px 24px;
-}
+.head-sub { font-size: 12px; color: var(--text-dim); font-style: italic; }
+.main-scroll { flex: 1; overflow-y: auto; padding: 12px 14px 24px; }
 
+/* ── Mobile layout ──────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
-  .notes-layout { flex-direction: column; }
-  .drawer { width: 100% !important; max-height: 50vh; }
-  .drawer-section.threads { max-height: 35%; }
-  .resizer { display: none; }
+  .notes-page  { height: auto; min-height: 100vh; }
+  .desktop-layout { display: none; }
+  .mobile-layout  { display: block; }
+
+  .mob-section {
+    background: var(--bg-panel);
+    margin-bottom: 0;
+  }
+
+  /* Threads: tall enough to show several items without being overwhelming */
+  .mob-threads {
+    min-height: 30vh;
+    max-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* Notes: grows to fill its content */
+  .mob-notes {
+    min-height: 25vh;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Sessions divider — makes the boundary unmissable */
+  .mob-sessions-divider {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 14px 8px;
+    background: var(--bg-panel);
+    border-top: 2px solid var(--gold-dim);
+    border-bottom: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .mob-sessions-label {
+    font-size: var(--section-heading-size);
+    letter-spacing: var(--section-heading-spacing);
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    font-weight: bold;
+  }
+  .mob-sessions-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .mob-sessions {
+    min-height: 40vh;
+    background: var(--bg);
+  }
 }
 </style>
