@@ -57,7 +57,6 @@ function onError() { errored.value = true; }
   object-position: center top;
 }
 .missing {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 700;
   color: var(--gold);
   line-height: 1;
