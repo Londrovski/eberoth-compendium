@@ -55,10 +55,6 @@ function clamp(v) { return Math.max(MIN, Math.min(dynamicMax(), v)); }
 
 const drawerWidth = computed(() => clamp(prefs.notesDrawerWidth || DEFAULT_WIDTH));
 
-// During drag we update a local ref for snappy UX, then commit to
-// the store on drag-end which schedules the server save.
-const dragWidth = ref(null);
-
 let startX = 0;
 let startW = 0;
 
@@ -66,7 +62,6 @@ function onDragStart(e) {
   dragging.value = true;
   startX = e.clientX;
   startW = drawerWidth.value;
-  dragWidth.value = startW;
   document.body.style.cursor = 'col-resize';
   document.body.style.userSelect = 'none';
   window.addEventListener('mousemove', onDragMove);
@@ -75,14 +70,11 @@ function onDragStart(e) {
 
 function onDragMove(e) {
   const next = clamp(startW + (e.clientX - startX));
-  // Update store live so the aside re-renders; the debounced save
-  // inside the store batches network writes.
   prefs.setNotesDrawerWidth(next);
 }
 
 function onDragEnd() {
   dragging.value = false;
-  dragWidth.value = null;
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
   window.removeEventListener('mousemove', onDragMove);
@@ -94,12 +86,10 @@ function resetWidth() {
 }
 
 function onWindowResize() {
-  // Re-clamp in case the viewport shrunk past the saved width.
   const next = clamp(prefs.notesDrawerWidth || DEFAULT_WIDTH);
   if (next !== prefs.notesDrawerWidth) prefs.setNotesDrawerWidth(next);
 }
 
-// Make sure prefs are loaded on mount (covers a hard-refresh into /notes).
 onMounted(() => {
   prefs.load();
   window.addEventListener('resize', onWindowResize);
@@ -110,14 +100,12 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize);
 });
 
-// Re-clamp if the stored value drifts above the new dynamic max
-// (e.g. on a sign-in event that brings down a larger saved width).
 watch(() => prefs.notesDrawerWidth, () => onWindowResize());
 </script>
 
 <style scoped>
 .notes-page {
-  height: calc(100vh - 84px);
+  height: calc(100vh - 64px);
   padding: 0;
   background: transparent;
 }
