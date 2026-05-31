@@ -38,15 +38,15 @@
         </template>
       </template>
 
-      <template v-if="orphanLore.length">
+      <template v-if="orphanCards.length">
         <div class="divider" aria-hidden="true"></div>
         <LoreCard
-          v-for="(l, idx) in orphanLore"
+          v-for="(l, idx) in orphanCards"
           :key="'lore-' + l.id"
           :entity="l"
           :reorderable="true"
           :is-first="idx === 0"
-          :is-last="idx === orphanLore.length - 1"
+          :is-last="idx === orphanCards.length - 1"
           @move-up="onLoreMoveUp(idx)"
           @move-down="onLoreMoveDown(idx)"
         />
@@ -88,8 +88,8 @@ const myPersonals = computed(() => {
 });
 
 // Set of entity ids that are pinned to *any* player's personal row.
-// Used to dedupe so a piece of Lore already shown as a personal
-// doesn't reappear in the orphan-Lore block.
+// Used to dedupe so a card already shown as a personal doesn't
+// reappear in the orphan block.
 const personalEntityIds = computed(() => {
   const set = new Set();
   if (showGroupedView.value) {
@@ -102,11 +102,28 @@ const personalEntityIds = computed(() => {
   return set;
 });
 
-const orphanLore = computed(() =>
-  [...entities.lore]
-    .filter(l => !personalEntityIds.value.has(l.id))
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-);
+// Entity ids that appear inside a faction column already.
+const factionMemberIds = computed(() => {
+  const set = new Set();
+  entities.memberships.forEach(m => set.add(m.entity_id));
+  return set;
+});
+
+// "Orphan" cards = anything that would otherwise have nowhere to land
+// on the home page. Includes all Lore not pinned to anyone, plus any
+// NPCs that aren't pinned and aren't a faction member (so things like
+// The Teacher don't disappear when unpinned).
+const orphanCards = computed(() => {
+  return entities.all
+    .filter(e => {
+      if (!e) return false;
+      if (e.kind !== 'lore' && e.kind !== 'npc') return false;
+      if (personalEntityIds.value.has(e.id)) return false;
+      if (e.kind === 'npc' && factionMemberIds.value.has(e.id)) return false;
+      return true;
+    })
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+});
 
 const hasAnyPersonals = computed(() => {
   if (showGroupedView.value) {
@@ -133,11 +150,11 @@ async function onPersonalMoveDown(playerId, idx) {
 
 async function onLoreMoveUp(idx) {
   if (idx <= 0) return;
-  await swapEntitySortOrder(orphanLore.value[idx].id, orphanLore.value[idx - 1].id);
+  await swapEntitySortOrder(orphanCards.value[idx].id, orphanCards.value[idx - 1].id);
 }
 async function onLoreMoveDown(idx) {
-  if (idx >= orphanLore.value.length - 1) return;
-  await swapEntitySortOrder(orphanLore.value[idx].id, orphanLore.value[idx + 1].id);
+  if (idx >= orphanCards.value.length - 1) return;
+  await swapEntitySortOrder(orphanCards.value[idx].id, orphanCards.value[idx + 1].id);
 }
 </script>
 
