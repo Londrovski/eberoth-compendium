@@ -42,22 +42,12 @@
   --section-heading-spacing: 3px;
 
   // DM-tunable "lines" — borders + dividers across home cards.
+  // Master thickness applies to all cards + faction columns + dividers
+  // uniformly. Glow states override the *colour* but never the width.
   --line-thickness: 2px;
   --line-color:     #8a7544;
+  // Card spacing — gap between cards + faction columns on home page.
   --card-spacing:   16px;
-
-  // Mobile family — only consumed when the layout is in mobile mode.
-  // Overridden at runtime by app-settings store (mobile_layout key).
-  --card-w-mobile:         100px;
-  --card-spacing-mobile:   10px;
-  --cards-per-row-mobile:  3;
-  --topbar-h-mobile:       44px;
-  --wordmark-size-mobile:  22px;
-  --body-card-size-mobile: 12px;
-
-  // Per-user zoom (overridden by user-prefs store).
-  --user-zoom:        1;
-  --user-zoom-mobile: 1;
 }
 
 html, body { height: 100%; background: var(--bg); }
@@ -125,12 +115,3 @@ body {
 .q-virtual-scroll__content { background: var(--bg-panel); }
 
 .text-grey-6, .text-grey-7, .text-grey-8 { color: var(--text-dim) !important; }
-
-// Mobile-mode helper. The MainLayout adds `is-mobile` to <html> when
-// the viewport is mobile (or DM preview-force is on). Components that
-// need to swap variables on mobile pull the *-mobile values via this
-// hook. We keep this scoped so a desktop browser is never affected.
-html.is-mobile {
-  --card-spacing: var(--card-spacing-mobile);
-  --body-card-size: var(--body-card-size-mobile);
-}
