@@ -1,5 +1,5 @@
 <template>
-  <div class="entity-avatar" :style="style">
+  <div class="entity-avatar" :class="{ fill }" :style="style">
     <img v-if="src" :src="src" :alt="alt" @error="onError" />
     <span v-else class="missing">?</span>
   </div>
@@ -10,7 +10,8 @@ import { computed, ref } from 'vue';
 
 const props = defineProps({
   entity: { type: Object, required: true },
-  size:   { type: Number, default: 44 }
+  size:   { type: Number, default: 44 },
+  fill:   { type: Boolean, default: false }
 });
 
 const IMAGE_BASE = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/';
@@ -30,11 +31,16 @@ const src = computed(() => {
   return resolveUrl(props.entity.sigil || props.entity.image);
 });
 const alt = computed(() => props.entity.name || '');
-const style = computed(() => ({
-  width:  props.size + 'px',
-  height: props.size + 'px',
-  fontSize: Math.round(props.size * 0.55) + 'px'
-}));
+const style = computed(() => {
+  if (props.fill) {
+    return { fontSize: '3rem' };
+  }
+  return {
+    width:  props.size + 'px',
+    height: props.size + 'px',
+    fontSize: Math.round(props.size * 0.55) + 'px'
+  };
+});
 
 function onError() { errored.value = true; }
 </script>
@@ -49,6 +55,11 @@ function onError() { errored.value = true; }
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
+}
+.entity-avatar.fill {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
 }
 .entity-avatar img {
   width: 100%;
