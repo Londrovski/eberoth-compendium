@@ -59,7 +59,10 @@ const members = computed(() => entities.membersOf(props.faction.id));
 const headerSize = computed(() => Math.round(40 * layout.factionScale));
 const colStyle = computed(() => ({
   '--faction-scale': layout.factionScale,
-  '--scale': layout.cardScale
+  '--scale': layout.cardScale,
+  // How many member cards fit per row inside the faction box.
+  // Default 2 — gives roomy box with name wrap + 2-up cards.
+  '--cards-per-row': layout.factionCardsPerRow || 2
 }));
 
 function openFaction() { detail.open(props.faction.id); }
@@ -80,20 +83,20 @@ async function onMemberMoveDown(idx) {
 
 <style scoped>
 /*
-  Layout strategy:
-    width  = 2 * card width + card spacing + 2 * column padding
-    members wrap inside via flex-wrap (2-up rows by default, more rows as
-    the faction grows)
-    header is a flex row that allows the name to wrap rather than
-    overflow the box
-  Everything scales off --card-w (driven by the DM card-scale slider),
-  so shrinking cards shrinks columns proportionally and the outer
-  FactionsGrid can fit more columns per row.
+  Column width formula:
+    inner = N * card-w + (N - 1) * card-spacing
+    outer = inner + 2 * pad-x + 4px sub-pixel buffer
+  The 4px buffer keeps flex-wrap from kicking a card to the next row
+  due to half-pixel rounding when the math is exactly equal.
 */
 .faction-column {
   --col-pad-x: calc(14px * var(--scale, 1));
   --col-pad-y: calc(12px * var(--scale, 1));
-  width: calc(2 * var(--card-w, 180px) + var(--card-spacing) + 2 * var(--col-pad-x));
+  --inner-w: calc(
+    var(--cards-per-row, 2) * var(--card-w, 180px)
+    + (var(--cards-per-row, 2) - 1) * var(--card-spacing)
+  );
+  width: calc(var(--inner-w) + 2 * var(--col-pad-x) + 4px);
   flex: 0 0 auto;
   box-sizing: border-box;
   display: flex;
@@ -143,7 +146,7 @@ async function onMemberMoveDown(idx) {
   gap: calc(10px * var(--faction-scale, 1));
   cursor: pointer;
   flex: 1 1 auto;
-  min-width: 0;       /* allow text to shrink/wrap */
+  min-width: 0;
 }
 .header-main:hover .faction-name { color: var(--gold-bright); }
 .faction-avatar { flex: 0 0 auto; }
@@ -153,7 +156,6 @@ async function onMemberMoveDown(idx) {
   color: var(--gold);
   line-height: 1.2;
   letter-spacing: 0.04em;
-  /* Wrap inside the box rather than push past the right edge. */
   flex: 1 1 auto;
   min-width: 0;
   white-space: normal;
@@ -163,11 +165,12 @@ async function onMemberMoveDown(idx) {
 }
 
 .member-grid {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: var(--card-spacing);
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
