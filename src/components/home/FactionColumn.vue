@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import EntityAvatar from 'components/shared/EntityAvatar.vue';
 import MemberCard from 'components/home/MemberCard.vue';
 import ReorderArrows from 'components/shared/ReorderArrows.vue';
@@ -55,11 +55,48 @@ const viewer   = useViewer();
 const detail   = useEntityDetail();
 const visClass = useVisibilityIndicator(props.faction.id);
 
-const members    = computed(() => entities.membersOf(props.faction.id));
-// Desktop: avatar size driven by factionScale.
-// Mobile: avatar size driven by --mobile-faction-header-scale (set by DmToolsMobile).
-const headerSize = computed(() => Math.round(40 * layout.factionScale));
-const colStyle   = computed(() => ({
+const members = computed(() => entities.membersOf(props.faction.id));
+
+// --- Mobile header scale ---------------------------------------------------
+// We read the CSS custom property at runtime so the avatar <div> (which has
+// its size set via an inline style prop) also shrinks. CSS :deep() selectors
+// cannot override an inline style, so the scale must come through JS.
+const isMobile = ref(false);
+const mobileHeaderScale = ref(0.7); // matches CSS default
+
+let mq = null;
+function readScale() {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue('--mobile-faction-header-scale').trim();
+  mobileHeaderScale.value = raw ? parseFloat(raw) : 0.7;
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined') return;
+  mq = window.matchMedia('(max-width: 600px)');
+  isMobile.value = mq.matches;
+  if (isMobile.value) readScale();
+  mq.addEventListener('change', onMqChange);
+  // Re-read whenever the DM changes the slider (token is updated on :root)
+  window.addEventListener('eb-faction-header-scale', readScale);
+});
+onUnmounted(() => {
+  mq?.removeEventListener('change', onMqChange);
+  window.removeEventListener('eb-faction-header-scale', readScale);
+});
+function onMqChange(e) {
+  isMobile.value = e.matches;
+  if (e.matches) readScale();
+}
+
+// Pass the correctly-scaled pixel size straight into EntityAvatar's :size prop
+const headerSize = computed(() => {
+  const base = Math.round(40 * layout.factionScale);
+  if (isMobile.value) return Math.round(base * mobileHeaderScale.value);
+  return base;
+});
+
+const colStyle = computed(() => ({
   '--faction-scale':  layout.factionScale,
   '--scale':          layout.cardScale,
   '--cards-per-row':  layout.factionCardsPerRow || 2
@@ -163,12 +200,6 @@ async function onMemberMoveDown(idx) {
   padding: calc(6px * var(--scale, 1)) calc(8px * var(--scale, 1));
 }
 
-/*
-  Mobile overrides.
-  --mobile-faction-header-scale controls the header size independently
-  of the card grid. Defaults to 0.7 (smaller than desktop) but the DM
-  can step it up/down via DmToolsMobile.
-*/
 @media (max-width: 600px) {
   .faction-column {
     width: 100% !important;
@@ -179,22 +210,21 @@ async function onMemberMoveDown(idx) {
     padding: 8px;
   }
 
-  /* Header: scale avatar, font, and padding by --mobile-faction-header-scale */
+  /*
+    Header gap, padding, and font scale via --mobile-faction-header-scale.
+    The avatar border-box itself is sized by JS (headerSize computed prop
+    reads the token and passes it as :size to EntityAvatar), so no :deep
+    overrides are needed for the avatar dimensions.
+  */
   .faction-header {
-    gap:     calc(6px  * var(--mobile-faction-header-scale, 0.7));
-    padding: calc(6px  * var(--mobile-faction-header-scale, 0.7))
-             calc(8px  * var(--mobile-faction-header-scale, 0.7));
-  }
-  .faction-avatar :deep(img),
-  .faction-avatar :deep(.entity-avatar) {
-    width:  calc(40px * var(--mobile-faction-header-scale, 0.7)) !important;
-    height: calc(40px * var(--mobile-faction-header-scale, 0.7)) !important;
+    gap:     calc(6px * var(--mobile-faction-header-scale, 0.7));
+    padding: calc(6px * var(--mobile-faction-header-scale, 0.7))
+             calc(8px * var(--mobile-faction-header-scale, 0.7));
   }
   .faction-name {
     font-size: calc(0.95rem * var(--mobile-faction-header-scale, 0.7)) !important;
   }
 
-  /* Member grid */
   .member-grid {
     gap: var(--mobile-card-spacing, 6px);
   }

@@ -1,19 +1,12 @@
 <!--
   DmToolsMobile — root panel, wires up all sub-controls.
-  Sub-components live in ./dm-mobile/ — edit each one independently.
 
-  Controls:
-    • Party cards per row          (1/2/3)     → --mobile-party-cols
-    • Faction cards per row        (1/2/3)     → --mobile-faction-cols
-    • Faction header size          (40–150%)   → --mobile-faction-header-scale
-    • Card gap                     (2–24 px)   → --mobile-card-spacing
-    • Card image ratio             (4 presets) → --mobile-card-ratio
-    • Personal cards               (Show/Hide)
-    • Background opacity           (0–100 %)
-    • Quick add                    (faction/NPC/lore)
-
-  cardScale is reset to 1 on mount so all party-section cards have
-  a uniform base size (the CSS column formula overrides JS sizing).
+  When the faction header scale changes we:
+    1. Write the CSS custom property on :root (for font/padding CSS rules)
+    2. Dispatch a custom event 'eb-faction-header-scale' on window so each
+       FactionColumn instance re-reads the token and updates the :size prop
+       passed to EntityAvatar — the only way to resize the avatar border-box,
+       which is set via an inline style that CSS cannot override.
 -->
 <template>
   <div class="dm-mobile">
@@ -79,12 +72,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
-import NewEntityDialog           from 'components/topbar/NewEntityDialog.vue';
-import MobileColControl          from 'components/topbar/dm-mobile/MobileColControl.vue';
-import MobileStepControl         from 'components/topbar/dm-mobile/MobileStepControl.vue';
-import MobileToggleControl       from 'components/topbar/dm-mobile/MobileToggleControl.vue';
-import MobileRatioControl        from 'components/topbar/dm-mobile/MobileRatioControl.vue';
-import MobileQuickAdd            from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
+import NewEntityDialog            from 'components/topbar/NewEntityDialog.vue';
+import MobileColControl           from 'components/topbar/dm-mobile/MobileColControl.vue';
+import MobileStepControl          from 'components/topbar/dm-mobile/MobileStepControl.vue';
+import MobileToggleControl        from 'components/topbar/dm-mobile/MobileToggleControl.vue';
+import MobileRatioControl         from 'components/topbar/dm-mobile/MobileRatioControl.vue';
+import MobileQuickAdd             from 'components/topbar/dm-mobile/MobileQuickAdd.vue';
 import MobileFactionHeaderControl from 'components/topbar/dm-mobile/MobileFactionHeaderControl.vue';
 
 const layout = useAppSettingsStore();
@@ -114,14 +107,16 @@ function setFactionCols(n) {
 }
 
 // ── Faction header scale ──────────────────────────────────────────────────────
-const HEADER_SCALE_KEY = 'eb_mobile_faction_header_scale';
-const factionHeaderScale = ref(
-  parseFloat(localStorage.getItem(HEADER_SCALE_KEY) || '0.7')
-);
+const HEADER_KEY = 'eb_mobile_faction_header_scale';
+const factionHeaderScale = ref(parseFloat(localStorage.getItem(HEADER_KEY) || '0.7'));
 function setFactionHeaderScale(v) {
   factionHeaderScale.value = v;
-  localStorage.setItem(HEADER_SCALE_KEY, String(v));
+  localStorage.setItem(HEADER_KEY, String(v));
+  // 1. Update the CSS token (controls font size + padding via CSS rules)
   css('--mobile-faction-header-scale', v);
+  // 2. Notify FactionColumn instances so they re-read the token and pass
+  //    the updated :size prop to EntityAvatar (inline style, needs JS)
+  window.dispatchEvent(new CustomEvent('eb-faction-header-scale'));
 }
 
 // ── Card gap ────────────────────────────────────────────────────────────────
@@ -154,14 +149,14 @@ function openAdd(kind) { adding.value = kind; }
 
 // ── Apply all stored values on mount ──────────────────────────────────────
 onMounted(() => {
-  css('--mobile-party-cols',          mobilePartyCols.value);
-  css('--mobile-faction-cols',        mobileFactionCols.value);
+  css('--mobile-party-cols',           mobilePartyCols.value);
+  css('--mobile-faction-cols',         mobileFactionCols.value);
   css('--mobile-faction-header-scale', factionHeaderScale.value);
-  css('--mobile-card-spacing',        cardSpacing.value + 'px');
-  css('--mobile-card-ratio',          cardRatio.value);
-
-  // Normalise cardScale to 1: the CSS col-count formula drives mobile
-  // card width, so JS-computed scaling would make cards unequal sizes.
+  css('--mobile-card-spacing',         cardSpacing.value + 'px');
+  css('--mobile-card-ratio',           cardRatio.value);
+  // Dispatch so FactionColumn instances initialise their headerSize
+  window.dispatchEvent(new CustomEvent('eb-faction-header-scale'));
+  // Normalise cardScale so all party-section cards are the same size
   if (layout.cardScale !== 1) layout.setCardScale(1);
 });
 </script>
