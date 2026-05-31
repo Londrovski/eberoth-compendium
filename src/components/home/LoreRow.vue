@@ -51,7 +51,6 @@ async function onMoveDown(idx) {
   margin-top: calc(16px * var(--scale, 1));
 }
 .section-label {
-  font-family: 'Cinzel', serif;
   font-size: calc(0.7rem * var(--scale, 1));
   letter-spacing: 3px;
   text-transform: uppercase;
