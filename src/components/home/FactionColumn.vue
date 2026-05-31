@@ -79,23 +79,26 @@ async function onMemberMoveDown(idx) {
 </script>
 
 <style scoped>
+/* Faction box infill colours are now driven by DM Tools → Lines &
+   spacing → "Faction box opacity". The three vars are pre-baked
+   rgba strings that respect the slider. */
 .faction-column {
   display: flex;
   flex-direction: column;
   gap: calc(12px * var(--scale, 1));
-  background: var(--bg-panel);
+  background: var(--faction-box-bg);
   border: var(--line-thickness) solid var(--line-color);
   border-radius: 4px;
   padding: calc(12px * var(--scale, 1)) calc(14px * var(--scale, 1));
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .faction-column:has(.faction-header.vis-restricted) {
-  background: #16202c;
+  background: var(--faction-box-bg-restricted);
   border-color: var(--blue);
   box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(74,107,145,0.30);
 }
 .faction-column:has(.faction-header.vis-dm-only) {
-  background: #2a1717;
+  background: var(--faction-box-bg-dm);
   border-color: var(--red);
   box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
