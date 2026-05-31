@@ -1,18 +1,22 @@
 <template>
   <div class="member-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
-    <EntityAvatar :entity="entity" :size="avatarSize" />
-    <div class="meta">
+    <div class="img-wrap">
+      <EntityAvatar :entity="entity" fill />
+      <div class="badge" v-if="otherCount > 0" :title="otherFactionsTitle">+{{ otherCount }}</div>
+      <ReorderArrows
+        v-if="viewer.isDM"
+        :disable-up="isFirst"
+        :disable-down="isLast"
+        :vertical="false"
+        class="arrows-overlay"
+        @up="$emit('move-up')"
+        @down="$emit('move-down')"
+      />
+    </div>
+    <div class="footer">
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="role" v-if="role">{{ role }}</div>
     </div>
-    <div class="badge" v-if="otherCount > 0" :title="otherFactionsTitle">+{{ otherCount }}</div>
-    <ReorderArrows
-      v-if="viewer.isDM"
-      :disable-up="isFirst"
-      :disable-down="isLast"
-      @up="$emit('move-up')"
-      @down="$emit('move-down')"
-    />
   </div>
 </template>
 
@@ -43,10 +47,8 @@ const detail   = useEntityDetail();
 const glow     = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
-const avatarSize = computed(() => Math.round(36 * layout.cardScale));
 const cardStyle = computed(() => ({
-  '--scale': layout.cardScale,
-  padding: (6 * layout.cardScale) + 'px ' + (8 * layout.cardScale) + 'px'
+  '--scale': layout.cardScale
 }));
 
 const otherFactions = computed(() =>
@@ -63,55 +65,88 @@ function open() { detail.open(props.entity.id); }
 <style scoped>
 .member-card {
   display: flex;
-  align-items: center;
-  gap: calc(8px * var(--scale, 1));
-  background: var(--bg-panel-2);
+  flex-direction: column;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-left: 2px solid var(--gold-dim);
   border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
 }
-.member-card:hover { border-color: var(--gold-dim); background: var(--bg-card); }
+.member-card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
 
 .member-card.vis-restricted {
-  background: rgba(74,107,145,0.12);
-  border-left-color: var(--blue);
-  border-color: rgba(74,107,145,0.5);
+  background: rgba(74,107,145,0.10);
+  border-color: var(--blue);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(74,107,145,0.3);
 }
 .member-card.vis-dm-only {
-  background: rgba(139,58,58,0.14);
-  border-left-color: var(--red);
-  border-color: rgba(139,58,58,0.5);
+  background: rgba(139,58,58,0.12);
+  border-color: var(--red);
   box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(139,58,58,0.3);
 }
 .member-card.is-glow {
   background: rgba(201,169,97,0.10);
   border-color: var(--gold);
-  border-left-color: var(--gold);
-  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(201,169,97,0.45);
+  box-shadow: 0 0 calc(10px * var(--scale, 1)) rgba(201,169,97,0.45);
 }
 
-.meta { flex: 1; min-width: 0; }
+.img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--bg);
+  overflow: hidden;
+}
+.img-wrap :deep(.entity-avatar) {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: none;
+  border-radius: 0;
+}
+.img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
+.member-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
+
+.badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: calc(0.65rem * var(--scale, 1));
+  color: var(--gold);
+  padding: 2px calc(6px * var(--scale, 1));
+  background: rgba(11,9,5,0.75);
+  border: 1px solid var(--gold-dim);
+  border-radius: calc(4px * var(--scale, 1));
+}
+.arrows-overlay {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(11,9,5,0.6);
+  border-radius: 3px;
+}
+
+.footer {
+  padding: calc(8px * var(--scale, 1)) calc(8px * var(--scale, 1));
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
 .name {
-  font-weight: 500;
   font-size: calc(0.85rem * var(--scale, 1));
   color: var(--text);
+  letter-spacing: 0.02em;
   line-height: 1.2;
 }
 .role {
   font-size: calc(0.7rem * var(--scale, 1));
   color: var(--text-dim);
-  line-height: 1.2;
-}
-.badge {
-  font-size: calc(0.65rem * var(--scale, 1));
-  color: var(--gold);
-  padding: 2px calc(6px * var(--scale, 1));
-  background: rgba(201,169,97,0.12);
-  border: 1px solid var(--gold-dim);
-  border-radius: calc(4px * var(--scale, 1));
-  flex-shrink: 0;
+  font-style: italic;
+  line-height: 1.3;
+  margin-top: 2px;
 }
 </style>
