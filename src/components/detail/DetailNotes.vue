@@ -85,7 +85,6 @@ const relativeSaved = computed(() => {
 
 <style scoped>
 .section-label {
-  font-family: 'Cinzel', serif;
   font-size: 0.7rem;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -100,7 +99,6 @@ const relativeSaved = computed(() => {
   border-radius: 4px;
   padding: 10px 12px;
   color: var(--text);
-  font-family: 'Cinzel', 'Georgia', serif;
   font-size: 14px;
   line-height: 1.55;
   outline: none;
