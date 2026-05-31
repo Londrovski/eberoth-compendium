@@ -2,6 +2,15 @@
   <div class="personal-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
+      <q-btn
+        v-if="viewer.isDM && playerId"
+        flat round dense
+        icon="link_off"
+        size="xs"
+        class="dm-action"
+        :title="'Unpin from this player (becomes orphan lore)'"
+        @click.stop="onUnpin"
+      />
       <ReorderArrows
         v-if="viewer.isDM && reorderable"
         :disable-up="isFirst"
@@ -28,13 +37,15 @@ import { useViewer } from 'src/composables/useViewer';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
+import * as personalsApi from 'src/api/personals';
 
 const props = defineProps({
   entity:       { type: Object, required: true },
   relationship: { type: String, default: '' },
   reorderable:  { type: Boolean, default: false },
   isFirst:      { type: Boolean, default: false },
-  isLast:       { type: Boolean, default: false }
+  isLast:       { type: Boolean, default: false },
+  playerId:     { type: String, default: '' }
 });
 defineEmits(['move-up', 'move-down']);
 
@@ -60,6 +71,11 @@ const cardStyle = computed(() => {
 });
 
 function open() { detail.open(props.entity.id); }
+
+async function onUnpin() {
+  if (!props.playerId) return;
+  await personalsApi.remove(props.entity.id, props.playerId);
+}
 </script>
 
 <style scoped>
@@ -113,6 +129,20 @@ function open() { detail.open(props.entity.id); }
 }
 .img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
 .personal-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
+
+.dm-action {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(11,9,5,0.7);
+  color: var(--gold);
+  border-radius: 3px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.personal-card:hover .dm-action { opacity: 1; }
+.dm-action:hover { color: var(--red); }
 
 .arrows-overlay {
   position: absolute;
