@@ -169,4 +169,33 @@ async function onMemberMoveDown(idx) {
   font-style: italic;
   padding: calc(6px * var(--scale, 1)) calc(8px * var(--scale, 1));
 }
+
+/*
+  Mobile: column goes full-width. Member cards inside respect
+  --mobile-faction-cols (1 or 2, set by DmToolsMobile, default 2).
+*/
+@media (max-width: 600px) {
+  .faction-column {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    flex: 0 0 100%;
+  }
+  .member-grid :deep(.member-card) {
+    width: calc(
+      (100% - (var(--mobile-faction-cols, 2) - 1) * var(--card-spacing))
+      / var(--mobile-faction-cols, 2)
+    ) !important;
+    height: auto !important;
+  }
+  .member-grid :deep(.img-wrap) {
+    position: relative !important;
+    height: 0 !important;
+    padding-bottom: 133% !important;
+  }
+  .member-grid :deep(.footer) {
+    position: relative !important;
+    min-height: unset !important;
+  }
+}
 </style>

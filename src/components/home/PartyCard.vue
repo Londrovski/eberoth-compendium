@@ -129,4 +129,29 @@ function open() { detail.open(props.entity.id); }
   line-height: 1.3;
   margin-top: 2px;
 }
+
+/*
+  Mobile: cards fill a dynamic grid controlled by --mobile-party-cols
+  (default 2, set by DmToolsMobile). The fixed pixel width is overridden
+  so cards share the available row width equally.
+*/
+@media (max-width: 600px) {
+  .party-card {
+    width: calc(
+      (100% - (var(--mobile-party-cols, 2) - 1) * var(--card-spacing))
+      / var(--mobile-party-cols, 2)
+    ) !important;
+    height: auto !important;
+  }
+  .img-wrap {
+    position: relative;
+    height: 0;
+    padding-bottom: 133%; /* 4:3 ratio */
+  }
+  .footer {
+    position: relative;
+    min-height: unset;
+    padding: 6px 8px;
+  }
+}
 </style>

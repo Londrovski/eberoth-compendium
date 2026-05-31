@@ -7,7 +7,7 @@
 
       <q-space />
 
-      <!-- Desktop nav tabs — hidden on phones (lt-sm = below 600px) -->
+      <!-- Desktop nav tabs — hidden on phones -->
       <q-tabs
         dense no-caps inline-label align="center"
         class="eb-tabs gt-xs"
@@ -61,29 +61,42 @@
         />
       </div>
 
-      <!-- Mobile: hamburger — visible only on phones (lt-sm) -->
-      <q-btn
-        flat dense round
-        icon="menu"
-        class="lt-sm mobile-menu-btn"
-        aria-label="Open navigation"
-        @click="drawerOpen = true"
-      />
+      <!-- Mobile topbar: DM gear (DM only) + hamburger — phones only -->
+      <div class="row items-center q-gutter-xs lt-sm">
+        <template v-if="viewer.isDM">
+          <RealtimeDot />
+          <q-btn
+            flat dense round
+            icon="settings"
+            class="mobile-dm-btn"
+            aria-label="DM controls"
+            title="DM controls"
+            @click="dmPanelOpen = true"
+          />
+        </template>
+        <q-btn
+          flat dense round
+          icon="menu"
+          class="mobile-menu-btn"
+          aria-label="Open navigation"
+          @click="drawerOpen = true"
+        />
+      </div>
     </q-toolbar>
   </q-header>
 
-  <!-- Mobile slide-out drawer -->
+  <!-- ─── Mobile navigation drawer — slides in from the RIGHT ─── -->
   <q-drawer
     v-model="drawerOpen"
-    side="left"
+    side="right"
     overlay
     behavior="mobile"
-    class="eb-drawer lt-sm"
+    class="eb-drawer"
   >
     <div class="drawer-header q-pa-md row items-center">
-      <span class="eberoth drawer-title">Eberoth</span>
-      <q-space />
       <q-btn flat dense round icon="close" @click="drawerOpen = false" style="color:var(--text-dim)" />
+      <q-space />
+      <span class="eberoth drawer-title">Eberoth</span>
     </div>
     <q-separator style="background:var(--border)" />
 
@@ -122,40 +135,37 @@
 
     <q-separator style="background:var(--border); margin: 8px 0" />
 
-    <!-- External links -->
-    <q-list>
-      <q-item
+    <!-- External links — styled exactly like desktop buttons -->
+    <div class="q-pa-sm column q-gutter-xs" v-if="zoomUrl || dndbeyondUrl">
+      <a
         v-if="zoomUrl"
-        clickable v-ripple tag="a"
-        :href="zoomUrl" target="_blank" rel="noopener"
-        class="drawer-item"
+        :href="zoomUrl"
+        target="_blank"
+        rel="noopener"
+        class="drawer-ext-btn zoom-btn"
       >
-        <q-item-section avatar><q-icon name="videocam" /></q-item-section>
-        <q-item-section>Zoom</q-item-section>
-      </q-item>
-      <q-item
+        <q-icon name="videocam" size="16px" />
+        <span>Zoom</span>
+      </a>
+      <a
         v-if="dndbeyondUrl"
-        clickable v-ripple tag="a"
-        :href="dndbeyondUrl" target="_blank" rel="noopener"
-        class="drawer-item"
+        :href="dndbeyondUrl"
+        target="_blank"
+        rel="noopener"
+        class="drawer-ext-btn dnd-btn"
       >
-        <q-item-section avatar><q-icon name="casino" /></q-item-section>
-        <q-item-section>D&amp;D Beyond</q-item-section>
-      </q-item>
-    </q-list>
+        <q-icon name="casino" size="16px" />
+        <span>D&amp;D Beyond</span>
+      </a>
+    </div>
 
-    <q-separator style="background:var(--border); margin: 8px 0" />
+    <q-separator v-if="viewer.isDM" style="background:var(--border); margin: 8px 0" />
 
-    <!-- DM tools (DM only) -->
-    <q-list v-if="viewer.isDM">
-      <q-item-label header style="color:var(--text-dim);font-size:10px;letter-spacing:0.1em;text-transform:uppercase">DM Tools</q-item-label>
-      <q-item class="drawer-item">
-        <q-item-section><ViewAsSelect /></q-item-section>
-      </q-item>
-      <q-item class="drawer-item" style="padding-top:4px">
-        <q-item-section><DmToolsMenu /></q-item-section>
-      </q-item>
-    </q-list>
+    <!-- View-As (DM only) -->
+    <div v-if="viewer.isDM" class="q-pa-sm">
+      <div class="drawer-section-label">View as</div>
+      <ViewAsSelect />
+    </div>
 
     <q-separator style="background:var(--border); margin: 8px 0" />
 
@@ -172,6 +182,26 @@
       />
     </div>
   </q-drawer>
+
+  <!-- ─── Mobile DM controls panel — right-side overlay ─── -->
+  <q-drawer
+    v-if="viewer.isDM"
+    v-model="dmPanelOpen"
+    side="right"
+    overlay
+    behavior="mobile"
+    class="eb-drawer eb-dm-panel"
+  >
+    <div class="drawer-header q-pa-md row items-center">
+      <q-btn flat dense round icon="close" @click="dmPanelOpen = false" style="color:var(--text-dim)" />
+      <q-space />
+      <span class="dm-panel-title">DM Controls</span>
+    </div>
+    <q-separator style="background:var(--border)" />
+    <div class="q-pa-md">
+      <DmToolsMobile />
+    </div>
+  </q-drawer>
 </template>
 
 <script setup>
@@ -183,6 +213,7 @@ import { useAppSettingsStore } from 'src/stores/app-settings';
 import { characterFromBucket } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
+import DmToolsMobile from 'components/topbar/DmToolsMobile.vue';
 import UserZoomControl from 'components/topbar/UserZoomControl.vue';
 import RealtimeDot from 'components/topbar/RealtimeDot.vue';
 
@@ -192,6 +223,7 @@ const viewer = useViewer();
 const appSettings = useAppSettingsStore();
 const signingOut = ref(false);
 const drawerOpen = ref(false);
+const dmPanelOpen = ref(false);
 
 const roleLabel = computed(() => {
   if (!auth.actualBucket) return '-';
@@ -287,22 +319,29 @@ async function onSignOut() {
 }
 .logout-btn:hover { color: var(--gold); }
 
-/* Mobile toolbar tightening */
+/* Mobile toolbar */
 @media (max-width: 600px) {
   .eb-toolbar { min-height: 52px; padding: 0 10px; }
   .eberoth { font-size: 22px; }
 }
 
-/* Mobile drawer */
+.mobile-menu-btn { color: var(--gold); }
+.mobile-dm-btn   { color: var(--gold-dim); }
+.mobile-dm-btn:hover { color: var(--gold); }
+
+/* Shared drawer styles */
 .eb-drawer {
   background: var(--bg-panel) !important;
-  border-right: 1px solid var(--border) !important;
+  border-left: 1px solid var(--border) !important;
 }
-.drawer-header { border-bottom: 1px solid var(--border); }
+.drawer-header {
+  border-bottom: 1px solid var(--border);
+  min-height: 52px;
+}
 .drawer-title {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--gold);
   letter-spacing: 0.05em;
 }
@@ -311,6 +350,52 @@ async function onSignOut() {
   min-height: 48px;
 }
 .drawer-item :deep(.q-icon) { color: var(--gold-dim); }
-.drawer-item.q-router-link--active { color: var(--gold) !important; border-left: 3px solid var(--gold); }
-.mobile-menu-btn { color: var(--gold); }
+.drawer-item.q-router-link--active {
+  color: var(--gold) !important;
+  border-right: 3px solid var(--gold);
+}
+.drawer-section-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+
+/* Styled external buttons inside drawer — mirror desktop exactly */
+.drawer-ext-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+.drawer-ext-btn.zoom-btn {
+  color: #cfe1ff;
+  background: #1f3a6b;
+  border-color: #3a5da3;
+}
+.drawer-ext-btn.dnd-btn {
+  color: #ffd6d0;
+  background: #6b2222;
+  border-color: #a33a3a;
+}
+
+/* DM panel */
+.eb-dm-panel { border-left: 1px solid var(--gold-dim) !important; }
+.dm-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 </style>

@@ -1,192 +1,198 @@
 <template>
-  <div class="mb-block" @click.stop>
-    <!-- Diagnostic readout — shows which signals are firing.
-         pointer:coarse + hover:none = the real mobile signal.
-         UA is a sanity-check fallback. Breakpoint is informational
-         only; mobile detection no longer relies on width. -->
-    <div class="diag" :class="{ active: viewport.isMobile }">
-      <span class="diag-row">
-        <span class="diag-k">Width</span>
-        <span class="diag-v">{{ viewport.width }}px</span>
-      </span>
-      <span class="diag-row">
-        <span class="diag-k">Touch / no-hover</span>
-        <span class="diag-v">{{ viewport.mediaMobile ? 'YES' : 'no' }}</span>
-      </span>
-      <span class="diag-row">
-        <span class="diag-k">Mobile UA</span>
-        <span class="diag-v">{{ viewport.uaMobile ? 'YES' : 'no' }}</span>
-      </span>
-      <span class="diag-row">
-        <span class="diag-k">Preview force</span>
-        <span class="diag-v">{{ layout.mobilePreviewForce ? 'On' : 'Off' }}</span>
-      </span>
-      <span class="diag-row verdict">
-        <span class="diag-k">Mobile mode</span>
-        <span class="diag-v">{{ viewport.isMobile ? 'YES' : 'NO' }}</span>
-      </span>
-    </div>
+  <div class="dm-mobile">
 
-    <div class="row-pair">
-      <div class="row-pair-label">Preview mobile</div>
+    <!-- Card size -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Card size</div>
       <div class="row items-center q-gutter-xs">
-        <button
-          class="pill"
-          :class="{ active:  layout.mobilePreviewForce }"
-          @click="setPreview(true)"
-          :title="'Force mobile layout on desktop for tuning'"
-        >On</button>
-        <button
-          class="pill"
-          :class="{ active: !layout.mobilePreviewForce }"
-          @click="setPreview(false)"
-        >Off</button>
+        <button class="step-btn" @click="adjustCard(-0.1)" :disabled="layout.cardScale <= 0.5">−</button>
+        <span class="ctrl-val">{{ pct(layout.cardScale) }}</span>
+        <button class="step-btn" @click="adjustCard(+0.1)" :disabled="layout.cardScale >= 2">+</button>
       </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Card scale</div>
-      <Stepper
-        :value="cardScalePct"
-        :min="30" :max="120" :step="5"
-        suffix="%"
-        @change="onCardScale"
-      />
+    <div class="ctrl-sep" />
+
+    <!-- Faction member columns (1 or 2) -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Faction columns</div>
+      <div class="row items-center q-gutter-xs">
+        <button
+          class="pill"
+          :class="{ active: mobileFactionCols === 1 }"
+          @click="setFactionCols(1)"
+        >1 col</button>
+        <button
+          class="pill"
+          :class="{ active: mobileFactionCols === 2 }"
+          @click="setFactionCols(2)"
+        >2 col</button>
+      </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Card spacing</div>
-      <Stepper
-        :value="cardSpacing"
-        :min="2" :max="40" :step="2"
-        suffix="px"
-        @change="onCardSpacing"
-      />
+    <div class="ctrl-sep" />
+
+    <!-- Party card row size (1 or 2 per row) -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Party cards per row</div>
+      <div class="row items-center q-gutter-xs">
+        <button
+          class="pill"
+          :class="{ active: mobilePartyCols === 1 }"
+          @click="setPartyCols(1)"
+        >1</button>
+        <button
+          class="pill"
+          :class="{ active: mobilePartyCols === 2 }"
+          @click="setPartyCols(2)"
+        >2</button>
+      </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Cards per row</div>
-      <Stepper
-        :value="cardsPerRow"
-        :min="1" :max="5" :step="1"
-        @change="onCardsPerRow"
-      />
+    <div class="ctrl-sep" />
+
+    <!-- Personal cards -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Personal cards</div>
+      <div class="row items-center q-gutter-xs">
+        <button class="pill" :class="{ active: layout.showPersonals }"  @click="layout.setShowPersonals(true)">Show</button>
+        <button class="pill" :class="{ active: !layout.showPersonals }" @click="layout.setShowPersonals(false)">Hide</button>
+      </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Topbar height</div>
-      <Stepper
-        :value="topbarHeight"
-        :min="32" :max="80" :step="2"
-        suffix="px"
-        @change="onTopbarHeight"
-      />
+    <div class="ctrl-sep" />
+
+    <!-- Background opacity -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Background opacity</div>
+      <div class="row items-center q-gutter-xs">
+        <button class="step-btn" @click="adjustOpacity(-0.05)" :disabled="bgOpacity <= 0">−</button>
+        <span class="ctrl-val">{{ Math.round(bgOpacity * 100) }}%</span>
+        <button class="step-btn" @click="adjustOpacity(+0.05)" :disabled="bgOpacity >= 1">+</button>
+      </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Wordmark size</div>
-      <Stepper
-        :value="wordmarkSize"
-        :min="14" :max="40" :step="1"
-        suffix="px"
-        @change="onWordmarkSize"
-      />
+    <div class="ctrl-sep" />
+
+    <!-- Quick add -->
+    <div class="ctrl-section">
+      <div class="ctrl-label">Quick add</div>
+      <div class="column q-gutter-xs">
+        <button class="add-row" @click="openAdd('faction')">+ New faction</button>
+        <button class="add-row" @click="openAdd('npc')">+ New NPC</button>
+        <button class="add-row" @click="openAdd('lore')">+ New lore</button>
+      </div>
     </div>
 
-    <div class="row-pair">
-      <div class="row-pair-label">Card text</div>
-      <Stepper
-        :value="bodyCardSize"
-        :min="9" :max="20" :step="1"
-        suffix="px"
-        @change="onBodyCardSize"
-      />
-    </div>
-
-    <button class="reset-btn" @click="reset">Reset mobile</button>
   </div>
+
+  <NewEntityDialog v-if="adding" :kind="adding" @close="adding = null" />
 </template>
 
 <script setup>
-import { h, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
-import { useViewport } from 'src/composables/useViewport';
+import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
 
 const layout = useAppSettingsStore();
-const viewport = useViewport();
+const adding = ref(null);
 
-const cardScalePct  = computed(() => Math.round((layout.mobile?.cardScale ?? 0.55) * 100));
-const cardSpacing   = computed(() => layout.mobile?.cardSpacing ?? 10);
-const cardsPerRow   = computed(() => layout.mobile?.cardsPerRow ?? 3);
-const topbarHeight  = computed(() => layout.mobile?.topbarHeight ?? 44);
-const wordmarkSize  = computed(() => layout.mobile?.wordmarkSize ?? 22);
-const bodyCardSize  = computed(() => layout.mobile?.bodyCardSize ?? 12);
+// ── Mobile-local prefs stored in localStorage ──────────────────
+const FACTION_COLS_KEY = 'eb_mobile_faction_cols';
+const PARTY_COLS_KEY   = 'eb_mobile_party_cols';
 
-function onCardScale(v)    { layout.setMobile({ cardScale: v / 100 }); }
-function onCardSpacing(v)  { layout.setMobile({ cardSpacing: v }); }
-function onCardsPerRow(v)  { layout.setMobile({ cardsPerRow: v }); }
-function onTopbarHeight(v) { layout.setMobile({ topbarHeight: v }); }
-function onWordmarkSize(v) { layout.setMobile({ wordmarkSize: v }); }
-function onBodyCardSize(v) { layout.setMobile({ bodyCardSize: v }); }
-function reset()           { layout.resetMobile(); }
-function setPreview(v)     { layout.setMobilePreviewForce(v); }
+const mobileFactionCols = ref(
+  parseInt(localStorage.getItem(FACTION_COLS_KEY) || '2', 10)
+);
+const mobilePartyCols = ref(
+  parseInt(localStorage.getItem(PARTY_COLS_KEY) || '2', 10)
+);
 
-const Stepper = {
-  props: ['value', 'min', 'max', 'step', 'suffix'],
-  emits: ['change'],
-  setup(p, { emit }) {
-    const step = p.step || 1;
-    function dec() { emit('change', Math.max(p.min, p.value - step)); }
-    function inc() { emit('change', Math.min(p.max, p.value + step)); }
-    return () =>
-      h('div', { class: 'stepper' }, [
-        h('button', { class: 'step-btn', onClick: dec }, '−'),
-        h('span', { class: 'step-val' }, `${p.value}${p.suffix || ''}`),
-        h('button', { class: 'step-btn', onClick: inc }, '+')
-      ]);
-  }
-};
+function setFactionCols(n) {
+  mobileFactionCols.value = n;
+  localStorage.setItem(FACTION_COLS_KEY, String(n));
+  document.documentElement.style.setProperty('--mobile-faction-cols', String(n));
+}
+function setPartyCols(n) {
+  mobilePartyCols.value = n;
+  localStorage.setItem(PARTY_COLS_KEY, String(n));
+  document.documentElement.style.setProperty('--mobile-party-cols', String(n));
+}
+
+// Apply stored values on mount
+if (typeof document !== 'undefined') {
+  document.documentElement.style.setProperty('--mobile-faction-cols', String(mobileFactionCols.value));
+  document.documentElement.style.setProperty('--mobile-party-cols',   String(mobilePartyCols.value));
+}
+
+// ── Card scale ──────────────────────────────────────────────────
+function adjustCard(delta) {
+  const next = Math.round((layout.cardScale + delta) * 10) / 10;
+  layout.setCardScale(Math.min(2, Math.max(0.5, next)));
+}
+function pct(v) { return Math.round(v * 100) + '%'; }
+
+// ── Background opacity ──────────────────────────────────────────
+const bgOpacity = computed(() => layout.siteBackground?.opacity ?? 0.35);
+function adjustOpacity(delta) {
+  const next = Math.round((bgOpacity.value + delta) * 100) / 100;
+  layout.setSiteBackground({ opacity: Math.min(1, Math.max(0, next)) });
+}
+
+// ── Quick add ───────────────────────────────────────────────────
+function openAdd(kind) { adding.value = kind; }
 </script>
 
 <style scoped>
-.mb-block { display: flex; flex-direction: column; gap: 6px; }
+.dm-mobile { color: var(--text); }
 
-.diag {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.ctrl-section { margin-bottom: 2px; }
+.ctrl-label {
+  font-size: 10px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.ctrl-val {
+  font-size: 13px;
+  color: var(--text);
+  min-width: 42px;
+  text-align: center;
+  display: inline-block;
+}
+.ctrl-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.step-btn {
+  width: 32px;
+  height: 32px;
   background: var(--bg-panel-2);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 6px 8px;
-  margin-bottom: 4px;
-  font-size: 10px;
-  color: var(--text-dim);
-}
-.diag.active { border-color: var(--gold-dim); }
-.diag-row { display: flex; justify-content: space-between; }
-.diag-k { color: var(--text-dim); }
-.diag-v { color: var(--text); font-family: 'SF Mono', Menlo, monospace; }
-.diag-row.verdict { margin-top: 3px; padding-top: 3px; border-top: 1px dashed var(--border); }
-.diag-row.verdict .diag-k { color: var(--gold-dim); }
-.diag-row.verdict .diag-v { color: var(--gold); }
-
-.row-pair {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  font-family: inherit;
 }
-.row-pair-label { font-size: 11px; color: var(--text-dim); }
+.step-btn:hover:not(:disabled) { border-color: var(--gold-dim); color: var(--gold); }
+.step-btn:disabled { opacity: 0.35; cursor: default; }
 
 .pill {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 3px 10px;
+  padding: 5px 14px;
   border-radius: 3px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 .pill:hover { color: var(--gold); border-color: var(--gold-dim); }
@@ -196,33 +202,17 @@ const Stepper = {
   color: var(--bg);
 }
 
-:deep(.stepper) { display: inline-flex; align-items: center; gap: 2px; }
-:deep(.step-btn) {
+.add-row {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--gold-dim);
-  width: 20px; height: 20px;
-  font-size: 13px; line-height: 1;
-  border-radius: 3px; cursor: pointer;
-  font-family: inherit;
-}
-:deep(.step-btn:hover) { color: var(--gold); border-color: var(--gold-dim); }
-:deep(.step-val) {
-  font-size: 11px;
-  color: var(--text);
-  min-width: 42px;
-  text-align: center;
-}
-.reset-btn {
-  margin-top: 6px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 3px;
+  text-align: left;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
+  width: 100%;
 }
-.reset-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
+.add-row:hover { color: var(--gold); border-color: var(--gold-dim); background: var(--bg-panel-2); }
 </style>
