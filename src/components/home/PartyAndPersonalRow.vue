@@ -16,6 +16,7 @@
                 :key="pc.id + '-' + row.entity.id"
                 :entity="row.entity"
                 :relationship="row.relationship"
+                :player-id="pc.id"
                 :reorderable="true"
                 :is-first="idx === 0"
                 :is-last="idx === personalsOf(pc.id).length - 1"
@@ -32,6 +33,7 @@
             :key="row.entity.id"
             :entity="row.entity"
             :relationship="row.relationship"
+            :player-id="ownPlayerId"
           />
         </template>
       </template>
@@ -78,15 +80,16 @@ const players = computed(() =>
 
 function personalsOf(playerId) { return entities.personalsOf(playerId); }
 
+const ownPlayerId = computed(() => playerIdFromBucket(auth.effectiveBucket) || '');
+
 const myPersonals = computed(() => {
-  const pid = playerIdFromBucket(auth.effectiveBucket);
-  if (!pid) return [];
-  return entities.personalsOf(pid);
+  if (!ownPlayerId.value) return [];
+  return entities.personalsOf(ownPlayerId.value);
 });
 
 // Set of entity ids that are pinned to *any* player's personal row.
-// We use this to dedupe so a piece of Lore that's already shown as a
-// personal doesn't reappear in the orphan-Lore block.
+// Used to dedupe so a piece of Lore already shown as a personal
+// doesn't reappear in the orphan-Lore block.
 const personalEntityIds = computed(() => {
   const set = new Set();
   if (showGroupedView.value) {
