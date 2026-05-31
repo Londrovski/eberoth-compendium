@@ -26,9 +26,10 @@ const DEFAULT_BACKGROUND = {
 };
 
 const DEFAULT_LINES = {
-  thickness: 2,      // px — master border thickness
+  thickness: 2,        // px — master border thickness
   color:     '#8a7544',
-  spacing:   16      // px — gap between cards / faction columns
+  spacing:   16,       // px — gap between cards / faction columns
+  boxOpacity: 1.0      // 0..1 — faction box infill opacity
 };
 
 const DEFAULTS = {
@@ -45,6 +46,18 @@ const DEFAULTS = {
   site_background:          DEFAULT_BACKGROUND,
   site_lines:               DEFAULT_LINES
 };
+
+// Faction box base colours (in sync with the previous hardcoded ones).
+const BOX_BASE = {
+  default:    { r: 26, g: 24, b: 20 },   // ~#1a1814 (var(--bg-panel))
+  restricted: { r: 22, g: 32, b: 44 },   // ~#16202c
+  dmOnly:     { r: 42, g: 23, b: 23 }    // ~#2a1717
+};
+
+function rgba({ r, g, b }, a) {
+  const alpha = Math.max(0, Math.min(1, Number(a) || 0));
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 export const useAppSettingsStore = defineStore('appSettings', {
   state: () => ({
@@ -131,9 +144,10 @@ export const useAppSettingsStore = defineStore('appSettings', {
       }
       if (key === 'site_lines') {
         this.siteLines = {
-          thickness: value?.thickness ?? DEFAULT_LINES.thickness,
-          color:     value?.color     ?? DEFAULT_LINES.color,
-          spacing:   value?.spacing   ?? DEFAULT_LINES.spacing
+          thickness:  value?.thickness  ?? DEFAULT_LINES.thickness,
+          color:      value?.color      ?? DEFAULT_LINES.color,
+          spacing:    value?.spacing    ?? DEFAULT_LINES.spacing,
+          boxOpacity: value?.boxOpacity ?? DEFAULT_LINES.boxOpacity
         };
       }
       if ((key.startsWith('typo_') || key === 'site_lines') && typeof document !== 'undefined') {
@@ -156,6 +170,10 @@ export const useAppSettingsStore = defineStore('appSettings', {
       root.style.setProperty('--line-thickness', (l.thickness ?? 2) + 'px');
       root.style.setProperty('--line-color',     l.color || '#8a7544');
       root.style.setProperty('--card-spacing',   (l.spacing ?? 16) + 'px');
+      const a = l.boxOpacity ?? 1;
+      root.style.setProperty('--faction-box-bg',            rgba(BOX_BASE.default,    a));
+      root.style.setProperty('--faction-box-bg-restricted', rgba(BOX_BASE.restricted, a));
+      root.style.setProperty('--faction-box-bg-dm',         rgba(BOX_BASE.dmOnly,     a));
     },
     async setCardScale(scale) {
       this.cardScale = scale;
@@ -232,9 +250,10 @@ export const useAppSettingsStore = defineStore('appSettings', {
     },
     async setSiteLines(patch) {
       const next = {
-        thickness: patch?.thickness ?? this.siteLines.thickness,
-        color:     patch?.color     ?? this.siteLines.color,
-        spacing:   patch?.spacing   ?? this.siteLines.spacing
+        thickness:  patch?.thickness  ?? this.siteLines.thickness,
+        color:      patch?.color      ?? this.siteLines.color,
+        spacing:    patch?.spacing    ?? this.siteLines.spacing,
+        boxOpacity: patch?.boxOpacity ?? this.siteLines.boxOpacity
       };
       this.siteLines = next;
       this.applyCssVars();
