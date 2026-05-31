@@ -166,7 +166,7 @@ function open() { detail.open(props.entity.id); }
 
 .name {
   font-size: var(--body-card-size);
-  color: var(--body-card-color);
+  color: var(--gold);
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
