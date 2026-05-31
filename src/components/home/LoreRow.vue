@@ -51,10 +51,10 @@ async function onMoveDown(idx) {
   margin-top: calc(16px * var(--scale, 1));
 }
 .section-label {
-  font-size: calc(0.7rem * var(--scale, 1));
-  letter-spacing: 3px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: calc(14px * var(--scale, 1));
 }
 .row-wrap {
