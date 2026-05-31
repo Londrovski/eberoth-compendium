@@ -1,6 +1,6 @@
 <template>
   <section class="party-section" :style="sectionStyle">
-    <div class="section-label">The Party &amp; Personal</div>
+    <div class="section-label">The Party &amp; Lore</div>
     <div class="row-wrap">
       <PartyCard v-for="pc in players" :key="pc.id" :entity="pc" />
 
@@ -35,6 +35,20 @@
           />
         </template>
       </template>
+
+      <template v-if="orphanLore.length">
+        <div class="divider" aria-hidden="true"></div>
+        <LoreCard
+          v-for="(l, idx) in orphanLore"
+          :key="'lore-' + l.id"
+          :entity="l"
+          :reorderable="true"
+          :is-first="idx === 0"
+          :is-last="idx === orphanLore.length - 1"
+          @move-up="onLoreMoveUp(idx)"
+          @move-down="onLoreMoveDown(idx)"
+        />
+      </template>
     </div>
   </section>
 </template>
@@ -46,9 +60,10 @@ import { useViewer } from 'src/composables/useViewer';
 import { useAuthStore } from 'src/stores/auth';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { playerIdFromBucket } from 'src/config/players';
-import { swapPersonalOrder } from 'src/api/reorder';
+import { swapPersonalOrder, swapEntitySortOrder } from 'src/api/reorder';
 import PartyCard from 'components/home/PartyCard.vue';
 import PersonalCard from 'components/home/PersonalCard.vue';
+import LoreCard from 'components/home/LoreCard.vue';
 
 const entities = useEntitiesStore();
 const viewer   = useViewer();
@@ -68,6 +83,27 @@ const myPersonals = computed(() => {
   if (!pid) return [];
   return entities.personalsOf(pid);
 });
+
+// Set of entity ids that are pinned to *any* player's personal row.
+// We use this to dedupe so a piece of Lore that's already shown as a
+// personal doesn't reappear in the orphan-Lore block.
+const personalEntityIds = computed(() => {
+  const set = new Set();
+  if (showGroupedView.value) {
+    players.value.forEach(p => {
+      personalsOf(p.id).forEach(row => set.add(row.entity.id));
+    });
+  } else {
+    myPersonals.value.forEach(row => set.add(row.entity.id));
+  }
+  return set;
+});
+
+const orphanLore = computed(() =>
+  [...entities.lore]
+    .filter(l => !personalEntityIds.value.has(l.id))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+);
 
 const hasAnyPersonals = computed(() => {
   if (showGroupedView.value) {
@@ -90,6 +126,15 @@ async function onPersonalMoveDown(playerId, idx) {
   const rows = personalsOf(playerId);
   if (idx >= rows.length - 1) return;
   await swapPersonalOrder(playerId, rows[idx].entity.id, rows[idx + 1].entity.id);
+}
+
+async function onLoreMoveUp(idx) {
+  if (idx <= 0) return;
+  await swapEntitySortOrder(orphanLore.value[idx].id, orphanLore.value[idx - 1].id);
+}
+async function onLoreMoveDown(idx) {
+  if (idx >= orphanLore.value.length - 1) return;
+  await swapEntitySortOrder(orphanLore.value[idx].id, orphanLore.value[idx + 1].id);
 }
 </script>
 
