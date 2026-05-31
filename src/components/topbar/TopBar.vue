@@ -10,6 +10,7 @@
       <q-tabs dense no-caps inline-label align="center" class="eb-tabs">
         <q-route-tab :to="{ name: 'home' }"  label="Home" />
         <q-route-tab :to="{ name: 'notes' }" label="Notes" />
+        <q-route-tab v-if="viewer.isDM" :to="{ name: 'admin-usage' }" label="Admin" />
       </q-tabs>
 
       <q-space />
