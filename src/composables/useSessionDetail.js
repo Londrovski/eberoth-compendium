@@ -1,12 +1,10 @@
-// Global session-detail channel. Mirrors useEntityDetail: any
-// component (session row, internal link inside a session, etc) can
-// request the session panel to open. Maintains a back-stack so users
-// can step back through previously opened sessions.
+// Global session-detail channel. Mirrors useEntityDetail.
 import { ref, computed } from 'vue';
+import { track } from 'src/composables/useUsageTracker';
 
 const currentSession = ref(null);
 const isOpen = ref(false);
-const history = ref([]); // session objects visited before currentSession
+const history = ref([]);
 
 export function useSessionDetail() {
   return {
@@ -14,7 +12,7 @@ export function useSessionDetail() {
     isOpen,
     canGoBack: computed(() => history.value.length > 0),
     historyDepth: computed(() => history.value.length),
-    open(session) {
+    open(session, source) {
       if (!session) return;
       if (
         isOpen.value &&
@@ -25,12 +23,17 @@ export function useSessionDetail() {
       }
       currentSession.value = session;
       isOpen.value = true;
+      track('session_open', session.id, {
+        source: source || 'unknown',
+        number: session.number
+      });
     },
     back() {
       if (!history.value.length) return;
       const prev = history.value.pop();
       currentSession.value = prev;
       isOpen.value = true;
+      track('session_open', prev?.id, { source: 'back' });
     },
     close() {
       isOpen.value = false;
