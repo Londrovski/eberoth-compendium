@@ -35,6 +35,11 @@
 
       <q-separator class="sep" />
 
+      <div class="dm-label">Typography</div>
+      <TypographyControls />
+
+      <q-separator class="sep" />
+
       <div class="dm-label">Quick add</div>
       <div class="column q-gutter-xs">
         <button class="add-row" @click="openAdd('faction')">+ New faction</button>
@@ -50,6 +55,7 @@
 <script setup>
 import { ref } from 'vue';
 import CardScaleControls from 'components/topbar/CardScaleControls.vue';
+import TypographyControls from 'components/topbar/TypographyControls.vue';
 import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
@@ -72,7 +78,7 @@ function setPersonals(v) { layout.setShowPersonals(v); }
   border: 1px solid var(--border);
   color: var(--text);
   padding: 10px 14px;
-  min-width: 230px;
+  min-width: 280px;
 }
 .dm-label {
   font-size: 10px;
