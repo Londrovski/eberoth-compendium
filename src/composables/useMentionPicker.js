@@ -2,8 +2,13 @@
 // autocomplete + hyperlink click handling.
 //
 // Mention storage shape (inline HTML):
-//   <a class="mention" data-mention-kind="entity"  data-mention-id="<uuid>">@Name</a>
-//   <a class="mention" data-mention-kind="session" data-mention-id="<id>">@Session N</a>
+//   <a class="mention" data-mention-kind="entity"  data-mention-id="<uuid>">Name</a>
+//   <a class="mention" data-mention-kind="session" data-mention-id="<id>">Session N</a>
+//
+// NOTE: the displayed text deliberately does NOT include the "@" prefix.
+// The "@" is purely a trigger character while typing; once committed,
+// the mention reads as a clean hyperlinked name with an underline
+// affordance via CSS.
 //
 // Returns:
 //   bind(el)            attach listeners to a contenteditable element
@@ -132,13 +137,13 @@ export function useMentionPicker({ onInput } = {}) {
   function insertMention(item) {
     if (!activeEl || !activeAtNode) return;
     try {
-      // Build the anchor.
+      // Build the anchor — name only, no @ prefix.
       const a = document.createElement('a');
       a.className = 'mention';
       a.contentEditable = 'false';
       a.setAttribute('data-mention-kind', item.kind);
       a.setAttribute('data-mention-id', String(item.id));
-      a.textContent = '@' + item.label;
+      a.textContent = item.label;
 
       // Replace from the '@' character through to the current caret with
       // the anchor + a trailing space.
@@ -151,7 +156,7 @@ export function useMentionPicker({ onInput } = {}) {
       replaceRange.setEnd(caretRange.endContainer, caretRange.endOffset);
       replaceRange.deleteContents();
 
-      const space = document.createTextNode(' ');
+      const space = document.createTextNode(' ');
       replaceRange.insertNode(space);
       replaceRange.insertNode(a);
 
