@@ -1,18 +1,21 @@
 <template>
   <div class="lore-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
-    <EntityAvatar :entity="entity" :size="avatarSize" />
-    <div class="meta">
+    <div class="img-wrap">
+      <EntityAvatar :entity="entity" fill />
+      <ReorderArrows
+        v-if="viewer.isDM && reorderable"
+        :disable-up="isFirst"
+        :disable-down="isLast"
+        :vertical="false"
+        class="arrows-overlay"
+        @up="$emit('move-up')"
+        @down="$emit('move-down')"
+      />
+    </div>
+    <div class="footer">
       <div class="name">{{ entity.short_name || entity.name }}</div>
       <div class="sub" v-if="entity.sub">{{ entity.sub }}</div>
     </div>
-    <ReorderArrows
-      v-if="viewer.isDM && reorderable"
-      :disable-up="isFirst"
-      :disable-down="isLast"
-      :vertical="false"
-      @up="$emit('move-up')"
-      @down="$emit('move-down')"
-    />
   </div>
 </template>
 
@@ -40,10 +43,9 @@ const detail = useEntityDetail();
 const glow   = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
-const avatarSize = computed(() => Math.round(36 * layout.cardScale));
 const cardStyle = computed(() => ({
   '--scale': layout.cardScale,
-  padding: (6 * layout.cardScale) + 'px ' + (12 * layout.cardScale) + 'px 6px 6px'
+  width: Math.round(180 * layout.cardScale) + 'px'
 }));
 
 function open() { detail.open(props.entity.id); }
@@ -52,33 +54,77 @@ function open() { detail.open(props.entity.id); }
 <style scoped>
 .lore-card {
   display: flex;
-  align-items: center;
-  gap: calc(8px * var(--scale, 1));
+  flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--gold-dim);
-  border-radius: calc(6px * var(--scale, 1));
+  border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
 }
-.lore-card:hover { border-color: var(--gold); }
+.lore-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 22px rgba(201,169,97,0.2);
+}
 
 .lore-card.vis-restricted {
-  background: rgba(74,107,145,0.12);
+  background: rgba(74,107,145,0.10);
   border-color: var(--blue);
-  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(74,107,145,0.35);
+  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(74,107,145,0.35);
 }
 .lore-card.vis-dm-only {
-  background: rgba(139,58,58,0.14);
+  background: rgba(139,58,58,0.12);
   border-color: var(--red);
-  box-shadow: 0 0 calc(6px * var(--scale, 1)) rgba(139,58,58,0.35);
+  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(139,58,58,0.35);
 }
 .lore-card.is-glow {
   background: rgba(201,169,97,0.10);
   border-color: var(--gold);
-  box-shadow: 0 0 calc(8px * var(--scale, 1)) rgba(201,169,97,0.5);
+  box-shadow: 0 0 calc(12px * var(--scale, 1)) rgba(201,169,97,0.5);
 }
 
-.meta { min-width: 0; flex: 1; }
-.name { font-weight: 500; font-size: calc(0.85rem * var(--scale, 1)); color: var(--text); line-height: 1.2; }
-.sub  { font-size: calc(0.7rem * var(--scale, 1)); color: var(--text-dim); line-height: 1.2; }
+.img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--bg);
+  overflow: hidden;
+}
+.img-wrap :deep(.entity-avatar) {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: none;
+  border-radius: 0;
+}
+.img-wrap :deep(img) { opacity: 0.9; transition: opacity 0.2s, transform 0.3s; }
+.lore-card:hover .img-wrap :deep(img) { opacity: 1; transform: scale(1.04); }
+
+.arrows-overlay {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(11,9,5,0.6);
+  border-radius: 3px;
+}
+
+.footer {
+  padding: calc(10px * var(--scale, 1)) calc(12px * var(--scale, 1));
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.name {
+  font-size: calc(0.95rem * var(--scale, 1));
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+.sub {
+  font-size: calc(0.75rem * var(--scale, 1));
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.3;
+  margin-top: 2px;
+}
 </style>
