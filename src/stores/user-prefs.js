@@ -3,10 +3,9 @@
 // added without schema changes.
 //
 // Current prefs:
-//   notesDrawerWidth   number   px width of the notes-page resizer
-//   userZoom           number   page-wide zoom multiplier on desktop
-//   userZoomMobile     number   page-wide zoom multiplier on mobile
-//   usageDisabled      boolean  if true, suppress usage_events writes
+//   notesDrawerWidth  number   px width of the notes-page resizer
+//   userZoom          number   page-wide zoom multiplier (1 = 100%)
+//   usageDisabled     boolean  if true, suppress usage_events writes
 //
 // On change we debounce-save (1s) so dragging a slider doesn't
 // hammer the DB.
@@ -18,7 +17,6 @@ import * as api from 'src/api/user-prefs';
 const DEFAULTS = {
   notesDrawerWidth: 340,
   userZoom: 1.0,
-  userZoomMobile: 1.0,
   usageDisabled: false
 };
 
@@ -28,7 +26,6 @@ export const useUserPrefsStore = defineStore('userPrefs', {
   state: () => ({
     notesDrawerWidth: DEFAULTS.notesDrawerWidth,
     userZoom: DEFAULTS.userZoom,
-    userZoomMobile: DEFAULTS.userZoomMobile,
     usageDisabled: DEFAULTS.usageDisabled,
     _loadedFor: null,
     _saveTimer: null
@@ -45,7 +42,6 @@ export const useUserPrefsStore = defineStore('userPrefs', {
         const prefs = row?.prefs || {};
         this.notesDrawerWidth = prefs.notesDrawerWidth ?? DEFAULTS.notesDrawerWidth;
         this.userZoom         = prefs.userZoom         ?? DEFAULTS.userZoom;
-        this.userZoomMobile   = prefs.userZoomMobile   ?? DEFAULTS.userZoomMobile;
         this.usageDisabled    = !!prefs.usageDisabled;
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -57,7 +53,6 @@ export const useUserPrefsStore = defineStore('userPrefs', {
     _applyDefaults() {
       this.notesDrawerWidth = DEFAULTS.notesDrawerWidth;
       this.userZoom         = DEFAULTS.userZoom;
-      this.userZoomMobile   = DEFAULTS.userZoomMobile;
       this.usageDisabled    = DEFAULTS.usageDisabled;
       this.applyCssVars();
     },
@@ -65,9 +60,6 @@ export const useUserPrefsStore = defineStore('userPrefs', {
       if (typeof document === 'undefined') return;
       document.documentElement.style.setProperty(
         '--user-zoom', String(this.userZoom || 1)
-      );
-      document.documentElement.style.setProperty(
-        '--user-zoom-mobile', String(this.userZoomMobile || 1)
       );
     },
     _scheduleSave() {
@@ -81,7 +73,6 @@ export const useUserPrefsStore = defineStore('userPrefs', {
           await api.upsertMine(email, {
             notesDrawerWidth: this.notesDrawerWidth,
             userZoom: this.userZoom,
-            userZoomMobile: this.userZoomMobile,
             usageDisabled: this.usageDisabled
           });
         } catch (e) {
@@ -99,16 +90,8 @@ export const useUserPrefsStore = defineStore('userPrefs', {
       this.applyCssVars();
       this._scheduleSave();
     },
-    setUserZoomMobile(z) {
-      this.userZoomMobile = clamp(Number(z) || 1, 0.7, 1.5);
-      this.applyCssVars();
-      this._scheduleSave();
-    },
     resetZoom() {
       this.setUserZoom(DEFAULTS.userZoom);
-    },
-    resetZoomMobile() {
-      this.setUserZoomMobile(DEFAULTS.userZoomMobile);
     },
     setUsageDisabled(v) {
       this.usageDisabled = !!v;
