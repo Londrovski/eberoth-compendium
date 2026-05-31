@@ -79,17 +79,27 @@ async function onMemberMoveDown(idx) {
 </script>
 
 <style scoped>
-/* Faction box infill colours are now driven by DM Tools → Lines &
-   spacing → "Faction box opacity". The three vars are pre-baked
-   rgba strings that respect the slider. */
+/*
+  Faction-column width hugs one member card:
+    width = card width (--card-w) + 2 * horizontal padding.
+  The column scales with cardScale via the padding terms and --card-w
+  itself, so making cards smaller naturally makes columns thinner.
+
+  Members inside stack vertically (member-grid is a flex column) — the
+  row-level packing happens at the FactionsGrid layer.
+*/
 .faction-column {
+  --col-pad-x: calc(14px * var(--scale, 1));
+  --col-pad-y: calc(12px * var(--scale, 1));
+  width: calc(var(--card-w, 180px) + 2 * var(--col-pad-x));
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: calc(12px * var(--scale, 1));
   background: var(--faction-box-bg);
   border: var(--line-thickness) solid var(--line-color);
   border-radius: 4px;
-  padding: calc(12px * var(--scale, 1)) calc(14px * var(--scale, 1));
+  padding: var(--col-pad-y) var(--col-pad-x);
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .faction-column:has(.faction-header.vis-restricted) {
@@ -141,9 +151,9 @@ async function onMemberMoveDown(idx) {
 }
 .member-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--card-spacing);
-  align-items: flex-start;
+  align-items: stretch;
 }
 .empty {
   font-size: calc(0.75rem * var(--scale, 1));
