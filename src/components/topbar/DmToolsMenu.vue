@@ -40,6 +40,11 @@
 
       <q-separator class="sep" />
 
+      <div class="dm-label">Lines &amp; spacing</div>
+      <LinesControls />
+
+      <q-separator class="sep" />
+
       <div class="dm-label">Typography</div>
       <TypographyControls />
 
@@ -62,6 +67,7 @@ import { ref } from 'vue';
 import CardScaleControls from 'components/topbar/CardScaleControls.vue';
 import TypographyControls from 'components/topbar/TypographyControls.vue';
 import BackgroundControls from 'components/topbar/BackgroundControls.vue';
+import LinesControls from 'components/topbar/LinesControls.vue';
 import NewEntityDialog from 'components/topbar/NewEntityDialog.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 
