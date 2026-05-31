@@ -35,12 +35,15 @@
     </div>
 
     <div class="note-body-wrap">
+      <!-- IMPORTANT: no v-html here. The element is contenteditable and we
+           assign innerHTML imperatively on load + tab switch. Binding v-html
+           to a reactive value would re-render every keystroke and reset
+           the caret, causing characters to appear reversed. -->
       <div
         class="note-body"
         :contenteditable="authed"
         spellcheck="true"
         @blur="flush"
-        v-html="activeBodyHtml"
         ref="bodyEl"
       ></div>
     </div>
@@ -67,14 +70,20 @@ let saveTimer = null;
 let suppressNextSelect = false;
 
 const activeTab = computed(() => state.tabs.find(t => t.id === state.activeId) || null);
-const activeBodyHtml = computed(() => (activeTab.value ? activeTab.value.html || '' : ''));
 
-// Mention picker — `onInput` fires whenever the editor changes,
-// either from a normal keystroke or after we insert a mention HTML
-// fragment. We use that to capture the new innerHTML for save.
+// Push the active tab's HTML into the editor DOM. Only called on load
+// and when the user switches tabs — never during typing.
+function syncEditorFromState() {
+  if (!bodyEl.value) return;
+  const html = activeTab.value ? (activeTab.value.html || '') : '';
+  if (bodyEl.value.innerHTML !== html) bodyEl.value.innerHTML = html;
+}
+
 const picker = useMentionPicker({
   onInput(el) {
     if (activeTab.value) {
+      // Capture latest DOM state without writing back to the element
+      // (writing would reset the caret).
       activeTab.value.html = el.innerHTML;
       scheduleSave();
     }
@@ -83,6 +92,7 @@ const picker = useMentionPicker({
 
 async function flush() {
   if (!authed.value) return;
+  if (activeTab.value && bodyEl.value) activeTab.value.html = bodyEl.value.innerHTML;
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   saving.value = true;
   await saveNotepad({ tabs: state.tabs, activeId: state.activeId });
@@ -107,7 +117,7 @@ function onTabClick(tab) {
 
 watch(() => state.activeId, async () => {
   await nextTick();
-  if (bodyEl.value && activeTab.value) bodyEl.value.innerHTML = activeTab.value.html || '';
+  syncEditorFromState();
   flush();
 });
 
@@ -175,7 +185,7 @@ onMounted(async () => {
   state.tabs = loaded.tabs;
   state.activeId = loaded.activeId;
   await nextTick();
-  if (bodyEl.value && activeTab.value) bodyEl.value.innerHTML = activeTab.value.html || '';
+  syncEditorFromState();
   if (bodyEl.value) picker.bind(bodyEl.value);
 });
 
