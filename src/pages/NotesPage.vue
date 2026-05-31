@@ -176,10 +176,10 @@ onBeforeUnmount(() => {
   gap: 14px;
 }
 .head-label {
-  font-size: 13px;
-  letter-spacing: 4px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--section-heading-color);
 }
 .head-sub {
   font-size: 12px;
