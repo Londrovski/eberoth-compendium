@@ -1,15 +1,19 @@
-// useViewport — reactive viewport state. Singleton so all consumers
-// share one resize listener.
+// useViewport — reactive viewport state.
 //
-// Mobile detection model:
-//   1. Pointer/hover media queries — `(pointer: coarse)` + `(hover: none)`.
-//      This is the most reliable signal. Real phones match both.
-//   2. UA regex — belt-and-braces.
-//   3. localStorage `eb_force_desktop` — if "1", never go mobile.
-//      Escape hatch in case detection ever misfires again.
-//   4. URL `?desktop=1` query string — same behaviour, one-shot.
-//      Sets the localStorage flag so it sticks across reloads.
-//   5. `settings.mobilePreviewForce` — DM forces mobile for tuning.
+// 2026-05-31 final form after a long debugging session: mobile mode
+// is DISABLED by default. The DM has to explicitly enable it via
+// app_settings.mobile_layout.enabled. This stops any layered
+// detection bug from accidentally tripping mobile mode on a desktop
+// — and there were several over the day.
+//
+// When enabled, the detection model is intentionally extremely
+// conservative:
+//   1. innerWidth < 500 (true phones only, no desktop window can
+//      sanely be that narrow), OR
+//   2. (pointer: coarse) AND (hover: none), OR
+//   3. mobile UA regex.
+//
+// Force-desktop overrides everything regardless.
 
 import { ref, computed, onScopeDispose } from 'vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
@@ -18,6 +22,7 @@ let _state = null;
 
 const MOBILE_UA_RE = /Mobi|Android|iPhone|iPad|iPod|Mobile Safari|webOS|BlackBerry|Opera Mini|IEMobile/i;
 const FORCE_KEY = 'eb_force_desktop';
+const SAFE_WIDTH_THRESHOLD = 500;
 
 function detectMobileUA() {
   if (typeof navigator === 'undefined') return false;
@@ -27,9 +32,8 @@ function detectMobileUA() {
 function detectMobileMedia() {
   if (typeof window === 'undefined' || !window.matchMedia) return false;
   try {
-    const coarse = window.matchMedia('(pointer: coarse)').matches;
-    const noHover = window.matchMedia('(hover: none)').matches;
-    return coarse && noHover;
+    return window.matchMedia('(pointer: coarse)').matches
+        && window.matchMedia('(hover: none)').matches;
   } catch {
     return false;
   }
@@ -38,7 +42,6 @@ function detectMobileMedia() {
 function readForceDesktop() {
   if (typeof window === 'undefined') return false;
   try {
-    // Honour ?desktop=1 in the URL and persist it.
     const u = new URL(window.location.href);
     if (u.searchParams.get('desktop') === '1') {
       window.localStorage.setItem(FORCE_KEY, '1');
@@ -75,9 +78,6 @@ function ensureState() {
       noHover.addEventListener?.('change', update);
     } catch { /* ignore */ }
 
-    // Expose a console-callable escape hatch:
-    //   __ebForceDesktop(true)  to lock desktop mode.
-    //   __ebForceDesktop(false) to release.
     window.__ebForceDesktop = (v) => {
       try {
         if (v) window.localStorage.setItem(FORCE_KEY, '1');
@@ -96,14 +96,25 @@ export function useViewport() {
   const s = ensureState();
   const settings = useAppSettingsStore();
 
-  const naturallyMobile = computed(() => s.mediaMobile.value || s.uaMobile.value);
+  // Conservative natural-mobile detection. ALL three signals plus
+  // safe-width fallback.
+  const naturallyMobile = computed(() => {
+    // True phone width — even cosmically small desktop windows
+    // shouldn't go below this.
+    if (s.innerWidth.value <= SAFE_WIDTH_THRESHOLD) return true;
+    if (s.mediaMobile.value) return true;
+    if (s.uaMobile.value) return true;
+    return false;
+  });
 
   const breakpoint = computed(() => settings.mobile?.breakpoint ?? 600);
 
-  // The verdict.
-  // Force-desktop wins over everything including DM preview.
+  // Kill switch — mobile mode entirely off unless the DM enables it.
+  const mobileEnabled = computed(() => settings.mobile?.enabled === true);
+
   const isMobile = computed(() => {
     if (s.forceDesktop.value) return false;
+    if (!mobileEnabled.value) return false;  // kill switch.
     return naturallyMobile.value || !!settings.mobilePreviewForce;
   });
 
@@ -116,9 +127,7 @@ export function useViewport() {
     } catch {}
   }
 
-  onScopeDispose(() => {
-    // Singleton listener stays alive for the app lifetime.
-  });
+  onScopeDispose(() => { /* singleton */ });
 
   return {
     width:           s.innerWidth,
@@ -127,6 +136,7 @@ export function useViewport() {
     mediaMobile:     s.mediaMobile,
     uaMobile:        s.uaMobile,
     forceDesktop:    s.forceDesktop,
+    mobileEnabled,
     setForceDesktop,
     naturallyMobile,
     isMobile
