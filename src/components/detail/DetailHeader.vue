@@ -39,7 +39,6 @@ const viewer = useViewer();
 }
 .action-btn {
   color: var(--text-dim);
-  font-family: 'Cinzel', serif;
   letter-spacing: 1px;
 }
 .action-btn:hover { color: var(--gold); }
