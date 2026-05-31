@@ -68,4 +68,13 @@ function onMoveDown(id) { layout.moveFactionDown(id); }
   justify-content: center;
   gap: var(--card-spacing);
 }
+
+/* Mobile: stack faction columns vertically, full-width */
+@media (max-width: 600px) {
+  .grid {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+}
 </style>

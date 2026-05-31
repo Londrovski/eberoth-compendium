@@ -186,4 +186,21 @@ async function onLoreMoveDown(idx) {
   white-space: nowrap;
   margin-top: calc(80px * var(--scale, 1));
 }
+
+/* Mobile: stack all cards vertically, turn vertical divider horizontal */
+@media (max-width: 600px) {
+  .row-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .divider {
+    width: 100%;
+    height: var(--line-thickness);
+    align-self: auto;
+    margin: calc(4px * var(--scale, 1)) 0;
+  }
+  .group-chip {
+    margin-top: calc(12px * var(--scale, 1));
+  }
+}
 </style>

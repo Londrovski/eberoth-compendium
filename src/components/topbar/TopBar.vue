@@ -7,7 +7,11 @@
 
       <q-space />
 
-      <q-tabs dense no-caps inline-label align="center" class="eb-tabs">
+      <!-- Desktop nav tabs — hidden on phones (lt-sm = below 600px) -->
+      <q-tabs
+        dense no-caps inline-label align="center"
+        class="eb-tabs gt-xs"
+      >
         <q-route-tab :to="{ name: 'home' }"  label="Home" />
         <q-route-tab :to="{ name: 'notes' }" label="Notes" />
         <q-route-tab v-if="viewer.isDM" :to="{ name: 'admin-usage' }" label="Admin" />
@@ -15,7 +19,8 @@
 
       <q-space />
 
-      <div class="row items-center q-gutter-sm">
+      <!-- Desktop right-hand controls — hidden on phones -->
+      <div class="row items-center q-gutter-sm gt-xs">
         <q-btn
           v-if="zoomUrl"
           flat dense no-caps
@@ -43,7 +48,7 @@
           <DmToolsMenu />
           <ViewAsSelect />
         </template>
-        <UserZoomControl />
+        <UserZoomControl class="user-zoom-control" />
         <q-chip dense outline class="role-chip">{{ roleLabel }}</q-chip>
         <q-btn
           flat dense no-caps
@@ -55,8 +60,118 @@
           @click="onSignOut"
         />
       </div>
+
+      <!-- Mobile: hamburger — visible only on phones (lt-sm) -->
+      <q-btn
+        flat dense round
+        icon="menu"
+        class="lt-sm mobile-menu-btn"
+        aria-label="Open navigation"
+        @click="drawerOpen = true"
+      />
     </q-toolbar>
   </q-header>
+
+  <!-- Mobile slide-out drawer -->
+  <q-drawer
+    v-model="drawerOpen"
+    side="left"
+    overlay
+    behavior="mobile"
+    class="eb-drawer lt-sm"
+  >
+    <div class="drawer-header q-pa-md row items-center">
+      <span class="eberoth drawer-title">Eberoth</span>
+      <q-space />
+      <q-btn flat dense round icon="close" @click="drawerOpen = false" style="color:var(--text-dim)" />
+    </div>
+    <q-separator style="background:var(--border)" />
+
+    <!-- Navigation -->
+    <q-list>
+      <q-item
+        clickable v-ripple
+        :to="{ name: 'home' }"
+        exact
+        class="drawer-item"
+        @click="drawerOpen = false"
+      >
+        <q-item-section avatar><q-icon name="home" /></q-item-section>
+        <q-item-section>Home</q-item-section>
+      </q-item>
+      <q-item
+        clickable v-ripple
+        :to="{ name: 'notes' }"
+        class="drawer-item"
+        @click="drawerOpen = false"
+      >
+        <q-item-section avatar><q-icon name="menu_book" /></q-item-section>
+        <q-item-section>Notes</q-item-section>
+      </q-item>
+      <q-item
+        v-if="viewer.isDM"
+        clickable v-ripple
+        :to="{ name: 'admin-usage' }"
+        class="drawer-item"
+        @click="drawerOpen = false"
+      >
+        <q-item-section avatar><q-icon name="admin_panel_settings" /></q-item-section>
+        <q-item-section>Admin</q-item-section>
+      </q-item>
+    </q-list>
+
+    <q-separator style="background:var(--border); margin: 8px 0" />
+
+    <!-- External links -->
+    <q-list>
+      <q-item
+        v-if="zoomUrl"
+        clickable v-ripple tag="a"
+        :href="zoomUrl" target="_blank" rel="noopener"
+        class="drawer-item"
+      >
+        <q-item-section avatar><q-icon name="videocam" /></q-item-section>
+        <q-item-section>Zoom</q-item-section>
+      </q-item>
+      <q-item
+        v-if="dndbeyondUrl"
+        clickable v-ripple tag="a"
+        :href="dndbeyondUrl" target="_blank" rel="noopener"
+        class="drawer-item"
+      >
+        <q-item-section avatar><q-icon name="casino" /></q-item-section>
+        <q-item-section>D&amp;D Beyond</q-item-section>
+      </q-item>
+    </q-list>
+
+    <q-separator style="background:var(--border); margin: 8px 0" />
+
+    <!-- DM tools (DM only) -->
+    <q-list v-if="viewer.isDM">
+      <q-item-label header style="color:var(--text-dim);font-size:10px;letter-spacing:0.1em;text-transform:uppercase">DM Tools</q-item-label>
+      <q-item class="drawer-item">
+        <q-item-section><ViewAsSelect /></q-item-section>
+      </q-item>
+      <q-item class="drawer-item" style="padding-top:4px">
+        <q-item-section><DmToolsMenu /></q-item-section>
+      </q-item>
+    </q-list>
+
+    <q-separator style="background:var(--border); margin: 8px 0" />
+
+    <!-- Role + sign out -->
+    <div class="q-pa-md row items-center justify-between">
+      <q-chip dense outline class="role-chip">{{ roleLabel }}</q-chip>
+      <q-btn
+        flat dense no-caps
+        icon="logout"
+        label="Log out"
+        class="logout-btn"
+        :disable="signingOut"
+        @click="onSignOut"
+      />
+    </div>
+  </q-drawer>
 </template>
 
 <script setup>
@@ -76,6 +191,7 @@ const auth = useAuthStore();
 const viewer = useViewer();
 const appSettings = useAppSettingsStore();
 const signingOut = ref(false);
+const drawerOpen = ref(false);
 
 const roleLabel = computed(() => {
   if (!auth.actualBucket) return '-';
@@ -170,4 +286,31 @@ async function onSignOut() {
   padding: 6px 10px;
 }
 .logout-btn:hover { color: var(--gold); }
+
+/* Mobile toolbar tightening */
+@media (max-width: 600px) {
+  .eb-toolbar { min-height: 52px; padding: 0 10px; }
+  .eberoth { font-size: 22px; }
+}
+
+/* Mobile drawer */
+.eb-drawer {
+  background: var(--bg-panel) !important;
+  border-right: 1px solid var(--border) !important;
+}
+.drawer-header { border-bottom: 1px solid var(--border); }
+.drawer-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.drawer-item {
+  color: var(--text) !important;
+  min-height: 48px;
+}
+.drawer-item :deep(.q-icon) { color: var(--gold-dim); }
+.drawer-item.q-router-link--active { color: var(--gold) !important; border-left: 3px solid var(--gold); }
+.mobile-menu-btn { color: var(--gold); }
 </style>

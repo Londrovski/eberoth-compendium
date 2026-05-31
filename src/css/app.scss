@@ -115,3 +115,64 @@ body {
 .q-virtual-scroll__content { background: var(--bg-panel); }
 
 .text-grey-6, .text-grey-7, .text-grey-8 { color: var(--text-dim) !important; }
+
+
+// ── Mobile overrides (phones only, ≤600px) ────────────────────────────
+// Everything above this line is untouched desktop baseline.
+// These rules are strictly additive — they only activate on narrow
+// viewports and never affect any desktop layout.
+@media (max-width: 600px) {
+
+  // Tighten root spacing tokens for small screens
+  :root {
+    --card-spacing:        8px;
+    --body-card-size:      13px;
+    --body-session-size:   14px;
+    --section-heading-size: 10px;
+  }
+
+  // Stack faction grid columns vertically
+  // .grid is the flex container inside FactionsGrid.vue
+  .factions-section .grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  // Each faction column fills full width
+  // .faction-column is the root class on FactionColumn.vue
+  .faction-column {
+    min-width: unset !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  // Party + personal row: stack cards vertically
+  // .row-wrap is the flex container inside PartyAndPersonalRow.vue
+  .party-section .row-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  // Vertical dividers become horizontal rules when stacked
+  .party-section .divider {
+    width: 100%;
+    height: var(--line-thickness);
+    align-self: auto;
+    margin: calc(4px * var(--scale, 1)) 0;
+  }
+
+  // Full-width cards
+  .eb-party-card,
+  .eb-personal-card,
+  .eb-lore-card {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+  }
+
+  // Hide the desktop zoom slider — pinch-zoom is native on mobile
+  .user-zoom-control { display: none !important; }
+
+  // Tighten the DM tools button label on narrow screens
+  .eb-topbar .dm-tools-label { display: none; }
+}
