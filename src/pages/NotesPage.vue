@@ -74,7 +74,6 @@ import SessionsListPanel from 'components/notes/SessionsListPanel.vue';
   gap: 14px;
 }
 .head-label {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 13px;
   letter-spacing: 4px;
   text-transform: uppercase;
