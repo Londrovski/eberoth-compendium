@@ -85,7 +85,6 @@ onMounted(async () => {
   transform: translateX(2px);
 }
 .session-row-number {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 20px;
   color: var(--gold);
   min-width: 28px;
