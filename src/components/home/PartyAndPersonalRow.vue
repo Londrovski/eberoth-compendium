@@ -95,7 +95,7 @@ async function onPersonalMoveDown(playerId, idx) {
 
 <style scoped>
 .party-section {
-  padding: calc(12px * var(--scale, 1)) 0 calc(16px * var(--scale, 1));
+  padding: calc(14px * var(--scale, 1)) 0 calc(20px * var(--scale, 1));
   border-bottom: 1px solid var(--border);
 }
 .section-label {
@@ -103,21 +103,22 @@ async function onPersonalMoveDown(playerId, idx) {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--gold-dim);
-  margin-bottom: calc(10px * var(--scale, 1));
+  margin-bottom: calc(14px * var(--scale, 1));
 }
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(8px * var(--scale, 1));
-  align-items: center;
+  gap: calc(16px * var(--scale, 1));
+  align-items: flex-start;
 }
 .divider {
   width: 1px;
   align-self: stretch;
   background: var(--border);
-  margin: 0 calc(6px * var(--scale, 1));
+  margin: 0 calc(8px * var(--scale, 1));
 }
 .group-chip {
+  align-self: flex-start;
   font-size: calc(0.7rem * var(--scale, 1));
   font-weight: 500;
   color: var(--gold-dim);
@@ -126,5 +127,6 @@ async function onPersonalMoveDown(playerId, idx) {
   border: 1px solid var(--border);
   border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
+  margin-top: calc(80px * var(--scale, 1));
 }
 </style>
