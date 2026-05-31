@@ -4,6 +4,7 @@
       <q-page class="row items-center justify-center landing-page">
         <div class="landing-card">
           <div class="landing-rule" />
+          <img class="landing-logo" :src="LOGO" alt="Eberoth" />
           <h1 class="landing-eberoth">Eberoth</h1>
           <div class="landing-compendium">The Compendium</div>
           <div class="landing-rule" />
@@ -40,6 +41,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth';
+
+const LOGO = 'https://raw.githubusercontent.com/Londrovski/eberoth/main/eberoth%20logo.png';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -92,6 +95,14 @@ async function onSubmit() {
   margin: 0 auto;
   width: 80%;
 }
+.landing-logo {
+  display: block;
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  margin: 28px auto 6px;
+  filter: drop-shadow(0 0 24px rgba(201,169,97,0.55));
+}
 .landing-eberoth {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-weight: 700;
@@ -99,7 +110,7 @@ async function onSubmit() {
   color: var(--gold);
   letter-spacing: 0.05em;
   line-height: 1;
-  padding: 22px 0 10px;
+  padding: 6px 0 10px;
   text-shadow:
     0 0 30px rgba(201,169,97,0.7),
     0 0 60px rgba(201,169,97,0.35),
