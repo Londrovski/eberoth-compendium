@@ -46,7 +46,7 @@ async function onMoveDown(idx) {
 
 <style scoped>
 .lore-section {
-  padding: calc(18px * var(--scale, 1)) 0 calc(4px * var(--scale, 1));
+  padding: calc(20px * var(--scale, 1)) 0 calc(8px * var(--scale, 1));
   border-top: 1px solid var(--border);
   margin-top: calc(16px * var(--scale, 1));
 }
@@ -55,11 +55,12 @@ async function onMoveDown(idx) {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--gold-dim);
-  margin-bottom: calc(10px * var(--scale, 1));
+  margin-bottom: calc(14px * var(--scale, 1));
 }
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(8px * var(--scale, 1));
+  gap: calc(16px * var(--scale, 1));
+  align-items: flex-start;
 }
 </style>
