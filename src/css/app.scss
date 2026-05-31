@@ -34,7 +34,7 @@
 
 html, body { height: 100%; background: var(--bg); }
 body {
-  font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif;
+  font-family: 'Georgia', 'Times New Roman', serif;
   color: var(--text);
 }
 
@@ -87,7 +87,6 @@ body {
 }
 .q-menu .q-item {
   color: var(--text);
-  font-family: 'Cinzel', serif;
 }
 .q-menu .q-item--active,
 .q-menu .q-item.q-router-link--active,
