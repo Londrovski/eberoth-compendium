@@ -1,9 +1,7 @@
 <template>
-  <section class="party-section" :class="{ 'is-mobile': viewport.isMobile }" :style="sectionStyle">
+  <section class="party-section" :style="sectionStyle">
     <div class="section-label">The Party &amp; Lore</div>
-
-    <!-- Desktop: original single-row flex with vertical dividers -->
-    <div v-if="!viewport.isMobile" class="row-wrap">
+    <div class="row-wrap">
       <PartyCard v-for="pc in players" :key="pc.id" :entity="pc" />
 
       <template v-if="hasAnyPersonals">
@@ -54,68 +52,6 @@
         />
       </template>
     </div>
-
-    <!-- Mobile: grouped by player, each player+their personals stacked.
-         Players go in a 3-up row at the top; each player block below
-         lists their personals horizontally. -->
-    <div v-else class="mobile-stack">
-      <div class="mobile-row players-row">
-        <PartyCard v-for="pc in players" :key="'m-' + pc.id" :entity="pc" />
-      </div>
-
-      <template v-if="hasAnyPersonals && showGroupedView">
-        <div
-          v-for="pc in players"
-          :key="'mp-' + pc.id"
-          class="player-block"
-        >
-          <template v-if="personalsOf(pc.id).length">
-            <div class="player-label">{{ pc.short_name || pc.name }}</div>
-            <div class="mobile-row personals-row">
-              <PersonalCard
-                v-for="(row, idx) in personalsOf(pc.id)"
-                :key="'mpr-' + pc.id + '-' + row.entity.id"
-                :entity="row.entity"
-                :relationship="row.relationship"
-                :player-id="pc.id"
-                :reorderable="false"
-                :is-first="idx === 0"
-                :is-last="idx === personalsOf(pc.id).length - 1"
-              />
-            </div>
-          </template>
-        </div>
-      </template>
-
-      <template v-else-if="hasAnyPersonals">
-        <!-- Player viewer: just their own personals as one row. -->
-        <div class="player-block">
-          <div class="mobile-row personals-row">
-            <PersonalCard
-              v-for="row in myPersonals"
-              :key="'mo-' + row.entity.id"
-              :entity="row.entity"
-              :relationship="row.relationship"
-              :player-id="ownPlayerId"
-            />
-          </div>
-        </div>
-      </template>
-
-      <template v-if="orphanCards.length">
-        <div class="hr-divider" aria-hidden="true"></div>
-        <div class="mobile-row orphans-row">
-          <LoreCard
-            v-for="(l, idx) in orphanCards"
-            :key="'mlore-' + l.id"
-            :entity="l"
-            :reorderable="false"
-            :is-first="idx === 0"
-            :is-last="idx === orphanCards.length - 1"
-          />
-        </div>
-      </template>
-    </div>
   </section>
 </template>
 
@@ -125,7 +61,6 @@ import { useEntitiesStore } from 'src/stores/entities';
 import { useViewer } from 'src/composables/useViewer';
 import { useAuthStore } from 'src/stores/auth';
 import { useAppSettingsStore } from 'src/stores/app-settings';
-import { useViewport } from 'src/composables/useViewport';
 import { playerIdFromBucket } from 'src/config/players';
 import { swapPersonalOrder, swapEntitySortOrder } from 'src/api/reorder';
 import PartyCard from 'components/home/PartyCard.vue';
@@ -136,7 +71,6 @@ const entities = useEntitiesStore();
 const viewer   = useViewer();
 const auth     = useAuthStore();
 const layout   = useAppSettingsStore();
-const viewport = useViewport();
 
 const showGroupedView = computed(() => viewer.isDM && !viewer.isViewingAs);
 
@@ -221,8 +155,6 @@ async function onLoreMoveDown(idx) {
   padding: calc(14px * var(--scale, 1)) 0 calc(20px * var(--scale, 1));
   border-bottom: var(--line-thickness) solid var(--line-color);
 }
-.party-section.is-mobile { padding: 10px 0 14px; }
-
 .section-label {
   font-size: var(--section-heading-size);
   letter-spacing: var(--section-heading-spacing);
@@ -230,9 +162,6 @@ async function onLoreMoveDown(idx) {
   color: var(--section-heading-color);
   margin-bottom: calc(14px * var(--scale, 1));
 }
-.party-section.is-mobile .section-label { margin-bottom: 8px; padding: 0 10px; }
-
-/* Desktop layout (unchanged) */
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -256,36 +185,5 @@ async function onLoreMoveDown(idx) {
   border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
   margin-top: calc(80px * var(--scale, 1));
-}
-
-/* Mobile layout — vertically stacked, each row wraps to 3-up. */
-.mobile-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 8px;
-}
-.mobile-row {
-  display: grid;
-  grid-template-columns: repeat(var(--cards-per-row-mobile, 3), 1fr);
-  gap: var(--card-spacing-mobile);
-  width: 100%;
-}
-.player-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.player-label {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-  padding-left: 2px;
-}
-.hr-divider {
-  height: var(--line-thickness);
-  background: var(--line-color);
-  margin: 6px 0;
 }
 </style>
