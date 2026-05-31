@@ -1,4 +1,6 @@
 // Quasar config — minimal Vite + Vue 3 + Pinia + Router setup.
+// (Touch to trigger a fresh Cloudflare build against the current branch tip
+// after a "Retry deployment" was re-running an old broken commit.)
 import { defineConfig } from '#q-app/wrappers';
 
 export default defineConfig(() => ({
