@@ -173,7 +173,7 @@ async function onUnpin() {
 
 .name {
   font-size: var(--body-card-size);
-  color: var(--body-card-color);
+  color: var(--gold);
   letter-spacing: 0.03em;
   line-height: 1.2;
 }
