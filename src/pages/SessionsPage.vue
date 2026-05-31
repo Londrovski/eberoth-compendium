@@ -64,7 +64,6 @@ function open(sessionId) {
 
 <style scoped>
 .session-number {
-  font-family: 'Cinzel Decorative', serif;
   font-size: 1.4rem;
   color: #6b4f2e;
   min-width: 40px;
