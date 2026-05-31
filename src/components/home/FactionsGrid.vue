@@ -49,6 +49,18 @@ function onMoveDown(id) { layout.moveFactionDown(id); }
 </script>
 
 <style scoped>
+/*
+  Layout strategy:
+
+  - Each faction column has an intrinsic width that just hugs one
+    member card (--card-w + the column's own horizontal padding),
+    declared on the column itself.
+  - The row uses flex-wrap with justify-content: center, so columns
+    naturally fit 2/3/4/N per row based on available width and any
+    leftover space is split equally on each side (and between them via
+    the --card-spacing gap). When the cards shrink, the columns shrink
+    with them and another column can squeeze in.
+*/
 .factions-section { padding: calc(14px * var(--scale, 1)) 0 calc(4px * var(--scale, 1)); }
 .section-head {
   display: flex;
@@ -63,14 +75,9 @@ function onMoveDown(id) { layout.moveFactionDown(id); }
   color: var(--section-heading-color);
 }
 .grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--card-spacing);
-}
-@media (max-width: 900px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 600px) {
-  .grid { grid-template-columns: 1fr; }
 }
 </style>
