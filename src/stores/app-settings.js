@@ -15,12 +15,13 @@ const DEFAULT_TYPOGRAPHY = {
 
 const DEFAULT_EXTERNALS = {
   zoom: { url: '' },
-  dndbeyond: {
-    baker:   '',
-    butcher: '',
-    charlie: '',
-    dm:      ''
-  }
+  dndbeyond: { baker: '', butcher: '', charlie: '', dm: '' }
+};
+
+const DEFAULT_BACKGROUND = {
+  mode: 'none',        // 'none' | 'horizon' | 'logo'
+  opacity: 0.35,       // 0..1, applied to the bg image
+  size: 0.8            // 0..1, only used in 'logo' mode (fraction of smaller viewport dim)
 };
 
 const DEFAULTS = {
@@ -33,7 +34,8 @@ const DEFAULTS = {
   typo_bold_accent:     DEFAULT_TYPOGRAPHY.bold_accent,
   typo_section_heading: DEFAULT_TYPOGRAPHY.section_heading,
   external_zoom_url:        DEFAULT_EXTERNALS.zoom,
-  external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond
+  external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond,
+  site_background:          DEFAULT_BACKGROUND
 };
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -50,15 +52,11 @@ export const useAppSettingsStore = defineStore('appSettings', {
     },
     externalZoomUrl: '',
     externalDndbeyondUrls: { ...DEFAULT_EXTERNALS.dndbeyond },
+    siteBackground: { ...DEFAULT_BACKGROUND },
     _subscribed: false,
     _channel: null
   }),
   getters: {
-    /**
-     * Resolve the D&D Beyond URL for the current viewer bucket.
-     * Falls back to the DM campaign URL if no per-bucket value
-     * exists. Empty string if nothing is set.
-     */
     dndbeyondUrlFor: (s) => (bucket) => {
       if (!bucket) return '';
       const map = s.externalDndbeyondUrls || {};
@@ -114,7 +112,13 @@ export const useAppSettingsStore = defineStore('appSettings', {
           dm:      value?.dm      ?? ''
         };
       }
-      // Re-emit CSS vars after any typography change.
+      if (key === 'site_background') {
+        this.siteBackground = {
+          mode:    value?.mode    ?? DEFAULT_BACKGROUND.mode,
+          opacity: value?.opacity ?? DEFAULT_BACKGROUND.opacity,
+          size:    value?.size    ?? DEFAULT_BACKGROUND.size
+        };
+      }
       if (key.startsWith('typo_') && typeof document !== 'undefined') {
         this.applyCssVars();
       }
@@ -194,6 +198,15 @@ export const useAppSettingsStore = defineStore('appSettings', {
       };
       this.externalDndbeyondUrls = next;
       await appSettingsApi.setKey('external_dndbeyond_urls', next);
+    },
+    async setSiteBackground(patch) {
+      const next = {
+        mode:    patch?.mode    ?? this.siteBackground.mode,
+        opacity: patch?.opacity ?? this.siteBackground.opacity,
+        size:    patch?.size    ?? this.siteBackground.size
+      };
+      this.siteBackground = next;
+      await appSettingsApi.setKey('site_background', next);
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);
