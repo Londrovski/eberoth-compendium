@@ -8,27 +8,32 @@
   >
     <q-card class="session-card column">
       <header class="card-head">
-        <q-btn
-          v-if="sessionDetail.canGoBack.value"
-          flat dense no-caps
-          icon="arrow_back"
-          label="Back"
-          class="back-btn"
-          :title="'Previous session'"
-          @click="sessionDetail.back()"
-        />
-        <q-btn
-          v-if="viewer.isDM && session"
-          flat dense no-caps
-          icon="auto_awesome"
-          label="Highlight"
-          class="highlight-btn"
-          :title="'Send this session to all players'"
-          @click="onHighlight"
-        />
-        <q-btn flat round dense icon="close" class="close-btn" @click="close" />
-        <div v-if="session" class="session-detail-number">Session {{ session.number }}</div>
-        <h2 v-if="session" class="session-detail-title">{{ session.title || ('Session ' + session.number) }}</h2>
+        <div class="head-actions">
+          <q-btn
+            v-if="sessionDetail.canGoBack.value"
+            flat dense no-caps
+            icon="arrow_back"
+            label="Back"
+            class="back-btn"
+            :title="'Previous session'"
+            @click="sessionDetail.back()"
+          />
+          <q-btn
+            v-if="viewer.isDM && session"
+            flat dense no-caps
+            icon="auto_awesome"
+            label="Highlight"
+            class="highlight-btn"
+            :title="'Send this session to all players'"
+            @click="onHighlight"
+          />
+          <q-space />
+          <q-btn flat round dense icon="close" class="close-btn" @click="close" />
+        </div>
+        <div v-if="session" class="title-block">
+          <div class="session-detail-number">Session {{ session.number }}</div>
+          <h2 class="session-detail-title">{{ session.title || ('Session ' + session.number) }}</h2>
+        </div>
       </header>
 
       <q-scroll-area class="col">
@@ -147,48 +152,40 @@ watch(
 }
 
 .card-head {
-  position: relative;
-  padding: 18px 48px 10px;
+  padding: 8px 12px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
 }
-.back-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.back-btn:hover { color: var(--gold); }
-.highlight-btn {
-  position: absolute;
-  top: 10px;
-  left: 96px;
-  color: var(--gold-dim);
-  letter-spacing: 1px;
-}
-.highlight-btn:hover { color: var(--gold-bright); }
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: var(--text-dim);
-}
+.back-btn,
+.highlight-btn,
+.close-btn { color: var(--text-dim); letter-spacing: 1px; }
+.highlight-btn { color: var(--gold-dim); }
+.back-btn:hover,
 .close-btn:hover { color: var(--gold); }
+.highlight-btn:hover { color: var(--gold-bright); }
 
+.title-block {
+  text-align: center;
+  margin-top: 4px;
+}
 .session-detail-number {
   font-size: var(--section-heading-size);
   letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
   color: var(--section-heading-color);
-  text-align: center;
+  line-height: 1.2;
 }
 .session-detail-title {
-  text-align: center;
   font-size: 22px;
   font-weight: 400;
   color: var(--gold);
-  margin: 6px 0 0;
+  margin: 2px 0 0;
+  line-height: 1.2;
 }
 
 .card-body { padding: 20px 24px 28px; }
