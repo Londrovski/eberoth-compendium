@@ -5,7 +5,7 @@
       <button class="hdr-btn" :disabled="!authed" :title="'Add thread'" @click="add">+</button>
     </header>
 
-    <div class="threads-list">
+    <div class="threads-list" ref="listEl">
       <div v-if="!authed" class="threads-empty">Sign in to track threads.</div>
 
       <template v-else>
@@ -25,9 +25,11 @@
             class="text"
             contenteditable="true"
             spellcheck="false"
+            v-html="t.text"
+            :data-idx="i"
             @blur="onTextBlur(i, $event)"
             @keydown.enter.prevent="$event.target.blur()"
-          >{{ t.text }}</span>
+          ></span>
           <button class="del" :title="'Remove'" @click="remove(t)">x</button>
         </div>
         <div v-if="!threads.length" class="threads-empty">
@@ -35,18 +37,23 @@
         </div>
       </template>
     </div>
+
+    <MentionPicker :picker="picker" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useAuthStore } from 'src/stores/auth';
 import { fetchThreads, saveThreads } from 'src/api/threads';
+import { useMentionPicker } from 'src/composables/useMentionPicker';
+import MentionPicker from 'components/shared/MentionPicker.vue';
 
 const auth = useAuthStore();
 const authed = computed(() => !!auth.user);
 
 const threads = ref([]);
+const listEl = ref(null);
 
 let saveTimer = null;
 function persist() {
@@ -57,10 +64,21 @@ function persist() {
   }, 300);
 }
 
+// Shared mention picker for whichever .text span the user is in.
+const picker = useMentionPicker({
+  onInput(el) {
+    const idx = parseInt(el.getAttribute('data-idx'), 10);
+    if (Number.isInteger(idx) && threads.value[idx]) {
+      threads.value[idx].text = el.innerHTML;
+      persist();
+    }
+  }
+});
+
 function onTextBlur(i, e) {
-  const v = (e.target.innerText || '').trim() || '(untitled)';
+  const v = (e.target.innerHTML || '').trim() || '(untitled)';
   threads.value[i].text = v;
-  e.target.innerText = v;
+  e.target.innerHTML = v;
   persist();
 }
 
@@ -73,11 +91,13 @@ function add() {
     position: threads.value.length
   });
   persist();
+  nextTick(() => bindAll());
 }
 
 function remove(thread) {
   threads.value = threads.value.filter(x => x.id !== thread.id);
   persist();
+  nextTick(() => bindAll());
 }
 
 function randomId() {
@@ -85,9 +105,28 @@ function randomId() {
   return 'th_' + Math.random().toString(36).slice(2, 10);
 }
 
+// We bind the mention picker to each .text span. Re-bind whenever
+// threads change so newly-created rows participate.
+let boundEls = [];
+function bindAll() {
+  unbindAll();
+  if (!listEl.value) return;
+  boundEls = Array.from(listEl.value.querySelectorAll('.text'));
+  boundEls.forEach(el => picker.bind(el));
+}
+function unbindAll() {
+  boundEls.forEach(el => picker.unbind(el));
+  boundEls = [];
+}
+
+watch(() => threads.value.length, () => { nextTick(() => bindAll()); });
+
 onMounted(async () => {
   if (authed.value) threads.value = await fetchThreads();
+  await nextTick();
+  bindAll();
 });
+onBeforeUnmount(() => { unbindAll(); });
 </script>
 
 <style scoped>
@@ -151,7 +190,6 @@ onMounted(async () => {
 .thread.done .text { color: var(--text-dim); text-decoration: line-through; }
 .thread-check {
   margin-top: 3px;
-  /* Dim gold accent so the checkbox sits within the palette. */
   accent-color: var(--gold-dim);
   cursor: pointer;
   width: 14px;
@@ -166,6 +204,18 @@ onMounted(async () => {
   word-wrap: break-word;
 }
 .thread .text:focus { color: var(--gold-bright); }
+.thread .text :deep(a.mention) {
+  color: var(--bold-accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.thread .text :deep(a.mention:hover) {
+  background: rgba(216,201,138,0.12);
+  text-decoration: underline;
+}
 .thread .del {
   background: transparent;
   border: none;
