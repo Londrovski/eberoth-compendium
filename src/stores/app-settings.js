@@ -13,6 +13,16 @@ const DEFAULT_TYPOGRAPHY = {
   section_heading: { color: '#8a7544', size: 11, letterSpacing: 3 }
 };
 
+const DEFAULT_EXTERNALS = {
+  zoom: { url: '' },
+  dndbeyond: {
+    baker:   '',
+    butcher: '',
+    charlie: '',
+    dm:      ''
+  }
+};
+
 const DEFAULTS = {
   card_scale:        { scale: 1.0 },
   faction_scale:     { scale: 1.0 },
@@ -21,7 +31,9 @@ const DEFAULTS = {
   typo_body_card:       DEFAULT_TYPOGRAPHY.body_card,
   typo_body_session:    DEFAULT_TYPOGRAPHY.body_session,
   typo_bold_accent:     DEFAULT_TYPOGRAPHY.bold_accent,
-  typo_section_heading: DEFAULT_TYPOGRAPHY.section_heading
+  typo_section_heading: DEFAULT_TYPOGRAPHY.section_heading,
+  external_zoom_url:        DEFAULT_EXTERNALS.zoom,
+  external_dndbeyond_urls:  DEFAULT_EXTERNALS.dndbeyond
 };
 
 export const useAppSettingsStore = defineStore('appSettings', {
@@ -36,9 +48,23 @@ export const useAppSettingsStore = defineStore('appSettings', {
       boldAccent:     { ...DEFAULT_TYPOGRAPHY.bold_accent },
       sectionHeading: { ...DEFAULT_TYPOGRAPHY.section_heading }
     },
+    externalZoomUrl: '',
+    externalDndbeyondUrls: { ...DEFAULT_EXTERNALS.dndbeyond },
     _subscribed: false,
     _channel: null
   }),
+  getters: {
+    /**
+     * Resolve the D&D Beyond URL for the current viewer bucket.
+     * Falls back to the DM campaign URL if no per-bucket value
+     * exists. Empty string if nothing is set.
+     */
+    dndbeyondUrlFor: (s) => (bucket) => {
+      if (!bucket) return '';
+      const map = s.externalDndbeyondUrls || {};
+      return map[bucket] || map.dm || '';
+    }
+  },
   actions: {
     async load() {
       const rows = await appSettingsApi.fetchAll();
@@ -75,6 +101,17 @@ export const useAppSettingsStore = defineStore('appSettings', {
           color:         value?.color         ?? DEFAULT_TYPOGRAPHY.section_heading.color,
           size:          value?.size          ?? DEFAULT_TYPOGRAPHY.section_heading.size,
           letterSpacing: value?.letterSpacing ?? DEFAULT_TYPOGRAPHY.section_heading.letterSpacing
+        };
+      }
+      if (key === 'external_zoom_url') {
+        this.externalZoomUrl = value?.url ?? '';
+      }
+      if (key === 'external_dndbeyond_urls') {
+        this.externalDndbeyondUrls = {
+          baker:   value?.baker   ?? '',
+          butcher: value?.butcher ?? '',
+          charlie: value?.charlie ?? '',
+          dm:      value?.dm      ?? ''
         };
       }
       // Re-emit CSS vars after any typography change.
@@ -143,6 +180,20 @@ export const useAppSettingsStore = defineStore('appSettings', {
         appSettingsApi.setKey('typo_bold_accent',     this.typography.boldAccent),
         appSettingsApi.setKey('typo_section_heading', this.typography.sectionHeading)
       ]);
+    },
+    async setZoomUrl(url) {
+      this.externalZoomUrl = url || '';
+      await appSettingsApi.setKey('external_zoom_url', { url: url || '' });
+    },
+    async setDndbeyondUrls(map) {
+      const next = {
+        baker:   map?.baker   ?? '',
+        butcher: map?.butcher ?? '',
+        charlie: map?.charlie ?? '',
+        dm:      map?.dm      ?? ''
+      };
+      this.externalDndbeyondUrls = next;
+      await appSettingsApi.setKey('external_dndbeyond_urls', next);
     },
     async moveFactionUp(factionId) {
       const i = this.factionOrder.indexOf(factionId);
