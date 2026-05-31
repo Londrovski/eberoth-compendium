@@ -19,9 +19,10 @@ const DEFAULT_EXTERNALS = {
 };
 
 const DEFAULT_BACKGROUND = {
-  mode: 'none',        // 'none' | 'horizon' | 'logo'
-  opacity: 0.35,       // 0..1, applied to the bg image
-  size: 0.8            // 0..1, only used in 'logo' mode (fraction of smaller viewport dim)
+  mode: 'none',          // 'none' | 'horizon' | 'logo'
+  opacity: 0.35,
+  size: 0.8,
+  bgColor: '#000000'     // base colour painted behind the image
 };
 
 const DEFAULTS = {
@@ -116,7 +117,8 @@ export const useAppSettingsStore = defineStore('appSettings', {
         this.siteBackground = {
           mode:    value?.mode    ?? DEFAULT_BACKGROUND.mode,
           opacity: value?.opacity ?? DEFAULT_BACKGROUND.opacity,
-          size:    value?.size    ?? DEFAULT_BACKGROUND.size
+          size:    value?.size    ?? DEFAULT_BACKGROUND.size,
+          bgColor: value?.bgColor ?? DEFAULT_BACKGROUND.bgColor
         };
       }
       if (key.startsWith('typo_') && typeof document !== 'undefined') {
@@ -203,7 +205,8 @@ export const useAppSettingsStore = defineStore('appSettings', {
       const next = {
         mode:    patch?.mode    ?? this.siteBackground.mode,
         opacity: patch?.opacity ?? this.siteBackground.opacity,
-        size:    patch?.size    ?? this.siteBackground.size
+        size:    patch?.size    ?? this.siteBackground.size,
+        bgColor: patch?.bgColor ?? this.siteBackground.bgColor
       };
       this.siteBackground = next;
       await appSettingsApi.setKey('site_background', next);
