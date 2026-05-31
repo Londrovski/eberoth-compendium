@@ -84,7 +84,7 @@ async function onMemberMoveDown(idx) {
   flex-direction: column;
   gap: calc(12px * var(--scale, 1));
   background: var(--bg-panel);
-  border: 1px solid var(--border);
+  border: var(--line-thickness) solid var(--line-color);
   border-radius: 4px;
   padding: calc(12px * var(--scale, 1)) calc(14px * var(--scale, 1));
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -106,7 +106,7 @@ async function onMemberMoveDown(idx) {
   justify-content: space-between;
   gap: calc(10px * var(--faction-scale, 1));
   padding: calc(8px * var(--faction-scale, 1)) calc(10px * var(--faction-scale, 1));
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--line-thickness) solid var(--line-color);
   border-radius: calc(3px * var(--scale, 1));
   background: transparent;
 }
@@ -139,7 +139,7 @@ async function onMemberMoveDown(idx) {
 .member-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(12px * var(--scale, 1));
+  gap: var(--card-spacing);
   align-items: flex-start;
 }
 .empty {
