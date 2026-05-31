@@ -37,6 +37,15 @@
         @change="onBoxOpacity"
       />
     </div>
+    <div class="row-pair">
+      <div class="row-pair-label">Cards per row</div>
+      <Stepper
+        :value="cardsPerRow"
+        :min="1" :max="4" :step="1"
+        :title="'How many member cards fit per row inside each faction box'"
+        @change="onCardsPerRow"
+      />
+    </div>
     <button class="reset-btn" @click="reset">Reset lines</button>
   </div>
 </template>
@@ -50,10 +59,12 @@ const thickness     = computed(() => layout.siteLines.thickness ?? 2);
 const color         = computed(() => layout.siteLines.color || '#8a7544');
 const spacing       = computed(() => layout.siteLines.spacing ?? 16);
 const boxOpacityPct = computed(() => Math.round((layout.siteLines.boxOpacity ?? 1) * 100));
+const cardsPerRow   = computed(() => layout.factionCardsPerRow ?? 2);
 
-function onThickness(v)  { layout.setSiteLines({ thickness: v }); }
-function onSpacing(v)    { layout.setSiteLines({ spacing: v }); }
-function onBoxOpacity(v) { layout.setSiteLines({ boxOpacity: v / 100 }); }
+function onThickness(v)   { layout.setSiteLines({ thickness: v }); }
+function onSpacing(v)     { layout.setSiteLines({ spacing: v }); }
+function onBoxOpacity(v)  { layout.setSiteLines({ boxOpacity: v / 100 }); }
+function onCardsPerRow(v) { layout.setFactionCardsPerRow(v); }
 function reset() {
   layout.setSiteLines({
     thickness: 2,
@@ -61,6 +72,7 @@ function reset() {
     spacing: 16,
     boxOpacity: 1
   });
+  layout.setFactionCardsPerRow(2);
 }
 
 let colorTimer = null;
