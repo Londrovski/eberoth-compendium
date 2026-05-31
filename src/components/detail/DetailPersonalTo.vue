@@ -26,10 +26,10 @@ function open(id) { detail.open(id); }
 
 <style scoped>
 .section-label {
-  font-size: 0.7rem;
-  letter-spacing: 2px;
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
   text-transform: uppercase;
-  color: var(--gold-dim);
+  color: var(--section-heading-color);
   margin-bottom: 8px;
 }
 .chip {
@@ -48,6 +48,6 @@ function open(id) { detail.open(id); }
   border-color: var(--gold);
 }
 .meta { display: flex; flex-direction: column; min-width: 0; }
-.name { font-weight: 500; font-size: 0.85rem; color: var(--gold-bright); }
-.role { font-size: 0.7rem; color: var(--text-dim); font-style: italic; }
+.name { font-weight: 500; font-size: var(--body-card-size); color: var(--bold-accent-color); }
+.role { font-size: calc(var(--body-card-size) - 3px); color: var(--text-dim); font-style: italic; }
 </style>
