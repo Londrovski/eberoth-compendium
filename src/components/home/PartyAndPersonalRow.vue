@@ -87,9 +87,6 @@ const myPersonals = computed(() => {
   return entities.personalsOf(ownPlayerId.value);
 });
 
-// Set of entity ids that are pinned to *any* player's personal row.
-// Used to dedupe so a card already shown as a personal doesn't
-// reappear in the orphan block.
 const personalEntityIds = computed(() => {
   const set = new Set();
   if (showGroupedView.value) {
@@ -102,17 +99,12 @@ const personalEntityIds = computed(() => {
   return set;
 });
 
-// Entity ids that appear inside a faction column already.
 const factionMemberIds = computed(() => {
   const set = new Set();
   entities.memberships.forEach(m => set.add(m.entity_id));
   return set;
 });
 
-// "Orphan" cards = anything that would otherwise have nowhere to land
-// on the home page. Includes all Lore not pinned to anyone, plus any
-// NPCs that aren't pinned and aren't a faction member (so things like
-// The Teacher don't disappear when unpinned).
 const orphanCards = computed(() => {
   return entities.all
     .filter(e => {
@@ -161,7 +153,7 @@ async function onLoreMoveDown(idx) {
 <style scoped>
 .party-section {
   padding: calc(14px * var(--scale, 1)) 0 calc(20px * var(--scale, 1));
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--line-thickness) solid var(--line-color);
 }
 .section-label {
   font-size: var(--section-heading-size);
@@ -173,13 +165,13 @@ async function onLoreMoveDown(idx) {
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(16px * var(--scale, 1));
+  gap: var(--card-spacing);
   align-items: flex-start;
 }
 .divider {
-  width: 1px;
+  width: var(--line-thickness);
   align-self: stretch;
-  background: var(--border);
+  background: var(--line-color);
   margin: 0 calc(8px * var(--scale, 1));
 }
 .group-chip {
@@ -189,7 +181,7 @@ async function onLoreMoveDown(idx) {
   color: var(--gold-dim);
   padding: calc(4px * var(--scale, 1)) calc(8px * var(--scale, 1));
   background: var(--bg-panel-2);
-  border: 1px solid var(--border);
+  border: var(--line-thickness) solid var(--line-color);
   border-radius: calc(4px * var(--scale, 1));
   white-space: nowrap;
   margin-top: calc(80px * var(--scale, 1));
