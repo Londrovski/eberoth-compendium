@@ -48,7 +48,8 @@ const glow     = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
 
 const cardStyle = computed(() => ({
-  '--scale': layout.cardScale
+  '--scale': layout.cardScale,
+  width: Math.round(180 * layout.cardScale) + 'px'
 }));
 
 const otherFactions = computed(() =>
@@ -132,18 +133,18 @@ function open() { detail.open(props.entity.id); }
 }
 
 .footer {
-  padding: calc(8px * var(--scale, 1)) calc(8px * var(--scale, 1));
+  padding: calc(10px * var(--scale, 1)) calc(12px * var(--scale, 1));
   border-top: 1px solid var(--border);
   text-align: center;
 }
 .name {
-  font-size: calc(0.85rem * var(--scale, 1));
+  font-size: calc(1rem * var(--scale, 1));
   color: var(--text);
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
 .role {
-  font-size: calc(0.7rem * var(--scale, 1));
+  font-size: calc(0.75rem * var(--scale, 1));
   color: var(--text-dim);
   font-style: italic;
   line-height: 1.3;
