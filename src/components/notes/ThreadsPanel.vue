@@ -1,7 +1,7 @@
 <template>
   <div class="threads-panel">
     <header class="drawer-header">
-      <span>Active Threads</span>
+      <span class="hdr-title">Active Threads</span>
       <button class="hdr-btn" :disabled="!authed" :title="'Add thread'" @click="add">+</button>
     </header>
 
@@ -100,14 +100,18 @@ onMounted(async () => {
 
 .drawer-header {
   padding: 12px 14px 8px;
-  font-size: 11px;
-  color: var(--gold);
-  font-weight: bold;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+}
+.hdr-title {
+  font-size: var(--section-heading-size);
+  letter-spacing: var(--section-heading-spacing);
+  text-transform: uppercase;
+  color: var(--section-heading-color);
+  font-weight: bold;
 }
 .hdr-btn {
   background: transparent;
