@@ -17,7 +17,9 @@
         @dblclick="resetWidth"
         :title="'Drag to resize · double-click to reset'"
       >
-        <div class="resizer-grip" aria-hidden="true"></div>
+        <div class="resizer-grip" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
       </div>
 
       <main class="main-pane">
@@ -104,15 +106,19 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
 </script>
 
 <style scoped>
+/* Notes page sits on top of the global topbar background. Without an
+   opaque surface the home background bleeds through the resizer column
+   and the main-pane gutters. Paint the whole page on --bg. */
 .notes-page {
   height: calc(100vh - 64px);
   padding: 0;
-  background: transparent;
+  background: var(--bg);
 }
 .notes-layout {
   display: flex;
   height: 100%;
   width: 100%;
+  background: var(--bg);
 }
 
 .drawer {
@@ -130,38 +136,55 @@ watch(() => prefs.notesDrawerWidth, () => onWindowResize());
 .drawer-section.threads { flex: 0 0 auto; max-height: 45%; }
 .drawer-section.notes   { flex: 1 1 auto; border-top: 1px solid var(--border); min-height: 0; }
 
+/* Resizer — now opaque + obviously draggable.
+   8px solid bar, gold-dim borders on both edges so it reads as a
+   distinct seam at rest, with a 3-dot grip in the middle. Hover and
+   drag states amplify the gold. The ::before extends the hit area
+   ±4px so users don't have to land precisely on the bar. */
 .resizer {
-  flex: 0 0 6px;
+  flex: 0 0 8px;
   cursor: col-resize;
-  background: transparent;
-  border-left: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  border-left: 1px solid var(--gold-dim);
+  border-right: 1px solid var(--gold-dim);
   position: relative;
   transition: background 0.15s ease, border-color 0.15s ease;
+  z-index: 1;
 }
 .resizer::before {
   content: '';
   position: absolute;
-  inset: 0 -3px;
+  inset: 0 -4px;
 }
 .resizer:hover,
 .resizer.dragging {
-  background: rgba(201, 169, 97, 0.10);
-  border-left-color: var(--gold-dim);
+  background: rgba(201, 169, 97, 0.18);
+  border-color: var(--gold);
 }
+
 .resizer-grip {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 2px;
-  height: 32px;
-  background: var(--border);
-  border-radius: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   pointer-events: none;
-  transition: background 0.15s ease;
 }
-.resizer:hover .resizer-grip,
-.resizer.dragging .resizer-grip { background: var(--gold-dim); }
+.resizer-grip span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.resizer:hover .resizer-grip span,
+.resizer.dragging .resizer-grip span {
+  background: var(--gold);
+  transform: scale(1.15);
+}
 
 .main-pane {
   flex: 1;
