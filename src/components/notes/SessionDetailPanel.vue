@@ -106,12 +106,18 @@ watch(
 </script>
 
 <style scoped>
+/* Softer reading colour just for this panel.
+   --text site-wide is #e8e2d4 (high contrast); --read is a warmer, less glaring tone. */
 .session-card {
+  --read:        #c9bfa9;
+  --read-strong: #d8c98a;
+  --read-mute:   #8a8170;
+
   width: 460px;
   max-width: 100vw;
   height: 100vh;
   background: var(--bg-panel);
-  color: var(--text);
+  color: var(--read);
   border-left: 1px solid var(--border);
 }
 
@@ -142,85 +148,90 @@ watch(
   margin: 6px 0 0;
 }
 
-.card-body { padding: 18px 22px 24px; }
+.card-body { padding: 20px 24px 28px; }
 
 .session-row-summary {
-  color: var(--text-dim);
+  color: var(--read-mute);
   font-style: italic;
-  font-size: 13px;
-  margin-bottom: 16px;
+  font-size: 14px;
+  margin-bottom: 18px;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.65;
 }
-.session-row-summary :deep(strong) { color: var(--gold-bright); font-style: normal; font-weight: 600; }
+.session-row-summary :deep(strong) { color: var(--read-strong); font-style: normal; font-weight: 600; }
 
 .player-body {
-  border-left: 3px solid var(--gold);
-  background: rgba(201,169,97,0.08);
-  padding: 10px 12px;
+  border-left: 3px solid var(--gold-dim);
+  background: rgba(201,169,97,0.05);
+  padding: 12px 14px;
   border-radius: 3px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .player-body-label {
   font-size: 10px;
   color: var(--gold-dim);
   margin-bottom: 6px;
 }
-.player-body-text { font-size: 13px; line-height: 1.55; color: var(--text); }
-.player-body-text :deep(strong) { color: var(--gold-bright); font-weight: 600; }
+.player-body-text {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--read);
+}
+.player-body-text :deep(strong) { color: var(--read-strong); font-weight: 600; }
 
 .session-summary-box {
-  background: rgba(201,169,97,0.05);
+  background: rgba(201,169,97,0.04);
   border: 1px solid var(--border);
   border-left: 2px solid var(--gold-dim);
   border-radius: 3px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
 }
 .session-summary-label {
   font-size: 10px;
   color: var(--gold-dim);
   margin-bottom: 6px;
 }
-.session-summary-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0; }
+.session-summary-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin: 0; }
 .session-summary-list li {
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.45;
+  color: var(--read);
+  font-size: 14px;
+  line-height: 1.65;
   padding-left: 14px;
   position: relative;
 }
 .session-summary-list li::before { content: '—'; position: absolute; left: 0; color: var(--gold-dim); }
-.session-summary-list li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
+.session-summary-list li :deep(strong) { color: var(--read-strong); font-weight: 600; }
 
 .session-detail-part-label {
   font-size: 11px;
   color: var(--gold-dim);
-  margin: 18px 0 8px;
+  margin: 22px 0 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
 .session-block-para {
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.65;
-  margin: 0 0 9px 0;
+  color: var(--read);
+  font-size: 15px;
+  line-height: 1.85;
+  margin: 0 0 12px 0;
 }
-.session-block-para :deep(strong) { color: var(--gold-bright); font-weight: 600; }
+.session-block-para :deep(strong) { color: var(--read-strong); font-weight: 600; }
 .session-block-highlight {
-  color: var(--gold-bright);
-  font-size: 14px;
+  color: var(--read-strong);
+  font-size: 15px;
   font-weight: 600;
-  margin: 12px 0 6px;
+  line-height: 1.6;
+  margin: 14px 0 8px;
 }
 .session-block-takeaway {
-  color: var(--gold-bright);
-  font-size: 13px;
+  color: var(--read-strong);
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.7;
   padding-left: 14px;
   position: relative;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .session-block-takeaway::before {
   content: '—';
@@ -233,17 +244,17 @@ watch(
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin: 0 0 9px;
+  gap: 7px;
+  margin: 0 0 12px;
   padding: 0;
 }
 .session-block-testimonies li {
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.55;
+  color: var(--read);
+  font-size: 14px;
+  line-height: 1.7;
 }
-.session-block-testimonies li :deep(strong) { color: var(--gold-bright); font-weight: 600; }
-.testimony-name { color: var(--gold-bright); font-weight: 600; }
+.session-block-testimonies li :deep(strong) { color: var(--read-strong); font-weight: 600; }
+.testimony-name { color: var(--read-strong); font-weight: 600; }
 
-.empty-note { color: var(--text-dim); font-size: 13px; font-style: italic; text-align: center; padding: 16px 0; }
+.empty-note { color: var(--read-mute); font-size: 13px; font-style: italic; text-align: center; padding: 16px 0; }
 </style>
