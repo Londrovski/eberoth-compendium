@@ -151,8 +151,11 @@ onMounted(async () => {
 .thread.done .text { color: var(--text-dim); text-decoration: line-through; }
 .thread-check {
   margin-top: 3px;
-  accent-color: var(--gold);
+  /* Dim gold accent so the checkbox sits within the palette. */
+  accent-color: var(--gold-dim);
   cursor: pointer;
+  width: 14px;
+  height: 14px;
 }
 .thread .text {
   flex: 1;
