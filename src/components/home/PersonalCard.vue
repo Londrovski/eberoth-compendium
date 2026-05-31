@@ -83,7 +83,7 @@ async function onUnpin() {
   position: relative;
   display: block;
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: var(--line-thickness) solid var(--line-color);
   border-radius: calc(4px * var(--scale, 1));
   cursor: pointer;
   overflow: hidden;
@@ -160,7 +160,7 @@ async function onUnpin() {
   bottom: 0;
   min-height: var(--footer-h);
   background: var(--bg-panel);
-  border-top: 1px solid var(--border);
+  border-top: var(--line-thickness) solid var(--line-color);
   padding: calc(6px * var(--scale, 1)) calc(10px * var(--scale, 1));
   text-align: center;
   display: flex;
