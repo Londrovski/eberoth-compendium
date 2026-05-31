@@ -91,13 +91,13 @@ function open() { detail.open(props.entity.id); }
   text-align: center;
 }
 .name {
-  font-size: calc(1rem * var(--scale, 1));
+  font-size: var(--body-card-size);
   color: var(--gold);
   letter-spacing: 0.04em;
   line-height: 1.2;
 }
 .sub {
-  font-size: calc(0.75rem * var(--scale, 1));
+  font-size: calc(var(--body-card-size) - 3px);
   color: var(--text-dim);
   font-style: italic;
   line-height: 1.3;
