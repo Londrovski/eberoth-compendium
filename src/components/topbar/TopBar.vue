@@ -25,7 +25,6 @@
       <q-space />
 
       <div class="row items-center q-gutter-sm tb-right">
-        <!-- Desktop: full button strip. Mobile: tucks into an overflow menu. -->
         <template v-if="!viewport.isMobile">
           <q-btn
             v-if="zoomUrl"
@@ -42,7 +41,7 @@
             v-if="dndbeyondUrl"
             flat dense no-caps
             icon="casino"
-            label="D&D Beyond"
+            :label="dndbeyondLabel"
             class="ext-btn dnd-btn"
             :title="dndbeyondTitle"
             :href="dndbeyondUrl"
@@ -68,8 +67,6 @@
         </template>
 
         <template v-else>
-          <!-- Mobile: the only persistent control is the overflow menu.
-               DM Tools menu is shown directly so the DM can still adjust live. -->
           <DmToolsMenu v-if="viewer.isDM" mobile />
           <q-btn flat dense round icon="more_vert" class="more-btn" :title="'Menu'">
             <q-menu auto-close>
@@ -80,7 +77,7 @@
                 </q-item>
                 <q-item v-if="dndbeyondUrl" clickable :href="dndbeyondUrl" target="_blank" rel="noopener">
                   <q-item-section avatar><q-icon name="casino" color="red-3" /></q-item-section>
-                  <q-item-section>D&D Beyond</q-item-section>
+                  <q-item-section>{{ dndbeyondLabel }}</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable>
@@ -120,7 +117,9 @@ import { useAuthStore } from 'src/stores/auth';
 import { useViewer } from 'src/composables/useViewer';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useViewport } from 'src/composables/useViewport';
-import { characterFromBucket } from 'src/config/players';
+import { useEntitiesStore } from 'src/stores/entities';
+import { useEntityDetail } from 'src/composables/useEntityDetail';
+import { characterFromBucket, bucketFromPlayerId } from 'src/config/players';
 import ViewAsSelect from 'components/topbar/ViewAsSelect.vue';
 import DmToolsMenu from 'components/topbar/DmToolsMenu.vue';
 import UserZoomControl from 'components/topbar/UserZoomControl.vue';
@@ -131,6 +130,8 @@ const auth = useAuthStore();
 const viewer = useViewer();
 const appSettings = useAppSettingsStore();
 const viewport = useViewport();
+const entities = useEntitiesStore();
+const detail = useEntityDetail();
 const signingOut = ref(false);
 
 const roleLabel = computed(() => {
@@ -143,12 +144,44 @@ const roleLabel = computed(() => {
 
 const zoomUrl = computed(() => appSettings.externalZoomUrl || '');
 
-const dndbeyondUrl = computed(() => {
-  const bucket = auth.isViewingAs ? auth.viewingAs : auth.actualBucket;
-  return appSettings.dndbeyondUrlFor(bucket);
+// Entity-aware D&D Beyond targeting.
+//
+// Priority order:
+// 1. If the detail panel is open on a PLAYER entity, point to that
+//    character's sheet. This is the "I'm looking at Azrael, give me
+//    Azrael's sheet" case the DM mostly hits.
+// 2. Otherwise fall back to the *viewer's* sheet (their own character
+//    on player accounts; the campaign page for the DM).
+const openEntity = computed(() => {
+  if (!detail.isOpen?.value) return null;
+  const id = detail.currentEntityId?.value;
+  return id ? entities.byId?.[id] : null;
+});
+
+const dndbeyondBucket = computed(() => {
+  const e = openEntity.value;
+  if (e && e.kind === 'player') {
+    // Player entities carry auth_bucket; fall back to id-based lookup.
+    return e.auth_bucket || bucketFromPlayerId(e.id) || null;
+  }
+  return auth.isViewingAs ? auth.viewingAs : auth.actualBucket;
+});
+
+const dndbeyondUrl = computed(() => appSettings.dndbeyondUrlFor(dndbeyondBucket.value));
+
+const dndbeyondLabel = computed(() => {
+  const e = openEntity.value;
+  if (e && e.kind === 'player') {
+    return e.short_name || e.display_name || e.name || 'D&D Beyond';
+  }
+  return 'D&D Beyond';
 });
 
 const dndbeyondTitle = computed(() => {
+  const e = openEntity.value;
+  if (e && e.kind === 'player') {
+    return `Open ${e.short_name || e.name}'s D&D Beyond sheet`;
+  }
   if (viewer.isDM && !auth.isViewingAs) return 'Open campaign on D&D Beyond';
   const name = characterFromBucket(auth.isViewingAs ? auth.viewingAs : auth.actualBucket);
   return name ? `Open ${name}'s D&D Beyond sheet` : 'Open D&D Beyond';
