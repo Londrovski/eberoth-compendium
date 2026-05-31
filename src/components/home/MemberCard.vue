@@ -1,10 +1,5 @@
 <template>
-  <div
-    class="member-card"
-    :class="[visClass, { 'is-glow': glow, 'is-mobile': viewport.isMobile }]"
-    :style="cardStyle"
-    @click="open"
-  >
+  <div class="member-card" :class="[visClass, { 'is-glow': glow }]" :style="cardStyle" @click="open">
     <div class="img-wrap">
       <EntityAvatar :entity="entity" fill />
       <div class="badge" v-if="otherCount > 0" :title="otherFactionsTitle">+{{ otherCount }}</div>
@@ -32,7 +27,6 @@ import ReorderArrows from 'components/shared/ReorderArrows.vue';
 import { useAppSettingsStore } from 'src/stores/app-settings';
 import { useEntitiesStore } from 'src/stores/entities';
 import { useViewer } from 'src/composables/useViewer';
-import { useViewport } from 'src/composables/useViewport';
 import { useEntityDetail } from 'src/composables/useEntityDetail';
 import { useGlow } from 'src/composables/useGlow';
 import { useVisibilityIndicator } from 'src/composables/useVisibilityIndicator';
@@ -49,7 +43,6 @@ defineEmits(['move-up', 'move-down']);
 const layout   = useAppSettingsStore();
 const entities = useEntitiesStore();
 const viewer   = useViewer();
-const viewport = useViewport();
 const detail   = useEntityDetail();
 const glow     = useGlow(props.entity.id);
 const visClass = useVisibilityIndicator(props.entity.id);
@@ -58,12 +51,6 @@ const W = 180;
 const FOOTER = 44;
 
 const cardStyle = computed(() => {
-  if (viewport.isMobile) {
-    return {
-      '--scale': layout.cardScale,
-      '--mobile-footer-h': '38px'
-    };
-  }
   const w = W * layout.cardScale;
   const imgH = w * 4 / 3;
   return {
@@ -97,18 +84,11 @@ function open() { detail.open(props.entity.id); }
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
 }
-.member-card.is-mobile {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-width: 1px;
-  border-radius: 4px;
-}
 .member-card:hover {
   border-color: var(--gold-dim);
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
-.member-card.is-mobile:hover { transform: none; }
 
 .member-card.vis-restricted {
   background: rgba(74,107,145,0.10);
@@ -135,7 +115,6 @@ function open() { detail.open(props.entity.id); }
   background: var(--bg);
   overflow: hidden;
 }
-.member-card.is-mobile .img-wrap { inset: 0; height: auto; }
 .img-wrap :deep(.entity-avatar) {
   width: 100%;
   height: 100%;
@@ -181,11 +160,6 @@ function open() { detail.open(props.entity.id); }
   flex-direction: column;
   justify-content: center;
 }
-.member-card.is-mobile .footer {
-  min-height: var(--mobile-footer-h, 38px);
-  padding: 4px 6px;
-  border-top-width: 1px;
-}
 .member-card.is-glow .footer        { background: #3a2f17; border-top-color: var(--gold-dim); }
 .member-card.vis-restricted .footer { background: #1f2c3a; border-top-color: var(--blue); }
 .member-card.vis-dm-only .footer    { background: #3a1f1f; border-top-color: var(--red); }
@@ -196,10 +170,6 @@ function open() { detail.open(props.entity.id); }
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
-.member-card.is-mobile .name {
-  font-size: var(--body-card-size-mobile);
-  letter-spacing: 0.01em;
-}
 .role {
   font-size: calc(var(--body-card-size) - 3px);
   color: var(--text-dim);
@@ -207,5 +177,4 @@ function open() { detail.open(props.entity.id); }
   line-height: 1.3;
   margin-top: 2px;
 }
-.member-card.is-mobile .role { font-size: calc(var(--body-card-size-mobile) - 2px); }
 </style>
