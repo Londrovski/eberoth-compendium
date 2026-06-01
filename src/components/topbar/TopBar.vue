@@ -35,20 +35,14 @@
           class="logout-btn" :disable="signingOut" @click="onSignOut" />
       </div>
 
-      <!-- ── Mobile toolbar ──────────────────────────────────────────────
-           Layout (player):  [Eberoth]  [Home] [Notes]  [≡]
-           Layout (DM):      [Eberoth]  [Home] [Notes]  [⚙]  [≡]
-
-           Home + Notes are inline nav buttons with text labels.
-           Gear opens DM controls panel. Hamburger opens the side drawer
-           (logout, role, admin, external links, view-as).
-      ───────────────────────────────────────────────────────────────── -->
+      <!-- Mobile toolbar -->
       <div class="mob-nav lt-sm">
-        <!-- Home button -->
-        <router-link :to="{ name: 'home' }" custom v-slot="{ isActive, navigate }">
+
+        <!-- Home: exact match only so /notes doesn't also activate it -->
+        <router-link :to="{ name: 'home' }" custom v-slot="{ isExactActive, navigate }">
           <button
             class="mob-nav-btn"
-            :class="{ active: isActive }"
+            :class="{ active: isExactActive }"
             @click="navigate"
             aria-label="Home"
           >
@@ -57,11 +51,11 @@
           </button>
         </router-link>
 
-        <!-- Notes button -->
-        <router-link :to="{ name: 'notes' }" custom v-slot="{ isActive, navigate }">
+        <!-- Notes: exact match -->
+        <router-link :to="{ name: 'notes' }" custom v-slot="{ isExactActive, navigate }">
           <button
             class="mob-nav-btn"
-            :class="{ active: isActive }"
+            :class="{ active: isExactActive }"
             @click="navigate"
             aria-label="Notes"
           >
@@ -70,24 +64,20 @@
           </button>
         </router-link>
 
-        <!-- Realtime dot (DM only, inline) -->
+        <!-- Realtime dot (DM only) -->
         <RealtimeDot v-if="viewer.isDM" class="mob-realtime" />
 
         <!-- DM gear (DM only) -->
         <q-btn v-if="viewer.isDM"
-          flat dense round
-          icon="settings"
-          size="sm"
+          flat dense round icon="settings" size="sm"
           class="mobile-dm-btn"
           aria-label="DM controls"
           @click="dmPanelOpen = true"
         />
 
-        <!-- Hamburger (everyone) -->
+        <!-- Hamburger -->
         <q-btn
-          flat dense round
-          icon="menu"
-          size="sm"
+          flat dense round icon="menu" size="sm"
           class="mobile-menu-btn"
           aria-label="More options"
           @click="drawerOpen = true"
@@ -97,10 +87,7 @@
     </q-toolbar>
   </q-header>
 
-  <!-- ── Mobile side drawer (right) ────────────────────────────────────
-       Contains: logout, role chip, admin (DM), external links, view-as (DM).
-       Navigation (Home/Notes) is now in the topbar so removed from here.
-  ──────────────────────────────────────────────────────────────────── -->
+  <!-- Mobile side drawer (right) -->
   <q-drawer v-model="drawerOpen" side="right" overlay behavior="mobile" class="eb-drawer">
     <div class="drawer-header q-pa-md row items-center">
       <q-btn flat dense round icon="close" @click="drawerOpen = false" style="color:var(--text-dim)" />
@@ -109,7 +96,6 @@
     </div>
     <q-separator style="background:var(--border)" />
 
-    <!-- Admin (DM only) -->
     <q-list v-if="viewer.isDM">
       <q-item clickable v-ripple :to="{ name: 'admin-usage' }" class="drawer-item" @click="drawerOpen = false">
         <q-item-section avatar><q-icon name="admin_panel_settings" /></q-item-section>
@@ -118,21 +104,18 @@
     </q-list>
     <q-separator v-if="viewer.isDM" style="background:var(--border); margin: 4px 0" />
 
-    <!-- External links -->
     <div class="q-pa-sm ext-links" v-if="zoomUrl || dndbeyondUrl">
-      <a v-if="zoomUrl"       :href="zoomUrl"       target="_blank" rel="noopener" class="drawer-ext-btn zoom-btn"><q-icon name="videocam" size="15px" /><span>Zoom</span></a>
-      <a v-if="dndbeyondUrl" :href="dndbeyondUrl"   target="_blank" rel="noopener" class="drawer-ext-btn dnd-btn"><q-icon name="casino"   size="15px" /><span>D&amp;D Beyond</span></a>
+      <a v-if="zoomUrl"       :href="zoomUrl"     target="_blank" rel="noopener" class="drawer-ext-btn zoom-btn"><q-icon name="videocam" size="15px" /><span>Zoom</span></a>
+      <a v-if="dndbeyondUrl" :href="dndbeyondUrl" target="_blank" rel="noopener" class="drawer-ext-btn dnd-btn"><q-icon name="casino"   size="15px" /><span>D&amp;D Beyond</span></a>
     </div>
     <q-separator v-if="zoomUrl || dndbeyondUrl" style="background:var(--border); margin: 4px 0" />
 
-    <!-- View-as (DM only) -->
     <div v-if="viewer.isDM" class="q-pa-sm">
       <div class="drawer-section-label">View as</div>
       <ViewAsSelect />
     </div>
     <q-separator v-if="viewer.isDM" style="background:var(--border); margin: 4px 0" />
 
-    <!-- Role + sign out -->
     <div class="q-pa-md row items-center justify-between">
       <q-chip dense outline class="role-chip">{{ roleLabel }}</q-chip>
       <q-btn flat dense no-caps icon="logout" label="Log out"
@@ -140,7 +123,7 @@
     </div>
   </q-drawer>
 
-  <!-- ── Mobile DM controls panel (right) ─────────────────────────────── -->
+  <!-- Mobile DM controls panel (right) -->
   <q-drawer v-if="viewer.isDM" v-model="dmPanelOpen" side="right" overlay behavior="mobile" class="eb-drawer eb-dm-panel">
     <div class="drawer-header q-pa-md row items-center">
       <q-btn flat dense round icon="close" @click="dmPanelOpen = false" style="color:var(--text-dim)" />
@@ -195,7 +178,6 @@ async function onSignOut() {
 </script>
 
 <style scoped>
-/* ── Shared ──────────────────────────────────────────────────────────── */
 .eb-topbar  { background: var(--bg-panel); color: var(--text); border-bottom: 1px solid var(--border); }
 .eb-toolbar { min-height: 64px; }
 
@@ -207,12 +189,10 @@ async function onSignOut() {
   flex-shrink: 0;
 }
 
-/* ── Desktop tabs ────────────────────────────────────────────────────── */
 .eb-tabs :deep(.q-tab)            { color: var(--section-heading-color); font-size: var(--section-heading-size); letter-spacing: var(--section-heading-spacing); text-transform: uppercase; }
 .eb-tabs :deep(.q-tab--active)    { color: var(--gold); }
 .eb-tabs :deep(.q-tab__indicator) { background: var(--gold) !important; }
 
-/* ── Desktop external buttons ────────────────────────────────────────── */
 .ext-btn  { font-size: 13px; letter-spacing: 0.04em; padding: 6px 12px; border-radius: 4px; border: 1px solid transparent; }
 .zoom-btn { color: #cfe1ff; background: #1f3a6b; border-color: #3a5da3; }
 .zoom-btn:hover { background: #2a4f8e; border-color: #4d76c1; color: #fff; }
@@ -223,21 +203,15 @@ async function onSignOut() {
 .logout-btn { color: var(--gold-dim); font-size: 0.85rem; letter-spacing: 0.04em; padding: 6px 10px; }
 .logout-btn:hover { color: var(--gold); }
 
-/* ── Mobile toolbar ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .eb-toolbar { min-height: 52px; padding: 0 8px; gap: 6px; }
   .eberoth    { font-size: 18px; letter-spacing: 0.03em; }
 }
 
-/*
-  .mob-nav: flex row that fills the remaining space after the brand.
-  Aligns Home + Notes to the left of the remaining space, then pushes
-  the icon buttons to the far right with a spacer.
-*/
 .mob-nav {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;          /* take up all remaining toolbar space */
+  flex: 1 1 auto;
   gap: 2px;
   margin-left: 6px;
   min-width: 0;
@@ -265,9 +239,7 @@ async function onSignOut() {
 .mob-nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 .mob-nav-btn :deep(.q-icon) { color: inherit; }
 
-/* Push icon buttons to the right */
 .mob-realtime { margin-left: auto; }
-/* When no realtime dot (player), first icon button gets the auto margin */
 .mob-nav-btn + .mobile-dm-btn,
 .mob-nav-btn + .mobile-menu-btn { margin-left: auto; }
 .mob-realtime + .mobile-dm-btn,
@@ -277,7 +249,6 @@ async function onSignOut() {
 .mobile-dm-btn   { color: var(--gold-dim); }
 .mobile-dm-btn:hover { color: var(--gold); }
 
-/* ── Drawers ─────────────────────────────────────────────────────────── */
 .eb-drawer {
   background: var(--bg-panel) !important;
   border-left: 1px solid var(--border) !important;
